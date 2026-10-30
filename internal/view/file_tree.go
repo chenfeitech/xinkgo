@@ -9,6 +9,7 @@ package view
 import (
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/egoist/mygo/transfer"
 	"github.com/egoist/mygo/ui"
@@ -41,14 +42,21 @@ type Tree struct {
 	OnMove func(path string)
 	// OnImport brings files from outside the vault into dir.
 	OnImport func(dir string, paths []string)
+	// OnRefresh reads the vault's folder again, when the user asks.
+	OnRefresh func()
 
 	// Renaming is the path whose name is being asked for, and Name the
 	// name the user has typed so far.
 	Renaming string
 	Name     string
 
-	list ui.ListState
+	refreshed time.Time
+	list      ui.ListState
 }
+
+// RefreshQuiet is how long a second press of the refresh button is
+// ignored, so that pressing it twice reads the folder once.
+const RefreshQuiet = 300 * time.Millisecond
 
 // NewTree returns a tree with nothing in it yet.
 func NewTree() *Tree {
@@ -114,6 +122,12 @@ func (t *Tree) View(c *ui.Context) {
 			}
 			ui.Text(c, name).Bold()
 			ui.Textf(c, "%d notes", t.count()).TextColor(c.Theme().TextMuted)
+			if t.OnRefresh != nil {
+				if ui.Button(c.Key("refresh"), "↻").
+					Label("Read the folder again").Clicked() {
+					t.refresh()
+				}
+			}
 		})
 
 		ui.List(c, &t.list, len(rows), func(i int) {
@@ -137,6 +151,20 @@ func (t *Tree) View(c *ui.Context) {
 			})
 		}).Fill()
 	})
+}
+
+// refresh reads the folder again when the user asks. Pressing the button
+// twice quickly reads it once: what the eye wanted was one reading, and
+// the second press only says it again.
+func (t *Tree) refresh() {
+	now := time.Now()
+	if now.Sub(t.refreshed) < RefreshQuiet {
+		return
+	}
+	t.refreshed = now
+	if t.OnRefresh != nil {
+		t.OnRefresh()
+	}
 }
 
 // menu is what a click of the other button asks: what can be done to

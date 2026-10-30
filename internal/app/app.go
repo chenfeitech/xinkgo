@@ -90,8 +90,7 @@ func Run() error {
 		// Bound for windows that show a page: mygo generate writes their
 		// typed client from this and whatever else is bound here.
 		mygo.Bind(system{info: info})
-		app.SetMenu(mainMenu(
-			keymap.Resolve(current.config.Editor.Keymap)))
+		current.refreshMenu()
 		openMainWindow()
 		st.restore()
 		if err := st.watchVault(); err != nil {
@@ -175,6 +174,7 @@ func boot(app *mygo.Application) (*appState, error) {
 	ws.Tree.OnDelete = st.deleteItem
 	ws.Tree.OnMove = st.moveItem
 	ws.Tree.OnImport = st.importFiles
+	ws.Tree.OnRefresh = st.rescan
 	// What is open is written down every time it changes, so that a
 	// crash loses the words of a note and not which notes were open.
 	ws.Tabs.OnChange = st.saveOpenNotes
@@ -297,7 +297,8 @@ func (s *appState) switchVault(path string) {
 // refreshMenu builds the menu again: what it lists of the vaults changes
 // when one is added, or another one is opened.
 func (s *appState) refreshMenu() {
-	mygo.App.SetMenu(mainMenu(keymap.Resolve(s.config.Editor.Keymap)))
+	mygo.App.SetMenu(mainMenu(
+		keymap.Resolve(s.config.Editor.Keymap), s.vaults))
 }
 
 // rescan reads the vault's folder again, as when a file was created or

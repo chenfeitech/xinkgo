@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/egoist/mygo"
 	"github.com/helightxu/xinkgo/internal/keymap"
+	"github.com/helightxu/xinkgo/internal/vault"
 )
 
 // mainMenu is the application's menu bar: the platform's own menus where
@@ -10,7 +11,7 @@ import (
 // the configuration's keymap leaves for each action, so that a key the
 // user moved is the one the menu shows, and the vaults are the ones the
 // user can open.
-func mainMenu(bound []keymap.Resolved) *mygo.Menu {
+func mainMenu(bound []keymap.Resolved, vaults vault.Registry) *mygo.Menu {
 	key := func(action string) string {
 		for _, r := range bound {
 			if r.Action == action {
@@ -18,6 +19,32 @@ func mainMenu(bound []keymap.Resolved) *mygo.Menu {
 			}
 		}
 		return ""
+	}
+	// The vaults the user can open, each saying what is wrong with it
+	// when it cannot be opened.
+	vaultItems := func() []*mygo.MenuItem {
+		items := make([]*mygo.MenuItem, 0, len(vaults.Vaults)+2)
+		for _, v := range vaults.Vaults {
+			v := v
+			label := v.Name
+			if s := vaults.StatusOf(v.ID); !s.Usable() {
+				// A vault the app cannot open says so, rather than
+				// failing when it is chosen.
+				label += " (" + s.String() + ")"
+			}
+			items = append(items, &mygo.MenuItem{
+				Label: label,
+				Type:  mygo.MenuItemRadio,
+				Checked: vaults.Active != nil &&
+					*vaults.Active == v.ID,
+				Click: func(*mygo.MenuItem, *mygo.Window) {
+					if current != nil {
+						current.switchVault(v.Path)
+					}
+				},
+			})
+		}
+		return items
 	}
 	return mygo.NewMenu([]*mygo.MenuItem{
 		{Role: mygo.RoleAppMenu},
@@ -63,6 +90,16 @@ func mainMenu(bound []keymap.Resolved) *mygo.Menu {
 			mygo.Separator(),
 			{Role: mygo.RoleClose},
 		}},
+		{Label: "Vault", Submenu: append(
+			vaultItems(),
+			mygo.Separator(),
+			&mygo.MenuItem{Label: "Open Another Folder…",
+				Click: func(*mygo.MenuItem, *mygo.Window) {
+					if current != nil {
+						current.openVaultDialog()
+					}
+				}},
+		)},
 		{Role: mygo.RoleEditMenu},
 		{Role: mygo.RoleViewMenu},
 		{Role: mygo.RoleWindowMenu},
