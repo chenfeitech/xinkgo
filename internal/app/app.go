@@ -83,6 +83,17 @@ func Run() error {
 		}
 	})
 
+	// Leaving: what was open and how the window was laid out are written
+	// one last time, in case the last change was not.
+	app.OnBeforeQuit(func(*mygo.QuitEvent) {
+		if current == nil {
+			return
+		}
+		current.saveLayout()
+		current.saveOpenNotes()
+		current.stopWatch()
+	})
+
 	if isMacOS() {
 		// Stay in the Dock with no window, as Mac apps do, and open one
 		// when the user activates the app again.
