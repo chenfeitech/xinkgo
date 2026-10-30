@@ -79,6 +79,13 @@ func mainMenu(bound []keymap.Resolved, vaults vault.Registry) *mygo.Menu {
 						current.ws.OpenPalette()
 					}
 				}},
+			{Label: "Search in Vault",
+				Accelerator: key("OpenSearch"),
+				Click: func(*mygo.MenuItem, *mygo.Window) {
+					if current != nil {
+						current.ws.OpenSearch()
+					}
+				}},
 			{Label: "Save", Accelerator: key("Save"),
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current != nil {

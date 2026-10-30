@@ -81,6 +81,10 @@ type Workspace struct {
 	paletteQuery  string
 	paletteChosen int
 	paletteFocus  bool
+
+	// search is the search of the whole vault: what was typed, and
+	// what was found.
+	search searchState
 }
 
 // codeTheme is the colors code is painted in: one theme for the editor
@@ -136,6 +140,7 @@ func (w *Workspace) View(c *ui.Context) {
 		w.statusBar(c)
 	})
 	w.palette(c)
+	w.searchPanel(c)
 }
 
 // divider is the line between two panels, that the pointer drags to give
