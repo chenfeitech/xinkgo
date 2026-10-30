@@ -1,8 +1,11 @@
-// Package config keeps the user configuration Xinkgo stores in its user
-// data directory, as JSON, and reads it back on the next start.
+// Package config holds the application's preferences, as xink keeps them:
+// one JSON file with five sections, whose fields, defaults and limits are
+// the same, so a xink user can switch to Xinkgo and keep their settings.
 //
-// The package takes the directory it works in as an argument instead of
-// asking the application for it, so its tests need no running app.
+// Every section is optional in the file: a field the file leaves out takes
+// its default, and a field the file has but this version does not know is
+// ignored. Whatever comes in is then clamped by Sanitize, which is what
+// keeps a hand-edited or older file usable.
 package config
 
 import (
@@ -11,55 +14,167 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
-// FileName is the name of the configuration file inside the directory the
-// caller passes.
+// FileName is the configuration file, in the application's user data
+// directory.
 const FileName = "config.json"
 
-// Themes the interface can follow.
+// Values the configuration's enumerations can hold.
 const (
 	ThemeSystem = "system"
 	ThemeLight  = "light"
 	ThemeDark   = "dark"
+
+	ImageFitWidth = "fit_width"
+	ImageHidden   = "hidden"
+
+	LinkInApp    = "in_app"
+	LinkExternal = "external"
+
+	SyncRatio  = "ratio"
+	SyncAnchor = "anchor"
+	SyncOnStop = "on_stop"
+
+	DensityCompact = "compact"
+	DensityNormal  = "normal"
+	DensityRelaxed = "relaxed"
+
+	HighlightXink      = "xink"
+	HighlightOcean     = "ocean"
+	HighlightSolarized = "solarized"
 )
 
-// Config is the configuration the user can change.
-type Config struct {
-	// Theme is one of ThemeSystem, ThemeLight and ThemeDark.
+// FontConfig is a font and how it is set.
+type FontConfig struct {
+	Family     string  `json:"family"`
+	Size       float32 `json:"size"`
+	LineHeight float32 `json:"line_height"`
+	Weight     string  `json:"weight"`
+}
+
+// IndentConfig is what indenting inserts.
+type IndentConfig struct {
+	UseTabs bool   `json:"use_tabs"`
+	TabSize uint32 `json:"tab_size"`
+}
+
+// BasicConfig is what the whole application uses.
+type BasicConfig struct {
+	Theme        string     `json:"theme"`
+	IconSize     uint32     `json:"icon_size"`
+	TreeFont     FontConfig `json:"tree_font"`
+	ShowAllFiles bool       `json:"show_all_files"`
+}
+
+// DataFileConfig is how JSON, YAML and TOML are read and written.
+type DataFileConfig struct {
+	Indent         uint64 `json:"indent"`
+	MaxFormatBytes uint64 `json:"max_format_bytes"`
+}
+
+// EditorConfig is the editor's own settings.
+type EditorConfig struct {
+	AutoSave        bool              `json:"auto_save"`
+	AutoSaveDelayMs uint64            `json:"auto_save_delay_ms"`
+	Indent          IndentConfig      `json:"indent"`
+	ShowLineNumbers bool              `json:"show_line_numbers"`
+	SoftWrap        bool              `json:"soft_wrap"`
+	Font            FontConfig        `json:"font"`
+	Keymap          map[string]string `json:"keymap"`
+	DataFile        DataFileConfig    `json:"data_file"`
+}
+
+// PreviewConfig is the Markdown preview's settings.
+type PreviewConfig struct {
+	Font FontConfig `json:"font"`
+	// LegacyCodeTheme is the code theme of versions that had it here; it
+	// is read once, moved into Highlight.Theme, and never written again.
+	LegacyCodeTheme   *string `json:"legacy_code_theme,omitempty"`
+	ImageDisplay      string  `json:"image_display"`
+	ImageWidthPercent uint32  `json:"image_width_percent"`
+	LinkOpen          string  `json:"link_open"`
+	SyncScroll        bool    `json:"sync_scroll"`
+	SyncMode          string  `json:"sync_mode"`
+	MaxWidth          uint32  `json:"max_width"`
+	Density           string  `json:"density"`
+	DebugScrollSync   bool    `json:"debug_scroll_sync"`
+}
+
+// HighlightConfig is the theme of code blocks.
+type HighlightConfig struct {
 	Theme string `json:"theme"`
-	// LogLevel is the minimum level the application logs: debug, info,
-	// warn or error.
-	LogLevel string `json:"logLevel"`
+}
+
+// AppConfig is the whole configuration.
+type AppConfig struct {
+	Basic     BasicConfig     `json:"basic"`
+	Editor    EditorConfig    `json:"editor"`
+	Preview   PreviewConfig   `json:"preview"`
+	Highlight HighlightConfig `json:"highlight"`
+	Ai        AiConfig        `json:"ai"`
 }
 
 // Default returns the configuration of a first start.
-func Default() Config {
-	return Config{
-		Theme:    ThemeSystem,
-		LogLevel: "info",
+func Default() AppConfig {
+	return AppConfig{
+		Basic: BasicConfig{
+			Theme:        ThemeSystem,
+			IconSize:     16,
+			TreeFont:     bodyFont(),
+			ShowAllFiles: true,
+		},
+		Editor: EditorConfig{
+			AutoSave:        true,
+			AutoSaveDelayMs: 300,
+			Indent:          IndentConfig{UseTabs: false, TabSize: 4},
+			ShowLineNumbers: false,
+			SoftWrap:        true,
+			Font:            monoFont(),
+			Keymap:          map[string]string{},
+			DataFile:        DataFileConfig{Indent: 2, MaxFormatBytes: 1_000_000},
+		},
+		Preview: PreviewConfig{
+			Font:              bodyFont(),
+			ImageDisplay:      ImageFitWidth,
+			ImageWidthPercent: 100,
+			LinkOpen:          LinkInApp,
+			SyncScroll:        true,
+			SyncMode:          SyncRatio,
+			MaxWidth:          0,
+			Density:           DensityNormal,
+			DebugScrollSync:   false,
+		},
+		Highlight: HighlightConfig{Theme: HighlightXink},
+		Ai:        DefaultAi(),
 	}
 }
 
-// Validate reports whether c is a configuration the app can use.
-func (c Config) Validate() error {
-	switch c.Theme {
-	case ThemeSystem, ThemeLight, ThemeDark:
-	default:
-		return fmt.Errorf("unknown theme %q", c.Theme)
+// bodyFont is the font of the interface, and of the preview.
+func bodyFont() FontConfig {
+	return FontConfig{
+		Family:     ".SystemUIFont",
+		Size:       14,
+		LineHeight: 1.5,
+		Weight:     "regular",
 	}
-	switch c.LogLevel {
-	case "debug", "info", "warn", "error":
-	default:
-		return fmt.Errorf("unknown log level %q", c.LogLevel)
-	}
-	return nil
 }
 
-// Load reads the configuration from dir, returning Default when there is
-// no file yet. A file that is unreadable or wrong is an error: the app
-// must not silently discard what the user set.
-func Load(dir string) (Config, error) {
+// monoFont is the font of the editor.
+func monoFont() FontConfig {
+	return FontConfig{
+		Family:     ".SystemMonospacedFont",
+		Size:       14,
+		LineHeight: 1.6,
+		Weight:     "regular",
+	}
+}
+
+// Load reads the configuration from dir. A file that is missing gives the
+// defaults; one that cannot be read or parsed gives the defaults and an
+// error, so the caller can say so and still start.
+func Load(dir string) (AppConfig, error) {
 	data, err := os.ReadFile(filepath.Join(dir, FileName))
 	if errors.Is(err, os.ErrNotExist) {
 		return Default(), nil
@@ -67,28 +182,62 @@ func Load(dir string) (Config, error) {
 	if err != nil {
 		return Default(), fmt.Errorf("read configuration: %w", err)
 	}
-	var cfg Config
-	if err := json.Unmarshal(data, &cfg); err != nil {
+	// The sections are pointers while the file is read, so that a section
+	// that is there is told apart from one that is not: without that, a
+	// file with only one field in a section would have the whole section
+	// replaced by the defaults, and lose what the user set.
+	var f fileConfig
+	if err := json.Unmarshal(data, &f); err != nil {
 		return Default(), fmt.Errorf("parse configuration: %w", err)
 	}
-	if cfg.Theme == "" {
-		cfg.Theme = Default().Theme
-	}
-	if cfg.LogLevel == "" {
-		cfg.LogLevel = Default().LogLevel
-	}
-	if err := cfg.Validate(); err != nil {
-		return Default(), err
-	}
+	cfg := fromFile(f)
+	cfg.migrate()
+	cfg.Sanitize()
 	return cfg, nil
 }
 
-// Save writes c to dir, replacing the file only once the new contents are
-// on disk, so a crash while writing leaves the previous one.
-func (c Config) Save(dir string) error {
-	if err := c.Validate(); err != nil {
-		return err
+// fileConfig is AppConfig as the file has it: a section the file leaves out
+// is nil, one it has is not, however few of its fields it sets.
+type fileConfig struct {
+	Basic     *BasicConfig     `json:"basic"`
+	Editor    *EditorConfig    `json:"editor"`
+	Preview   *PreviewConfig   `json:"preview"`
+	Highlight *HighlightConfig `json:"highlight"`
+	Ai        *AiConfig        `json:"ai"`
+}
+
+// fromFile builds the configuration from what the file had, filling in the
+// fields, and the sections, it left out.
+func fromFile(f fileConfig) AppConfig {
+	d := Default()
+	cfg := d
+	if f.Basic != nil {
+		cfg.Basic = *f.Basic
+		cfg.Basic.fillMissing(d.Basic)
 	}
+	if f.Editor != nil {
+		cfg.Editor = *f.Editor
+		cfg.Editor.fillMissing(d.Editor)
+	}
+	if f.Preview != nil {
+		cfg.Preview = *f.Preview
+		cfg.Preview.fillMissing(d.Preview)
+	}
+	if f.Highlight != nil {
+		cfg.Highlight = *f.Highlight
+		if cfg.Highlight.Theme == "" {
+			cfg.Highlight.Theme = d.Highlight.Theme
+		}
+	}
+	if f.Ai != nil {
+		cfg.Ai = *f.Ai
+		cfg.Ai.fillMissing(d.Ai)
+	}
+	return cfg
+}
+
+// Save writes cfg to dir.
+func (c AppConfig) Save(dir string) error {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("create configuration directory: %w", err)
 	}
@@ -97,18 +246,216 @@ func (c Config) Save(dir string) error {
 		return fmt.Errorf("encode configuration: %w", err)
 	}
 	data = append(data, '\n')
-
-	path := filepath.Join(dir, FileName)
-	tmp := path + ".tmp"
-	if err := os.WriteFile(tmp, data, 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, FileName), data, 0o644); err != nil {
 		return fmt.Errorf("write configuration: %w", err)
 	}
-	// Windows refuses to rename over an existing file; remove it first.
-	if err := os.Remove(path); err != nil && !errors.Is(err, os.ErrNotExist) {
-		return fmt.Errorf("replace configuration: %w", err)
-	}
-	if err := os.Rename(tmp, path); err != nil {
-		return fmt.Errorf("replace configuration: %w", err)
-	}
 	return nil
+}
+
+// fillMissing gives the fields the file left out their defaults. It is
+// called only for a section the file has: one it does not keeps the
+// defaults whole (see fromFile).
+func (b *BasicConfig) fillMissing(d BasicConfig) {
+	if b.Theme == "" {
+		b.Theme = d.Theme
+	}
+	if b.IconSize == 0 {
+		b.IconSize = d.IconSize
+	}
+	b.TreeFont.fillMissing(d.TreeFont)
+}
+
+func (f *FontConfig) isEmpty() bool {
+	return f.Family == "" && f.Size == 0 && f.LineHeight == 0 && f.Weight == ""
+}
+
+func (f *FontConfig) fillMissing(d FontConfig) {
+	if strings.TrimSpace(f.Family) == "" {
+		f.Family = d.Family
+	}
+	if f.Size == 0 {
+		f.Size = d.Size
+	}
+	if f.LineHeight == 0 {
+		f.LineHeight = d.LineHeight
+	}
+	if f.Weight == "" {
+		f.Weight = d.Weight
+	}
+}
+
+func (e *EditorConfig) fillMissing(d EditorConfig) {
+	if e.AutoSaveDelayMs == 0 {
+		e.AutoSaveDelayMs = d.AutoSaveDelayMs
+	}
+	if e.Indent.isEmpty() {
+		e.Indent = d.Indent
+	}
+	e.Font.fillMissing(d.Font)
+	if e.Keymap == nil {
+		e.Keymap = map[string]string{}
+	}
+	if e.DataFile.isEmpty() {
+		e.DataFile = d.DataFile
+	}
+}
+
+func (i IndentConfig) isEmpty() bool { return !i.UseTabs && i.TabSize == 0 }
+
+func (d DataFileConfig) isEmpty() bool {
+	return d.Indent == 0 && d.MaxFormatBytes == 0
+}
+
+func (p *PreviewConfig) fillMissing(d PreviewConfig) {
+	p.Font.fillMissing(d.Font)
+	if p.ImageDisplay == "" {
+		p.ImageDisplay = d.ImageDisplay
+	}
+	if p.ImageWidthPercent == 0 {
+		p.ImageWidthPercent = d.ImageWidthPercent
+	}
+	if p.LinkOpen == "" {
+		p.LinkOpen = d.LinkOpen
+	}
+	if p.SyncMode == "" {
+		p.SyncMode = d.SyncMode
+	}
+	if p.Density == "" {
+		p.Density = d.Density
+	}
+}
+
+// migrate moves the settings older versions wrote elsewhere. It runs once
+// per load and the old fields are not written back.
+func (c *AppConfig) migrate() {
+	if c.Preview.LegacyCodeTheme != nil {
+		c.Highlight.Theme = highlightThemeFrom(*c.Preview.LegacyCodeTheme)
+		c.Preview.LegacyCodeTheme = nil
+	}
+	// "realtime" is what SyncRatio was called.
+	if c.Preview.SyncMode == "realtime" {
+		c.Preview.SyncMode = SyncRatio
+	}
+}
+
+// highlightThemeFrom maps the name of a syntect theme of the old versions
+// to one of the three the app ships.
+func highlightThemeFrom(name string) string {
+	switch {
+	case strings.HasPrefix(name, "base16-ocean"):
+		return HighlightOcean
+	case strings.HasPrefix(name, "Solarized"):
+		return HighlightSolarized
+	default:
+		return HighlightXink
+	}
+}
+
+// Sanitize clamps every value to what the app can use, so a file edited by
+// hand, or written by a version with other limits, never breaks it.
+func (c *AppConfig) Sanitize() {
+	b := &c.Basic
+	if !oneOf(b.Theme, ThemeSystem, ThemeLight, ThemeDark) {
+		b.Theme = ThemeSystem
+	}
+	b.IconSize = clampU32(b.IconSize, 12, 48)
+	b.TreeFont.sanitize(bodyFont())
+
+	e := &c.Editor
+	e.AutoSaveDelayMs = clampU64(e.AutoSaveDelayMs, 200, 60000)
+	e.Indent.TabSize = clampU32(e.Indent.TabSize, 1, 16)
+	e.Font.sanitize(monoFont())
+	e.DataFile.Indent = clampU64(e.DataFile.Indent, 1, 8)
+	e.DataFile.MaxFormatBytes = minU64(e.DataFile.MaxFormatBytes, 20_000_000)
+
+	p := &c.Preview
+	p.Font.sanitize(bodyFont())
+	if !oneOf(p.ImageDisplay, ImageFitWidth, ImageHidden) {
+		p.ImageDisplay = ImageFitWidth
+	}
+	p.ImageWidthPercent = clampU32(p.ImageWidthPercent, 20, 100)
+	if !oneOf(p.LinkOpen, LinkInApp, LinkExternal) {
+		p.LinkOpen = LinkInApp
+	}
+	if !oneOf(p.SyncMode, SyncRatio, SyncAnchor, SyncOnStop) {
+		p.SyncMode = SyncRatio
+	}
+	p.MaxWidth = minU32(p.MaxWidth, 4096)
+	if !oneOf(p.Density, DensityCompact, DensityNormal, DensityRelaxed) {
+		p.Density = DensityNormal
+	}
+
+	if !oneOf(c.Highlight.Theme, HighlightXink, HighlightOcean,
+		HighlightSolarized) {
+		c.Highlight.Theme = HighlightXink
+	}
+
+	c.Ai.Sanitize()
+}
+
+func (f *FontConfig) sanitize(d FontConfig) {
+	if strings.TrimSpace(f.Family) == "" {
+		f.Family = d.Family
+	}
+	f.Size = clampF32(f.Size, 8, 72)
+	f.LineHeight = clampF32(f.LineHeight, 0.8, 3.0)
+	if !oneOf(f.Weight, "regular", "medium", "semibold", "bold") {
+		f.Weight = "regular"
+	}
+}
+
+func oneOf(v string, allowed ...string) bool {
+	for _, a := range allowed {
+		if v == a {
+			return true
+		}
+	}
+	return false
+}
+
+func clampF32(v, lo, hi float32) float32 {
+	switch {
+	case v < lo:
+		return lo
+	case v > hi:
+		return hi
+	default:
+		return v
+	}
+}
+
+func clampU32(v, lo, hi uint32) uint32 {
+	switch {
+	case v < lo:
+		return lo
+	case v > hi:
+		return hi
+	default:
+		return v
+	}
+}
+
+func clampU64(v, lo, hi uint64) uint64 {
+	switch {
+	case v < lo:
+		return lo
+	case v > hi:
+		return hi
+	default:
+		return v
+	}
+}
+
+func minU64(v, hi uint64) uint64 {
+	if v > hi {
+		return hi
+	}
+	return v
+}
+
+func minU32(v, hi uint32) uint32 {
+	if v > hi {
+		return hi
+	}
+	return v
 }

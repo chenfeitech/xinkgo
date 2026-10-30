@@ -4,25 +4,95 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
-// TestLoad_missingFileDefaults checks that a first start, which has no
-// file, gets the shipped defaults and no error.
-func TestLoad_missingFileDefaults(t *testing.T) {
-	cfg, err := Load(t.TempDir())
+// load reads a configuration whose file has the given contents.
+func load(t *testing.T, contents string) AppConfig {
+	t.Helper()
+	dir := t.TempDir()
+	if contents != "" {
+		if err := os.WriteFile(filepath.Join(dir, FileName),
+			[]byte(contents), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	cfg, err := Load(dir)
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
-	if cfg != Default() {
-		t.Errorf("got %+v, want the defaults %+v", cfg, Default())
+	return cfg
+}
+
+// TestLoad_missingFileGivesDefaults checks a first start.
+func TestLoad_missingFileGivesDefaults(t *testing.T) {
+	cfg := load(t, "")
+	if cfg.Basic.Theme != ThemeSystem || !cfg.Basic.ShowAllFiles {
+		t.Errorf("basic %+v, want the defaults", cfg.Basic)
+	}
+	if cfg.Editor.AutoSaveDelayMs != 300 || !cfg.Editor.SoftWrap {
+		t.Errorf("editor %+v, want the defaults", cfg.Editor)
+	}
+	if cfg.Preview.SyncMode != SyncRatio || cfg.Preview.ImageDisplay != ImageFitWidth {
+		t.Errorf("preview %+v, want the defaults", cfg.Preview)
+	}
+	if cfg.Highlight.Theme != HighlightXink {
+		t.Errorf("highlight %q, want %q", cfg.Highlight.Theme, HighlightXink)
+	}
+}
+
+// TestLoad_emptyObjectGivesDefaults checks that a file without the sections
+// fills every one of them in, instead of leaving zeroes.
+func TestLoad_emptyObjectGivesDefaults(t *testing.T) {
+	cfg := load(t, `{}`)
+	if cfg.Basic.IconSize != Default().Basic.IconSize {
+		t.Errorf("icon size %d, want %d", cfg.Basic.IconSize,
+			Default().Basic.IconSize)
+	}
+	if cfg.Editor.Font.Family != Default().Editor.Font.Family {
+		t.Errorf("editor font %q, want %q", cfg.Editor.Font.Family,
+			Default().Editor.Font.Family)
+	}
+	if cfg.Ai.TimeoutSecs != Default().Ai.TimeoutSecs {
+		t.Errorf("ai timeout %d, want %d", cfg.Ai.TimeoutSecs,
+			Default().Ai.TimeoutSecs)
+	}
+}
+
+// TestLoad_unknownFieldsAreIgnored checks that a newer file, with fields
+// this version does not have, still loads.
+func TestLoad_unknownFieldsAreIgnored(t *testing.T) {
+	cfg := load(t, `{"basic":{"theme":"dark","something_new":42}}`)
+	if cfg.Basic.Theme != ThemeDark {
+		t.Errorf("theme %q, want %q", cfg.Basic.Theme, ThemeDark)
+	}
+}
+
+// TestLoad_brokenFileGivesDefaultsAndError checks that a file the app
+// cannot read is reported, and does not keep the app from starting.
+func TestLoad_brokenFileGivesDefaultsAndError(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, FileName), []byte("{"),
+		0o644); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := Load(dir)
+	if err == nil {
+		t.Error("Load accepted a file that is not JSON")
+	}
+	if cfg.Basic.Theme != ThemeSystem {
+		t.Errorf("theme %q, want the defaults", cfg.Basic.Theme)
 	}
 }
 
 // TestSaveLoad_roundTrip checks that what the app writes it reads back.
 func TestSaveLoad_roundTrip(t *testing.T) {
 	dir := t.TempDir()
-	want := Config{Theme: ThemeDark, LogLevel: "debug"}
+	want := Default()
+	want.Basic.Theme = ThemeDark
+	want.Editor.AutoSaveDelayMs = 1500
+	want.Preview.Density = DensityRelaxed
 	if err := want.Save(dir); err != nil {
 		t.Fatalf("Save: %v", err)
 	}
@@ -30,89 +100,204 @@ func TestSaveLoad_roundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
-	if got != want {
-		t.Errorf("got %+v, want %+v", got, want)
+	if got.Basic.Theme != ThemeDark || got.Editor.AutoSaveDelayMs != 1500 ||
+		got.Preview.Density != DensityRelaxed {
+		t.Errorf("got basic=%q delay=%d density=%q", got.Basic.Theme,
+			got.Editor.AutoSaveDelayMs, got.Preview.Density)
 	}
 }
 
-// TestSave_overwrites checks that saving replaces a file that is already
-// there, which is the second and later start of the app.
-func TestSave_overwrites(t *testing.T) {
+// TestSanitize_clampsOutOfRangeValues checks the limits of what a user can
+// put in the file by hand.
+func TestSanitize_clampsOutOfRangeValues(t *testing.T) {
+	cfg := load(t, `{
+		"basic":{"theme":"neon","icon_size":999},
+		"editor":{"auto_save_delay_ms":1,"indent":{"tab_size":99}},
+		"preview":{"image_width_percent":5,"max_width":99999,"density":"airy"}
+	}`)
+	if cfg.Basic.Theme != ThemeSystem {
+		t.Errorf("theme %q, want %q", cfg.Basic.Theme, ThemeSystem)
+	}
+	if cfg.Basic.IconSize != 48 {
+		t.Errorf("icon size %d, want 48", cfg.Basic.IconSize)
+	}
+	if cfg.Editor.AutoSaveDelayMs != 200 {
+		t.Errorf("delay %d, want 200", cfg.Editor.AutoSaveDelayMs)
+	}
+	if cfg.Editor.Indent.TabSize != 16 {
+		t.Errorf("tab size %d, want 16", cfg.Editor.Indent.TabSize)
+	}
+	if cfg.Preview.ImageWidthPercent != 20 {
+		t.Errorf("image width %d, want 20", cfg.Preview.ImageWidthPercent)
+	}
+	if cfg.Preview.MaxWidth != 4096 {
+		t.Errorf("max width %d, want 4096", cfg.Preview.MaxWidth)
+	}
+	if cfg.Preview.Density != DensityNormal {
+		t.Errorf("density %q, want %q", cfg.Preview.Density, DensityNormal)
+	}
+}
+
+// TestSanitize_unknownEnumFallsBack checks the enumerations.
+func TestSanitize_unknownEnumFallsBack(t *testing.T) {
+	cfg := load(t, `{"preview":{"image_display":"tile","link_open":"nowhere",
+		"sync_mode":"moon"},"highlight":{"theme":"neon"}}`)
+	if cfg.Preview.ImageDisplay != ImageFitWidth ||
+		cfg.Preview.LinkOpen != LinkInApp ||
+		cfg.Preview.SyncMode != SyncRatio ||
+		cfg.Highlight.Theme != HighlightXink {
+		t.Errorf("got %+v / %q", cfg.Preview, cfg.Highlight.Theme)
+	}
+}
+
+// TestMigrate_syncModeAlias checks the name SyncRatio used to have.
+func TestMigrate_syncModeAlias(t *testing.T) {
+	if got := load(t, `{"preview":{"sync_mode":"realtime"}}`).
+		Preview.SyncMode; got != SyncRatio {
+		t.Errorf("sync mode %q, want %q", got, SyncRatio)
+	}
+}
+
+// TestMigrate_legacyCodeTheme checks the code theme of the old versions,
+// which moves to highlight.theme and is not written back.
+func TestMigrate_legacyCodeTheme(t *testing.T) {
+	cases := map[string]string{
+		"base16-ocean.dark":  HighlightOcean,
+		"base16-ocean.light": HighlightOcean,
+		"Solarized (dark)":   HighlightSolarized,
+		"InspiredGitHub":     HighlightXink,
+	}
+	for from, want := range cases {
+		cfg := load(t, `{"preview":{"legacy_code_theme":`+
+			mustQuote(from)+`},"highlight":{"theme":"ocean"}}`)
+		if cfg.Highlight.Theme != want {
+			t.Errorf("%q: theme %q, want %q", from, cfg.Highlight.Theme, want)
+		}
+		if cfg.Preview.LegacyCodeTheme != nil {
+			t.Errorf("%q: the old field is still there", from)
+		}
+	}
+}
+
+// TestSave_doesNotWriteLegacyField checks that the migrated field never
+// comes back into the file.
+func TestSave_doesNotWriteLegacyField(t *testing.T) {
 	dir := t.TempDir()
-	first := Config{Theme: ThemeLight, LogLevel: "info"}
-	if err := first.Save(dir); err != nil {
-		t.Fatalf("first Save: %v", err)
+	cfg := Default()
+	cfg.Preview.LegacyCodeTheme = nil
+	if err := cfg.Save(dir); err != nil {
+		t.Fatal(err)
 	}
-	second := Config{Theme: ThemeDark, LogLevel: "warn"}
-	if err := second.Save(dir); err != nil {
-		t.Fatalf("second Save: %v", err)
-	}
-	got, err := Load(dir)
+	data, err := os.ReadFile(filepath.Join(dir, FileName))
 	if err != nil {
-		t.Fatalf("Load: %v", err)
-	}
-	if got != second {
-		t.Errorf("got %+v, want %+v", got, second)
-	}
-}
-
-// TestSave_rejectsInvalid checks that a wrong configuration never reaches
-// the disk.
-func TestSave_rejectsInvalid(t *testing.T) {
-	dir := t.TempDir()
-	if err := (Config{Theme: "neon"}).Save(dir); err == nil {
-		t.Error("Save accepted an unknown theme")
-	}
-	if _, err := os.Stat(filepath.Join(dir, FileName)); err == nil {
-		t.Error("Save wrote a file for an invalid configuration")
-	}
-}
-
-// TestLoad_brokenFileIsAnError checks that a file the app cannot read is
-// reported, not quietly turned into the defaults.
-func TestLoad_brokenFileIsAnError(t *testing.T) {
-	dir := t.TempDir()
-	if err := os.WriteFile(filepath.Join(dir, FileName),
-		[]byte("{"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := Load(dir); err == nil {
-		t.Error("Load accepted a file that is not JSON")
+	if strings.Contains(string(data), "legacy_code_theme") {
+		t.Error("the old field was written back")
 	}
 }
 
-// TestLoad_unknownValuesAreAnError checks the values a user can put in the
-// file by hand.
-func TestLoad_unknownValuesAreAnError(t *testing.T) {
+// TestDefault_hasBuiltinActions checks the shortcuts a first start has.
+func TestDefault_hasBuiltinActions(t *testing.T) {
+	actions := Default().Ai.Actions
+	if len(actions) != 6 {
+		t.Errorf("%d actions, want 6", len(actions))
+	}
+	for _, a := range actions {
+		if a.ID == "" || a.Prompt == "" || !a.Enable {
+			t.Errorf("action %+v is not complete", a)
+		}
+	}
+}
+
+// TestSanitize_aiDropsUnusableEntries checks the AI settings: models without
+// an id go, routes to models that are gone are cleared, and auto-apply
+// stays off however the file sets it.
+func TestSanitize_aiDropsUnusableEntries(t *testing.T) {
+	cfg := load(t, `{"ai":{"auto_apply":true,
+		"models":[{"id":" "},{"id":"m1","enabled":true},{"id":"m1"}],
+		"default_model":"gone","fallback_model":"m1",
+		"route":{"chat":"gone","action":"m1"}}}`)
+	if cfg.Ai.AutoApply {
+		t.Error("auto-apply stayed on")
+	}
+	if len(cfg.Ai.Models) != 1 || cfg.Ai.Models[0].ID != "m1" {
+		t.Errorf("models %+v, want only m1", cfg.Ai.Models)
+	}
+	if cfg.Ai.DefaultModel != "" {
+		t.Errorf("default model %q, want it cleared", cfg.Ai.DefaultModel)
+	}
+	if cfg.Ai.FallbackModel != "m1" {
+		t.Errorf("fallback model %q, want m1", cfg.Ai.FallbackModel)
+	}
+	if cfg.Ai.Route.Chat != nil {
+		t.Error("the chat route still points at a model that is gone")
+	}
+	if cfg.Ai.Route.Action == nil || *cfg.Ai.Route.Action != "m1" {
+		t.Error("the action route was cleared although its model is there")
+	}
+}
+
+// TestSanitize_aiActionsDeduplicated checks the limits on the shortcuts.
+func TestSanitize_aiActionsDeduplicated(t *testing.T) {
+	cfg := load(t, `{"ai":{"actions":[
+		{"id":"a","name":"A","prompt":"p"},
+		{"id":"a","name":"A again","prompt":"p"},
+		{"id":"","name":"no id","prompt":"p"}]}}`)
+	if len(cfg.Ai.Actions) != 1 || cfg.Ai.Actions[0].ID != "a" {
+		t.Errorf("actions %+v, want only one a", cfg.Ai.Actions)
+	}
+}
+
+// TestSanitize_aiParamsClamped checks the limits of a model's parameters.
+func TestSanitize_aiParamsClamped(t *testing.T) {
+	cfg := load(t, `{"ai":{"models":[{"id":"m","params":{"num_predict":1,
+		"temperature":99,"num_ctx":4,"keep_alive":"5m"}}]}}`)
+	p := cfg.Ai.Models[0].Params
+	if p.NumPredict != 16 {
+		t.Errorf("num_predict %d, want 16", p.NumPredict)
+	}
+	if p.Temperature != 0.7 {
+		t.Errorf("temperature %v, want 0.7", p.Temperature)
+	}
+	if p.NumCtx == nil || *p.NumCtx != 512 {
+		t.Errorf("num_ctx %v, want 512", p.NumCtx)
+	}
+	if p.KeepAlive != nil {
+		t.Error("keep_alive of the default was kept as if it were set")
+	}
+}
+
+// TestSave_writesIndentAndSections checks the file's shape, which a user
+// may edit by hand.
+func TestSave_writesIndentAndSections(t *testing.T) {
 	dir := t.TempDir()
-	data, err := json.Marshal(Config{Theme: ThemeDark, LogLevel: "loud"})
+	if err := Default().Save(dir); err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(filepath.Join(dir, FileName))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(dir, FileName), data, 0o644); err != nil {
+	if !strings.Contains(string(data), "\n  \"basic\"") {
+		t.Error("the file is not indented with two spaces")
+	}
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := Load(dir); err == nil {
-		t.Error("Load accepted an unknown log level")
+	for _, section := range []string{"basic", "editor", "preview",
+		"highlight", "ai"} {
+		if _, ok := raw[section]; !ok {
+			t.Errorf("the file has no %q section", section)
+		}
 	}
 }
 
-// TestLoad_missingFieldsFallBack checks that a file written by an older
-// version, without the fields added since, still loads.
-func TestLoad_missingFieldsFallBack(t *testing.T) {
-	dir := t.TempDir()
-	if err := os.WriteFile(filepath.Join(dir, FileName),
-		[]byte(`{"theme":"dark"}`), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	cfg, err := Load(dir)
+func mustQuote(s string) string {
+	b, err := json.Marshal(s)
 	if err != nil {
-		t.Fatalf("Load: %v", err)
+		panic(err)
 	}
-	if cfg.Theme != ThemeDark {
-		t.Errorf("theme %q, want %q", cfg.Theme, ThemeDark)
-	}
-	if cfg.LogLevel != Default().LogLevel {
-		t.Errorf("log level %q, want %q", cfg.LogLevel, Default().LogLevel)
-	}
+	return string(b)
 }

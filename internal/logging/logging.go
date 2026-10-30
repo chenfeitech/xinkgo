@@ -12,15 +12,17 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-
-	"github.com/helightxu/xinkgo/internal/config"
 )
 
 // FileName is the log file of an installed app.
 const FileName = "xinkgo.log"
 
-// Level turns the configuration's level into a slog.Level, falling back to
-// info for a value it does not know.
+// LevelEnv is the environment variable that sets how much the app logs,
+// for a developer who wants more than the default without editing files.
+const LevelEnv = "XINKGO_LOG_LEVEL"
+
+// Level turns a name into a slog.Level, falling back to info for one it
+// does not know.
 func Level(name string) slog.Level {
 	switch name {
 	case "debug":
@@ -36,8 +38,8 @@ func Level(name string) slog.Level {
 
 // Setup makes slog's default logger write where the app wants it: the
 // terminal while it is developed, dir/FileName otherwise.
-func Setup(dir string, cfg config.Config, development bool) error {
-	opts := &slog.HandlerOptions{Level: Level(cfg.LogLevel)}
+func Setup(dir string, development bool) error {
+	opts := &slog.HandlerOptions{Level: Level(os.Getenv(LevelEnv))}
 	if development || dir == "" {
 		slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, opts)))
 		return nil

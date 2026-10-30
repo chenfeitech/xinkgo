@@ -91,7 +91,7 @@ func start(info sysinfo.Info) error {
 	if err != nil {
 		return fmt.Errorf("log directory: %w", err)
 	}
-	if err := logging.Setup(logs, cfg, development()); err != nil {
+	if err := logging.Setup(logs, development()); err != nil {
 		return fmt.Errorf("logging: %w", err)
 	}
 	// Bound for windows that show a page: mygo generate writes their

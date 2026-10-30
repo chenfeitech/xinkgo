@@ -5,11 +5,9 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/helightxu/xinkgo/internal/config"
 )
 
-// TestLevel_knownNames checks the levels the configuration can name.
+// TestLevel_knownNames checks the levels the environment can name.
 func TestLevel_knownNames(t *testing.T) {
 	cases := map[string]slog.Level{
 		"debug": slog.LevelDebug,
@@ -35,9 +33,7 @@ func TestLevel_unknownNameIsInfo(t *testing.T) {
 // TestSetup_developmentNeedsNoDirectory checks that a build someone is
 // working on logs without a directory to log into.
 func TestSetup_developmentNeedsNoDirectory(t *testing.T) {
-	cfg := config.Default()
-	cfg.LogLevel = "debug"
-	if err := Setup("", cfg, true); err != nil {
+	if err := Setup("", true); err != nil {
 		t.Fatalf("Setup: %v", err)
 	}
 }
@@ -46,7 +42,7 @@ func TestSetup_developmentNeedsNoDirectory(t *testing.T) {
 // the directory it is given.
 func TestSetup_installedWritesToFile(t *testing.T) {
 	dir := t.TempDir()
-	if err := Setup(dir, config.Default(), false); err != nil {
+	if err := Setup(dir, false); err != nil {
 		t.Fatalf("Setup: %v", err)
 	}
 	if _, err := os.Stat(filepath.Join(dir, FileName)); err != nil {
