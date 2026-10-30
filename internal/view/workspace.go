@@ -85,6 +85,15 @@ type Workspace struct {
 	// search is the search of the whole vault: what was typed, and
 	// what was found.
 	search searchState
+
+	// drawer is which panel the buttons on the rail have open beside
+	// the note, empty for none.
+	drawer string
+	// outlineHeadings are the headings of the note that is open, read
+	// again when its text has changed.
+	outlineHeadings []xmd.Heading
+	outlinePath     string
+	outlineVersion  uint64
 }
 
 // codeTheme is the colors code is painted in: one theme for the editor
@@ -141,6 +150,7 @@ func (w *Workspace) View(c *ui.Context) {
 	})
 	w.palette(c)
 	w.searchPanel(c)
+	w.rail(c)
 }
 
 // divider is the line between two panels, that the pointer drags to give
