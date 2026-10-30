@@ -9,6 +9,7 @@ import (
 	"github.com/egoist/mygo/ui/editor"
 	"github.com/egoist/mygo/ui/markdown"
 	"github.com/helightxu/xinkgo/internal/config"
+	"github.com/helightxu/xinkgo/internal/highlight"
 	xmd "github.com/helightxu/xinkgo/internal/markdown"
 	"github.com/helightxu/xinkgo/internal/state"
 )
@@ -51,6 +52,23 @@ type Workspace struct {
 
 	status      string
 	layoutTimer *time.Timer
+	// codeTheme is the colors code is painted in, made again when the
+	// preset or the appearance changes.
+	codeTheme *editor.Theme
+	themeName string
+	themeDark bool
+}
+
+// codeTheme is the colors code is painted in: one theme for the editor
+// and the preview alike, in the appearance the window has now.
+func (w *Workspace) codeThemeFor(c *ui.Context) *editor.Theme {
+	name := w.Config.Highlight.Theme
+	dark := c.Theme().Dark
+	if w.codeTheme == nil || w.themeName != name || w.themeDark != dark {
+		w.codeTheme = highlight.EditorTheme(name, c.Theme())
+		w.themeName, w.themeDark = name, dark
+	}
+	return w.codeTheme
 }
 
 // NewWorkspace returns a window showing nothing yet: no vault, no notes.
@@ -253,6 +271,8 @@ func (w *Workspace) editor(c *ui.Context) {
 	// tell the editor when what it shows has reached the disk.
 	w.Tabs.Edited(n)
 	n.Synced()
+	// Code is painted with the same colors the preview paints it with.
+	n.Editor.Theme = w.codeThemeFor(c)
 	editor.View(c, n.Editor).Fill()
 }
 
@@ -263,18 +283,28 @@ func (w *Workspace) previewPanel(c *ui.Context) {
 		if n == nil {
 			return
 		}
-		opts := w.markdownOptions(n.Path)
+		opts := w.markdownOptions(c, n.Path)
 		markdown.View(c, n.Note.Text, opts).Fill()
 	})
 }
 
 // markdownOptions is how the preview reads the note: its pictures come
 // from the note's own folder, and a link to another note opens it here.
-func (w *Workspace) markdownOptions(path string) *markdown.Options {
+func (w *Workspace) markdownOptions(
+	c *ui.Context, path string,
+) *markdown.Options {
 	return &markdown.Options{
+		Theme:     w.previewTheme(c),
 		LoadImage: markdown.FileImages(filepath.Dir(path)),
 		OnLink:    func(url string) { w.openLink(url, path) },
 	}
+}
+
+// previewTheme is how the preview looks: what the window's theme leaves
+// to it, and the code colors of the preset the user chose, the ones the
+// editor paints with.
+func (w *Workspace) previewTheme(c *ui.Context) *markdown.Theme {
+	return &markdown.Theme{CodeColors: w.codeThemeFor(c)}
 }
 
 // openLink is what a click in the preview does: another note of the vault

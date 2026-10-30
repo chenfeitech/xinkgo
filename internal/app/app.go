@@ -85,6 +85,9 @@ func Run() error {
 			return
 		}
 		current = st
+		// Light or dark as the user chose, or as the desktop has it: the
+		// code themes follow the appearance on their own.
+		mygo.Theme.SetSource(mygo.ThemeSource(st.config.Basic.Theme))
 		// Bound for windows that show a page: mygo generate writes their
 		// typed client from this and whatever else is bound here.
 		mygo.Bind(system{info: info})
