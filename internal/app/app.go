@@ -55,6 +55,15 @@ type appState struct {
 	// win is the window the workspace is drawn in, kept so that a second
 	// launch can bring it back rather than open another.
 	win *mygo.Window
+	// settingsWin and vaultsWin are the windows of the settings and of
+	// the vaults: one of each, brought back rather than opened again.
+	settingsWin *mygo.Window
+	vaultsWin   *mygo.Window
+	// draft is what the settings window is changing.
+	draft settings
+	// vaultRename is the vault whose name is being asked for.
+	vaultRename string
+	vaultName   string
 	// root is the folder of the vault that is open.
 	root string
 	// idx is what is known of the whole vault. It is worked out again
@@ -322,6 +331,13 @@ func (s *appState) switchVault(path string) {
 	if err := s.watchVault(); err != nil {
 		slog.Warn("could not watch the vault", "err", err)
 	}
+}
+
+// applyConfig is what the user chose taking effect: the window is told,
+// and the appearance is set as it was chosen.
+func (s *appState) applyConfig() {
+	s.ws.Config = s.config
+	mygo.Theme.SetSource(mygo.ThemeSource(s.config.Basic.Theme))
 }
 
 // refreshMenu builds the menu again: what it lists of the vaults changes

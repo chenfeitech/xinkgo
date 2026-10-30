@@ -232,6 +232,33 @@ func (r *Registry) Remove(id string) {
 	}
 }
 
+// Rename gives the vault another name. A name of nothing at all leaves
+// it the one the folder has.
+func (r *Registry) Rename(id, name string) {
+	v := r.ByID(id)
+	if v == nil {
+		return
+	}
+	v.Name = strings.TrimSpace(name)
+	if v.Name == "" {
+		v.Name = filepath.Base(v.Path)
+	}
+}
+
+// Relocate is the vault standing somewhere else: the folder was moved,
+// or named again outside the app. The name follows the folder, unless
+// the user had given it one of their own.
+func (r *Registry) Relocate(id, path string) {
+	v := r.ByID(id)
+	if v == nil {
+		return
+	}
+	if v.Name == "" || v.Name == filepath.Base(v.Path) {
+		v.Name = filepath.Base(path)
+	}
+	v.Path = path
+}
+
 // StatusOf says what is wrong with the folder of a vault, comparing it
 // with the others to find one that is the same or above it.
 func (r *Registry) StatusOf(id string) Status {
