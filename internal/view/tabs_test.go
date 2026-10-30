@@ -215,6 +215,45 @@ func TestTabs_autoSaveOffKeepsTheTextInMemory(t *testing.T) {
 	}
 }
 
+// TestTabs_theAppIsToldWithTheLockLetGo checks what hung the window:
+// what the app is told makes it ask the tabs what is open, so it must be
+// told with the lock let go — one thread cannot take a lock twice.
+func TestTabs_theAppIsToldWithTheLockLetGo(t *testing.T) {
+	_, a, b := vaultWithNotes(t)
+	tabs := NewTabs()
+	told := 0
+	tabs.OnChange = func() {
+		told++
+		_ = tabs.Paths()
+	}
+	// A hang would keep the test from ending, so it is given a while and
+	// no longer.
+	done := make(chan error, 1)
+	go func() {
+		if _, err := tabs.Open(a); err != nil {
+			done <- err
+			return
+		}
+		if _, err := tabs.Open(b); err != nil {
+			done <- err
+			return
+		}
+		tabs.Close(a)
+		done <- nil
+	}()
+	select {
+	case err := <-done:
+		if err != nil {
+			t.Fatal(err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("the app was told while the tabs were locked")
+	}
+	if told != 3 {
+		t.Errorf("the app was told %d times, want 3", told)
+	}
+}
+
 // TestTabs_discardWritesNothing checks the tab of a file that is being
 // taken away: its changes go with the file, and are not written back.
 func TestTabs_discardWritesNothing(t *testing.T) {

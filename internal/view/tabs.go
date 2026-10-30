@@ -78,13 +78,21 @@ func NewTabs() *Tabs {
 // is already open is only made active: it is not read again, its carets
 // and where it is scrolled to are not moved, and its tab does not move.
 func (t *Tabs) Open(path string) (*OpenNote, error) {
+	// The app is told with the lock let go: what it is told makes it ask
+	// the tabs what is open, and one thread cannot take the lock twice.
+	tell := false
+	defer func() {
+		if tell {
+			t.changed()
+		}
+	}()
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
 	key := session.TabKey(path)
 	if n, ok := t.Notes[key]; ok {
 		t.Active = n.Path
-		t.changed()
+		tell = true
 		return n, nil
 	}
 	n, err := note.Open(path)
@@ -100,7 +108,7 @@ func (t *Tabs) Open(path string) (*OpenNote, error) {
 	t.Notes[key] = open
 	t.Order = append(t.Order, path)
 	t.Active = path
-	t.changed()
+	tell = true
 	return open, nil
 }
 
@@ -118,6 +126,14 @@ func (t *Tabs) newEditor(path, text string) *editor.State {
 // Close closes the note at path. The last one leaves nothing open, which
 // the window shows as an empty page rather than as a window with no tab.
 func (t *Tabs) Close(path string) {
+	// The app is told with the lock let go: what it is told makes it ask
+	// the tabs what is open, and one thread cannot take the lock twice.
+	tell := false
+	defer func() {
+		if tell {
+			t.changed()
+		}
+	}()
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
@@ -139,12 +155,20 @@ func (t *Tabs) Close(path string) {
 	if session.TabKey(t.Active) == key {
 		t.Active = session.ResolveActive(t.Order, "")
 	}
-	t.changed()
+	tell = true
 }
 
 // Discard drops the note at path without writing it: for a file that is
 // being taken away, whose changes go with it.
 func (t *Tabs) Discard(path string) {
+	// The app is told with the lock let go: what it is told makes it ask
+	// the tabs what is open, and one thread cannot take the lock twice.
+	tell := false
+	defer func() {
+		if tell {
+			t.changed()
+		}
+	}()
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
@@ -161,18 +185,26 @@ func (t *Tabs) Discard(path string) {
 	if session.TabKey(t.Active) == key {
 		t.Active = session.ResolveActive(t.Order, "")
 	}
-	t.changed()
+	tell = true
 }
 
 // Activate makes the note at path the one that is shown.
 func (t *Tabs) Activate(path string) {
+	// The app is told with the lock let go: what it is told makes it ask
+	// the tabs what is open, and one thread cannot take the lock twice.
+	tell := false
+	defer func() {
+		if tell {
+			t.changed()
+		}
+	}()
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	if _, ok := t.Notes[session.TabKey(path)]; !ok {
 		return
 	}
 	t.Active = path
-	t.changed()
+	tell = true
 }
 
 // ActiveNote is the note that is shown, or nil when none is open.
@@ -289,6 +321,14 @@ func (t *Tabs) Dirty(path string) bool {
 // place among the others, and what is written down is written again.
 // A note that is not open is left alone.
 func (t *Tabs) Rename(oldPath, newPath string) {
+	// The app is told with the lock let go: what it is told makes it ask
+	// the tabs what is open, and one thread cannot take the lock twice.
+	tell := false
+	defer func() {
+		if tell {
+			t.changed()
+		}
+	}()
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	n, old := t.find(oldPath)
@@ -309,7 +349,7 @@ func (t *Tabs) Rename(oldPath, newPath string) {
 	if t.Active == was || session.TabKey(t.Active) == old {
 		t.Active = newPath
 	}
-	t.changed()
+	tell = true
 }
 
 // find is the note open at path: by the identity of its file, or, when
