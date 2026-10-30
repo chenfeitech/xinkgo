@@ -11,7 +11,22 @@ GOTOOLCHAIN=auto go test ./internal/<包>/... -count=1   # 该包的测试
 GOTOOLCHAIN=auto make check                             # 全量门禁（每次提交前）
 ```
 
-## M0 领域层底座
+**进度（2026-10-30）**：M0 全部完成；**M1 = P0 全部完成**，在
+`feature/port-xink` 分支上，待人工验收（[../ACCEPTANCE.md](../ACCEPTANCE.md)
+A1 ~ A18）。未合并到 `main`。
+
+最后一次 `make check`（提交 225ba84）：
+
+```
+== go test ./... ==       15 个包全 ok（config fs highlight keymap logging
+                          markdown media note session state sync vault view）
+== 全平台编译 ==          ok darwin/arm64 · darwin/amd64 · windows/amd64
+                          ok windows/arm64 · linux/amd64
+== 版本一致 ==            ok 0.1.0
+Everything passed.
+```
+
+## M0 领域层底座（T-1 ~ T-7 全部完成 ✅）
 
 | ID | 任务 | 依赖 | 关联需求 | 验收 |
 |---|---|---|---|---|
@@ -23,7 +38,7 @@ GOTOOLCHAIN=auto make check                             # 全量门禁（每次�
 | T-6 | `internal/note`：内容/dirty/mtime/version、原子写、外部变更取回（一致则不回填） | T-4 | R-4.3、R-7.5-7.8 | `go test ./internal/note/...` |
 | T-7 | `internal/media`：文件类型与图标、可编辑文本、编辑器语言、`.xink` 排除 | — | R-1.9、R-1.11、R-10.10 | `go test ./internal/media/...` |
 
-## M1 = P0（一次性做完再验收）
+## M1 = P0（一次性做完再验收：T-8 ~ T-22 全部完成 ✅）
 
 | ID | 任务 | 依赖 | 关联需求 | 验收 |
 |---|---|---|---|---|
@@ -80,3 +95,14 @@ GOTOOLCHAIN=auto make check                             # 全量门禁（每次�
 | 2026-10-30 | `layout.json` 不复用 xink `DockAreaState`，用自研结构 + 版本不符重建 | 布局系统不同；与 xink"版本不符即重建"行为等价 |
 | 2026-10-30 | 文件监听用 `mygo.WatchFiles`，不引第三方库 | 官方 API，跨平台且不破坏 `CGO_ENABLED=0` |
 | 2026-10-30 | 索引不落盘 | 与 xink 一致，索引是磁盘的派生数据 |
+| 2026-10-30 | 单实例用 MyGo 官方 `App.RequestSingleInstanceLock()` 而非自研 pid 文件 | v0.7.3 有官方 API（跨域 socket + 存活判定），比 pid 文件可靠；`OnSecondInstance` 用来唤起窗口 |
+| 2026-10-30 | 三栏分隔条自研（可用宽度由中间栏吃掉），不用 `ui.Split` | `ui.Split` 只能让**最后一个**面板吃剩余宽度，会让预览随窗口变宽、编辑区不动；自研分隔条才能让编辑区吃掉剩余宽度 |
+| 2026-10-30 | 代码高亮只提供"主题 → `editor.Theme`"，编辑区与预览区共用同一个 | `markdown.Theme.CodeColors` 接受 `*editor.Theme`，一端生成两端使用，天然同源（R-5.7） |
+| 2026-10-30 | `sync.BlockSpans` 用"空行分块 + 围栏整体不分"的扫描，不用 mdast | Go 侧无 mdast；预览块与源码行的对应关系按空行划分足够，且可单测 |
+| 2026-10-30 | 库改名 / 重新定位 / 删除（R-1.2 的后半）留到 P1 的库管理窗口 | P0 只做"新增 + 切换 + 健康状态提示"，窗口是 P1 的 T-30 |
+
+## 人工验收
+
+登记在 [../ACCEPTANCE.md](../ACCEPTANCE.md)：A1 ~ A18，含打开库、增删改移、
+拖入导入、粘贴、多标签、自动保存、工具栏、预览与同源高亮、滚动同步、
+外部变更、重启恢复、三栏与分隔条、单实例、键位覆盖。

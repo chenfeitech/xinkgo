@@ -6,6 +6,10 @@
 | [CONTRIBUTING.md](CONTRIBUTING.md) | 代码风格、目录约定、提交信息、分支策略、评审关注点 | 写代码、提交、开分支前 |
 | [HARNESS.md](HARNESS.md) | 构建 / 运行 / 测试 / 调试流程、故障排查、CI | 日常开发与排障 |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | 分层、依赖方向、启动时序、线程模型、扩展点 | 加功能、决定代码放哪 |
+| [ACCEPTANCE.md](ACCEPTANCE.md) | **人工验收项**：只能靠人眼/手感验的都在这里 | 交付前后逐条走 |
+| [requirements/xink-port.md](requirements/xink-port.md) | 复刻 xink 的需求口径（R-1 ~ R-10，附 xink 证据） | 开工、验收 |
+| [design/xink-port.md](design/xink-port.md) | 复刻的技术设计（底座核查、数据模型、流程、风险） | 动手前 |
+| [exec-plans/xinkgo-port.md](exec-plans/xinkgo-port.md) | 研发计划与状态（T-1 ~ T-42） | 接着做、看进度 |
 | [../README.md](../README.md) | 仓库首页：三步跑起来 + 文档入口 | — |
 | [../AGENTS.md](../AGENTS.md) | AI / 新人的操作地图与技术铁律 | 交给 AI 任务时 |
 
@@ -18,4 +22,11 @@
 ## 状态
 
 - 骨架：完成（构建、运行、测试、Windows 打包均已验证）。
-- 待办：业务视图、Web 前端接入、安装器（NSIS）、签名、自动更新、CI。
+- **P0（R-1 ~ R-7）**：完成，在 `feature/port-xink` 分支上待人工验收
+  （[ACCEPTANCE.md](ACCEPTANCE.md) A1 ~ A18）。`make check` 全绿：
+  15 个包单测通过，darwin/arm64、darwin/amd64、windows/amd64、
+  windows/arm64、linux/amd64 全部编译通过。
+- 待办：P1（索引 / 双链 / 反链 / 标签 / 搜索 / 大纲 / 命令面板 / 设置窗口）、
+  P2（AI 全量）。
+- 已知缺口：见 [ACCEPTANCE.md](ACCEPTANCE.md) 末尾（面板隐藏、数据文件工具栏、
+  编辑区 Markdown 装饰、库管理窗口、预览密度接线）。
