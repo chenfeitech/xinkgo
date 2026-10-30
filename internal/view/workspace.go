@@ -9,6 +9,7 @@ import (
 	"github.com/egoist/mygo/ui/editor"
 	"github.com/egoist/mygo/ui/markdown"
 	"github.com/helightxu/xinkgo/internal/config"
+	xmd "github.com/helightxu/xinkgo/internal/markdown"
 	"github.com/helightxu/xinkgo/internal/state"
 )
 
@@ -173,6 +174,7 @@ func (w *Workspace) center(c *ui.Context) {
 	// gives the text room, not the panels.
 	ui.Column(c).Grow(1).FillHeight().Children(func() {
 		w.tabBar(c)
+		w.toolbar(c)
 		w.editor(c)
 	})
 }
@@ -199,6 +201,41 @@ func (w *Workspace) tabBar(c *ui.Context) {
 			}
 		}
 	})
+}
+
+// toolbar is the row of buttons that write Markdown for the user: one
+// button wraps what is selected, and stands for a pair of marks when
+// nothing is.
+func (w *Workspace) toolbar(c *ui.Context) {
+	if w.Tabs.ActiveNote() == nil {
+		return
+	}
+	ui.Row(c).Gap(2).Padding(4).Children(func() {
+		for _, f := range xmd.Formats {
+			f := f
+			if ui.Button(c.Key("fmt-"+f.Label()), f.Label()).
+				Label(f.Desc()).FontSize(12).Clicked() {
+				w.format(f)
+			}
+		}
+	})
+}
+
+// format is what a toolbar button does: the marks go around what is
+// selected, or around the caret, and the change is taken in as typing
+// would be.
+func (w *Workspace) format(f xmd.Format) {
+	n := w.Tabs.ActiveNote()
+	if n == nil {
+		return
+	}
+	ed := n.Editor
+	sel := ed.Selection()
+	p := f.Plan(ed.Buffer.String(), sel.Anchor, sel.Head)
+	ed.Select(p.Start, p.End)
+	ed.Insert(p.Text)
+	ed.Select(p.Caret, p.Caret)
+	w.Tabs.Edited(n)
 }
 
 // editor is the note that is shown, or an empty page when none is open.
