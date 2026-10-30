@@ -8,6 +8,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -18,6 +19,7 @@ import (
 	"github.com/helightxu/xinkgo/internal/config"
 	"github.com/helightxu/xinkgo/internal/fs"
 	"github.com/helightxu/xinkgo/internal/logging"
+	"github.com/helightxu/xinkgo/internal/media"
 	"github.com/helightxu/xinkgo/internal/session"
 	"github.com/helightxu/xinkgo/internal/state"
 	"github.com/helightxu/xinkgo/internal/sysinfo"
@@ -51,6 +53,9 @@ type appState struct {
 	ws *view.Workspace
 	// root is the folder of the vault that is open.
 	root string
+
+	watch  *mygo.FileWatcher
+	cancel context.CancelFunc
 }
 
 // Run starts the application and does not return until it quits.
@@ -73,6 +78,9 @@ func Run() error {
 		app.SetMenu(mainMenu())
 		openMainWindow()
 		st.restore()
+		if err := st.watchVault(); err != nil {
+			slog.Warn("could not watch the vault", "err", err)
+		}
 	})
 
 	if isMacOS() {
@@ -229,6 +237,9 @@ func (s *appState) openVaultDialog() {
 				return
 			}
 			s.saveOpenNotes()
+			if err := s.watchVault(); err != nil {
+				slog.Warn("could not watch the vault", "err", err)
+			}
 		})
 	}()
 }
@@ -280,6 +291,17 @@ func (s *appState) saveLayout() {
 	if err := state.SaveLayout(s.dir, s.ws.Layout); err != nil {
 		slog.Warn("the layout could not be written", "err", err)
 	}
+}
+
+// ignoreWatched is what the watch does not look at: the same names the
+// tree never shows, so that a note being saved does not wake the app.
+func ignoreWatched(path string, isDir bool) bool {
+	base := filepath.Base(path)
+	if isDir {
+		return base == ".git" || base == "node_modules" ||
+			base == "target" || base == media.AIDirName
+	}
+	return base == ".DS_Store" || strings.HasSuffix(base, ".md.tmp")
 }
 
 // version is the version mygo build linked in, or the one in the source
