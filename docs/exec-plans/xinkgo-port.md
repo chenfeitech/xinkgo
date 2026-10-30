@@ -117,6 +117,34 @@ Everything passed.
 | T-41 | 模型能力清单（静态推断 + 手动改 + 探针） | T-33 | R-10.9 |
 | T-42 | `.xink` 目录恒跳过（树/索引/命令面板） | T-7 | R-10.10 |
 
+## M3 进度
+
+| ID | 状态 | 说明 |
+|---|---|---|
+| T-33 | ✅ | `internal/ai`：Provider 抽象 + 分帧 + 重试与备用模型（提交见下） |
+
+最后一次 `scripts/check.sh`：
+
+```
+== go test ./... ==       20 个包全 ok（新增 internal/ai）
+== 全平台编译 ==          ok darwin/arm64 · darwin/amd64 · windows/amd64
+                          ok windows/arm64 · linux/amd64
+== versions agree ==      ok 0.1.0
+Everything passed.
+```
+
+决策：
+
+- **`Piece.Data` 只承载"一行 NDJSON"或"一个 SSE `data:`"，解析留给 T-34。**
+  分帧与语义分开，两端各自可单测。
+- **OpenAI 兼容端点没有默认地址**：配置里没写 `base_url` 就直接报错，不猜
+  `api.openai.com`。Ollama 才有默认（`ollama.base_url`），与 xink 一致。
+- **Ollama 的 `think` 放顶层**，`num_ctx`/`num_predict`/`temperature` 放
+  `options`；`keep_alive` 顶层。
+- **超时用 `http.Client{Timeout}` 而不是 `context.WithTimeout`**：前者把读
+  body 的时间也算进去，正好是"整个回答"的超时；首字节超时另用一层
+  `RoundTripper`，两者互不干扰。
+
 ## 决策记录（实施中补写）
 
 | 日期 | 决策 | 原因 |
