@@ -51,6 +51,9 @@ type appState struct {
 	layout state.Layout
 	// ws is the window: the tree, the tabs, the editor and the preview.
 	ws *view.Workspace
+	// win is the window the workspace is drawn in, kept so that a second
+	// launch can bring it back rather than open another.
+	win *mygo.Window
 	// root is the folder of the vault that is open.
 	root string
 
@@ -62,6 +65,15 @@ type appState struct {
 func Run() error {
 	app := mygo.App
 	app.SetName(Name)
+
+	// One instance at a time: a second launch hands what it was asked
+	// to open to this one, which shows its window, and quits.
+	if !app.RequestSingleInstanceLock() {
+		return nil
+	}
+	app.OnSecondInstance(func(args []string, workingDir string) {
+		openMainWindow()
+	})
 
 	app.WhenReady(func() {
 		info := sysinfo.Current(Name, version(app))
