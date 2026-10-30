@@ -18,6 +18,7 @@ import (
 	"github.com/egoist/mygo"
 	"github.com/helightxu/xinkgo/internal/config"
 	"github.com/helightxu/xinkgo/internal/fs"
+	"github.com/helightxu/xinkgo/internal/keymap"
 	"github.com/helightxu/xinkgo/internal/logging"
 	"github.com/helightxu/xinkgo/internal/media"
 	"github.com/helightxu/xinkgo/internal/session"
@@ -87,7 +88,8 @@ func Run() error {
 		// Bound for windows that show a page: mygo generate writes their
 		// typed client from this and whatever else is bound here.
 		mygo.Bind(system{info: info})
-		app.SetMenu(mainMenu())
+		app.SetMenu(mainMenu(
+			keymap.Resolve(current.config.Editor.Keymap)))
 		openMainWindow()
 		st.restore()
 		if err := st.watchVault(); err != nil {

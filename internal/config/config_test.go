@@ -138,6 +138,22 @@ func TestSanitize_clampsOutOfRangeValues(t *testing.T) {
 	}
 }
 
+// TestSanitize_keymapDropsUnusableEntries checks that a key the app would
+// not honour is not kept, as a hand-edited file may well have one.
+func TestSanitize_keymapDropsUnusableEntries(t *testing.T) {
+	cfg := load(t, `{"editor":{"keymap":{"Save":" CMD-SHIFT-S ",
+		"OpenSearch":"shift-","NotAnAction":"cmd-j"}}}`)
+	if got := cfg.Editor.Keymap["Save"]; got != "cmd-shift-s" {
+		t.Errorf("Save is %q, want cmd-shift-s", got)
+	}
+	if _, ok := cfg.Editor.Keymap["OpenSearch"]; ok {
+		t.Error("a key that cannot be bound was kept")
+	}
+	if _, ok := cfg.Editor.Keymap["NotAnAction"]; ok {
+		t.Error("an action the app does not have was kept")
+	}
+}
+
 // TestSanitize_unknownEnumFallsBack checks the enumerations.
 func TestSanitize_unknownEnumFallsBack(t *testing.T) {
 	cfg := load(t, `{"preview":{"image_display":"tile","link_open":"nowhere",

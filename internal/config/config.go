@@ -15,6 +15,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/helightxu/xinkgo/internal/keymap"
 )
 
 // FileName is the configuration file, in the application's user data
@@ -365,6 +367,8 @@ func (c *AppConfig) Sanitize() {
 	e.AutoSaveDelayMs = clampU64(e.AutoSaveDelayMs, 200, 60000)
 	e.Indent.TabSize = clampU32(e.Indent.TabSize, 1, 16)
 	e.Font.sanitize(monoFont())
+	// A key that is stored but would not be honoured is not stored.
+	keymap.Sanitize(e.Keymap)
 	e.DataFile.Indent = clampU64(e.DataFile.Indent, 1, 8)
 	e.DataFile.MaxFormatBytes = minU64(e.DataFile.MaxFormatBytes, 20_000_000)
 
