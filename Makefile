@@ -1,52 +1,91 @@
 # Xinkgo — the harness.
 #
-# Every command a developer needs is here; scripts/ holds the ones with
-# logic in them. `make help` lists them all.
+# macOS is the primary target: it is the machine we develop on, so it is
+# built first, it is what the commands default to, and the gate checks it
+# before anything else. Windows and Linux stay supported, and are built
+# and packaged from here too, in that order of priority:
 #
+#   P0  darwin/arm64, darwin/amd64      built, packaged, gated first
+#   P1  windows/amd64                   cross-compiled and packaged
+#   P2  windows/arm64, linux/amd64      cross-compiled (CI smoke)
+#
+# scripts/ holds the commands with logic in them; `make help` lists them.
 # Windows users without make run the same commands by hand: each target
 # prints what it runs, and docs/HARNESS.md spells them out.
 
 GO ?= go
 export GOTOOLCHAIN ?= auto
 
-APP      := xinkgo
-CMD      := ./cmd/$(APP)
-BIN      := bin
-# The platforms `make package` builds, and the ones `make cross` compiles.
-PLATFORMS ?= windows/amd64
-CROSS_PLATFORMS ?= windows/amd64 windows/arm64 darwin/arm64 darwin/amd64 linux/amd64
+APP := xinkgo
+CMD := ./cmd/$(APP)
+BIN := bin
 
-.PHONY: help run dev build build-windows package cross test test-race \
-	vet fmt fmt-check lint doctor check debug clean
+# The machine we are on, as Go names it: darwin/arm64 on Apple silicon.
+HOST_PLATFORM := $(shell uname -s | tr '[:upper:]' '[:lower:]')/$(shell uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
+
+# What `make package` builds: the machine's own platform, which on a Mac
+# is macOS. Override to package another: PLATFORMS="windows/amd64".
+PLATFORMS ?= $(HOST_PLATFORM)
+# P0: macOS, both architectures. "darwin/universal" builds one app of both.
+MACOS_PLATFORMS ?= darwin/arm64 darwin/amd64
+# P1/P2: Windows, then Linux.
+WINDOWS_PLATFORMS ?= windows/amd64 windows/arm64
+ALL_PLATFORMS ?= $(MACOS_PLATFORMS) $(WINDOWS_PLATFORMS) linux/amd64
+
+.PHONY: help deps run dev build build-macos build-windows package \
+	package-macos cross test test-race vet fmt fmt-check lint doctor \
+	check debug clean
 
 help: ## List the commands
 	@grep -hE '^[a-z][a-z0-9-]*:.*?## ' $(MAKEFILE_LIST) | sort | \
 		awk -F':.*?## ' '{printf "  make %-14s %s\n", $$1, $$2}'
 
+## Dependencies
+
+deps: ## Download and verify the dependencies, and the pinned MyGo CLI
+	$(GO) mod download
+	$(GO) mod verify
+	$(GO) tool mygo version
+
 ## Run
 
-run: ## Run the app from the sources
+run: deps ## Run the app from the sources
 	$(GO) run $(CMD)
 
-dev: ## Run the app with live reload: it rebuilds when a .go file changes
+dev: deps ## Run the app with live reload: it rebuilds when a .go file changes
 	$(GO) tool mygo dev
 
-doctor: ## Check that this machine has what MyGo needs
+doctor: deps ## Check that this machine has what MyGo needs
 	$(GO) tool mygo doctor
 
 ## Build
 
-build: ## Build the app for this machine into $(BIN)/
-	$(GO) build -o $(BIN)/ $(CMD)
+build: deps ## Build for this machine into $(BIN)/<platform>/
+	$(GO) build -o $(BIN)/$(subst /,-,$(HOST_PLATFORM))/ $(CMD)
 
-build-windows: ## Cross-compile the Windows executable (no packaging)
-	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 $(GO) build -o $(BIN)/windows-amd64/ $(CMD)
+build-macos: deps ## Build macOS, the primary target (MACOS_PLATFORMS="darwin/universal" for one app of both)
+	@for p in $(MACOS_PLATFORMS); do \
+		GOOS=$${p%/*} GOARCH=$${p#*/} CGO_ENABLED=0 $(GO) build \
+			-o $(BIN)/$${p%/*}-$${p#*/}/ $(CMD) && echo "  ok  $$p" || exit 1; \
+	done
 
-package: ## Package installable apps: .exe on Windows (PLATFORMS="windows/amd64 windows/arm64")
+build-windows: deps ## Cross-compile the Windows executables
+	@for p in $(WINDOWS_PLATFORMS); do \
+		GOOS=$${p%/*} GOARCH=$${p#*/} CGO_ENABLED=0 $(GO) build \
+			-o $(BIN)/$${p%/*}-$${p#*/}/$(APP).exe $(CMD) && \
+			echo "  ok  $$p" || exit 1; \
+	done
+
+## Package
+
+package: deps ## Package the app for this machine: .app and .dmg on macOS (PLATFORMS="windows/amd64" for another)
 	scripts/package.sh $(PLATFORMS)
 
-cross: ## Compile for every platform we ship, without packaging
-	@for p in $(CROSS_PLATFORMS); do \
+package-macos: deps ## Package macOS, the primary target: .app and .dmg for both architectures
+	scripts/package.sh $(MACOS_PLATFORMS)
+
+cross: deps ## Compile every platform we ship, macOS first, without packaging
+	@for p in $(ALL_PLATFORMS); do \
 		GOOS=$${p%/*} GOARCH=$${p#*/} CGO_ENABLED=0 $(GO) build ./... && \
 			echo "  ok  $$p" || exit 1; \
 	done
@@ -74,7 +113,7 @@ lint: ## Run golangci-lint, when it is installed
 	@command -v golangci-lint >/dev/null 2>&1 && \
 		golangci-lint run ./... || echo "golangci-lint is not installed; see docs/CONTRIBUTING.md"
 
-check: ## Everything a change passes before it is committed
+check: ## Everything a change passes before it is committed: macOS first
 	scripts/check.sh
 
 ## Debug

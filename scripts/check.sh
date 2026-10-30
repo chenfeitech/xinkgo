@@ -41,7 +41,19 @@ if [ "$fast" = "1" ]; then
 fi
 
 step "compiling for every platform"
-for platform in windows/amd64 windows/arm64 darwin/arm64 darwin/amd64 linux/amd64; do
+# macOS is the primary target: the machine's own platform goes first, then
+# the rest of macOS, then Windows, then Linux. A change that breaks the
+# platform we develop on fails here, before anything else is built.
+primary="darwin/arm64 darwin/amd64"
+secondary="windows/amd64 windows/arm64 linux/amd64"
+platforms="$(go env GOOS)/$(go env GOARCH)"
+for p in $primary $secondary; do
+	case " $platforms " in
+	*" $p "*) ;;
+	*) platforms="$platforms $p" ;;
+	esac
+done
+for platform in $platforms; do
 	GOOS="${platform%/*}" GOARCH="${platform#*/}" CGO_ENABLED=0 go build ./...
 	echo "  ok  $platform"
 done

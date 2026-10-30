@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 #
 # Packages Xinkgo for the platforms given as arguments, with `mygo build`.
-# Without arguments it builds Windows on amd64, the app's main target.
+# Without arguments it packages the machine's own platform, which on a Mac
+# is macOS: the primary target, whose artifacts (.app and .dmg) come first.
 #
-#	scripts/package.sh                                  # Windows, x64
-#	scripts/package.sh windows/amd64 windows/arm64      # both
-#	scripts/package.sh darwin/universal                 # macOS
+#	scripts/package.sh                                  # macOS, this machine
+#	scripts/package.sh darwin/arm64 darwin/amd64        # macOS, both
+#	scripts/package.sh darwin/universal                 # macOS, one app of both
+#	scripts/package.sh windows/amd64                    # Windows, x64
 #
 # The version has to be the same in mygo.json and in the source, so the
 # app never shows a version it was not packaged as.
@@ -17,7 +19,9 @@ export GOTOOLCHAIN="${GOTOOLCHAIN:-auto}"
 
 platforms=("$@")
 if [ ${#platforms[@]} -eq 0 ]; then
-	platforms=(windows/amd64)
+	# macOS is the primary target: package the machine we are on, which on
+	# a Mac is macOS, so the artifacts we develop against come first.
+	platforms=("$(go env GOOS)/$(go env GOARCH)")
 fi
 
 json_version=$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' mygo.json | head -1)

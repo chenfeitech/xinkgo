@@ -6,28 +6,39 @@
 
 ## 1 项目是什么
 
-Windows 桌面软件，Go 写成，界面由 [MyGo](https://github.com/egoist/mygo)
-v0.7.3 绘制。
+桌面软件，Go 写成，界面由 [MyGo](https://github.com/egoist/mygo) v0.7.3
+绘制。**macOS 是首要目标平台**，Windows 与 Linux 受支持但优先级在其后。
 
 | 项 | 值 |
 |---|---|
-| 目标平台 | **Windows 10/11**（amd64 主，arm64 支持）；macOS / Linux 可编译，供开发自测 |
+| 目标平台（优先级） | **P0 macOS**（`darwin/arm64` 开发机首要，`darwin/amd64` 同优先级）→ P1 `windows/amd64` → P2 `windows/arm64`、`linux/amd64`（CI 冒烟） |
 | 界面形态 | **原生 UI**（`mygo/ui`，MyGo 自己用 GPU 画，无 HTML/JS/webview）；同时**预留 Web 窗口**能力 |
 | 语言 / 框架 | Go 1.27（模块声明 1.27.3）+ MyGo v0.7.3 |
-| cgo | **禁用**（`CGO_ENABLED=0`），因此任意机器都能交叉编译到 Windows |
+| cgo | **禁用**（`CGO_ENABLED=0`），因此任意机器都能交叉编译到其它平台 |
 | 前端工具链 | 无（原生 UI 不需要 Bun/Node；未来接入 Web 窗口时再引入） |
 | 应用名 / 标识符 | `Xinkgo` / `com.helight.xinkgo` |
 | 版本 | 0.1.0（`mygo.json` 与 `internal/app/app.go` 两处一致，脚本校验） |
 
+优先级的落点（改动平台相关配置时一并检查这四处）：
+
+| 位置 | 体现 |
+|---|---|
+| `Makefile` | `MACOS_PLATFORMS` 在前；`build` / `package` 默认当前机器（Mac 上即 macOS）；`deps` 是构建与打包的前置 |
+| `scripts/check.sh` | 编译顺序：本机平台 → 其余 macOS → Windows → Linux |
+| `scripts/package.sh` | 不带参数时打包当前机器（Mac 上即 macOS） |
+| `docs/HARNESS.md` | 平台矩阵表与 CI 主产物 |
+
 为什么这样选：
 
-- **原生 UI 打底**：单二进制（约 13 MB）、无 webview 进程、内存与启动开销小，
-  在 Windows 上不依赖 WebView2 Runtime。
+- **macOS 优先**：开发、构建、打包、冒烟都在 macOS 上完成，构建流程、依赖处理
+  与产物输出（`.app` + `.dmg`）最先得到保证；问题在这台机器上最早暴露。
+- **原生 UI 打底**：单二进制、无 webview 进程、内存与启动开销小，在 macOS 上
+  不依赖任何额外运行时。
 - **保留 Web 窗口**：主窗口是原生 UI，但应用已通过 `mygo.Bind` 暴露了 Go 服务
   （`system.Info`），随时可以开一个走系统 webview 的窗口、接入前端；
   `internal/app/web.go` 就是这个接缝。
-- **纯 Go 无 cgo**：跨平台构建从任意开发机完成，CI 不需要 Windows 机器也能出
-  Windows 产物。
+- **纯 Go 无 cgo**：从 macOS 交叉编译 Windows 与 Linux 产物，CI 不需要对应机器
+  也能出可执行文件（macOS 的 `.dmg` 与 Windows 的安装器仍需在各自系统上产出）。
 
 ## 2 项目结构
 
@@ -116,37 +127,44 @@ level=INFO msg=starting app="Xinkgo 0.1.0 (darwin/arm64)" data="..." development
 ```
 
 窗口显示应用名、版本、一个输入框与计数器；菜单 `File` 里有
-`New Window` 与 `Open Web Window`（Web 窗口在 Windows 上需要 WebView2
-Runtime，Win11 自带）。
+`New Window` 与 `Open Web Window`（macOS 用系统自带的 WKWebView，无需额外
+运行时；Windows 上的 Web 窗口需要 WebView2 Runtime，Win11 自带）。
 
-### 3.3 构建与打包
+### 3.3 构建与打包（macOS 优先）
 
 ```sh
-make build                 # 当前机器：bin/xinkgo
+make deps                  # 依赖就绪（构建与打包的前置步骤）
+make build                 # 当前机器：bin/darwin-arm64/xinkgo
+make build-macos           # macOS 两个架构
+make package               # 默认当前机器：build/darwin-arm64/ 下的 .app 与 .dmg
 make build-windows         # 交叉编译：bin/windows-amd64/xinkgo.exe
-make package               # 打包：build/windows-amd64/Xinkgo.exe（约 13 MB）
+PLATFORMS="windows/amd64" make package   # 次要平台，显式指定
 ```
 
-打包输出（已在本机验证）：
+macOS 打包输出（已在本机验证）：
 
 ```
   MyGo!!!!! v0.7.3  build
-  ○ Compiling windows/amd64
-  ✓ Compiled windows/amd64  4.7s
-  ▲ Skipping the Windows installer: install NSIS (makensis)
-  • Copied 1 resources next to the executable
-  ✓ Built Xinkgo 0.1.0 in 4.7s
-    build/windows-amd64/
-      Xinkgo.exe    13.0 MB
+  ○ Compiling darwin/arm64
+  ✓ Compiled darwin/arm64  4.6s
+  ○ Signing Xinkgo.app
+  ✓ Signed Xinkgo.app  30ms
+  ○ Creating xinkgo-0.1.0-arm64.dmg
+  ✓ Created xinkgo-0.1.0-arm64.dmg  4.8s
+  ✓ Built Xinkgo 0.1.0 in 9.8s
+    build/darwin-arm64/
+      Xinkgo.app                12.4 MB
+      xinkgo-0.1.0-arm64.dmg     3.9 MB
 ```
 
-缺少 NSIS 只跳过安装器，`.exe` 照常产出；需要安装器就在 Windows 上打包
-（`mygo build` 会自行下载 NSIS）或本机安装 `makensis`。
+Windows 交叉打包同样可用（`Xinkgo.exe` 13.0 MB）；缺少 NSIS 只跳过安装器，
+`.exe` 照常产出，需要安装器就在 Windows 上打包（`mygo build` 会自行下载 NSIS）
+或本机安装 `makensis`。
 
 ### 3.4 提交前
 
 ```sh
-make check        # gofmt + go vet + go test + 全平台编译 + 版本一致性
+make check        # gofmt + go vet + go test + 全平台编译（macOS 先）+ 版本一致性
 ```
 
 ## 4 规范要点
@@ -209,7 +227,8 @@ type：`feat`/`fix`/`refactor`/`perf`/`test`/`docs`/`build`/`chore`；scope 取�
 - `make test`（`make test-race` 至少在合入前跑一次）。
 - 视图测试用 `ui.NewTester`（无窗口点击 / 输入）；目录用 `t.TempDir()`，不写
   真实用户目录；**不依赖 `time.Sleep`**。
-- 门禁 `make check`：格式 + vet + 测试 + 五平台编译 + 版本一致性，全绿才可提交。
+- 门禁 `make check`：格式 + vet + 测试 + 五平台编译（**macOS 先**）+ 版本一致性，
+  全绿才可提交。`make test` 与门禁默认针对当前机器（macOS）。
 
 ### 4.6 版本
 
@@ -232,8 +251,11 @@ type：`feat`/`fix`/`refactor`/`perf`/`test`/`docs`/`build`/`chore`；scope 取�
 1. 接入真实业务视图：在 `internal/view` 加窗口，在 `internal/app` 注册菜单。
 2. 需要前端时：加 `mygo.config.ts` 与 `src/`，用 `mygo generate` 生成
    `system.Info` 的类型化 TS 客户端，Web 窗口从 `LoadHTML` 换成前端页面。
-3. 打包分发：NSIS 安装器（Windows 机器或 CI `windows-latest`）、代码签名证书。
+3. 打包分发：macOS 用 Developer ID 签名并公证（`mygo.json` 的
+   `macos.signingIdentity`）；Windows 用 NSIS 安装器（Windows 机器或 CI
+   `windows-latest`）与代码签名证书。
 4. 自动更新：`mygo keygen` + `mygo.json` 的 `updates`。
 5. 多语言：`locales/` + `mygo i18n`（届时界面文案从英文改为可翻译）。
-6. CI：`.github/workflows/ci.yml` 跑 `scripts/check.sh` 与
-   `scripts/package.sh windows/amd64`（模板见 [HARNESS.md](HARNESS.md) 第 8 节）。
+6. CI：`.github/workflows/ci.yml`，macOS runner 出主产物
+   （`scripts/package.sh darwin/arm64`），Windows runner 出 `.exe` 与安装器
+   （模板见 [HARNESS.md](HARNESS.md) 第 8 节）。

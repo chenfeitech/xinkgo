@@ -5,9 +5,11 @@
 
 ## 项目
 
-Windows 桌面软件：Go + [MyGo](https://github.com/egoist/mygo) v0.7.3。
+桌面软件：Go + [MyGo](https://github.com/egoist/mygo) v0.7.3。
 主窗口是**原生 UI**（`mygo/ui`，Go 绘制，无 webview），并预留 Web 窗口。
-主目标 Windows amd64，macOS/Linux 用于开发自测。
+
+**目标平台优先级**：P0 macOS（`darwin/arm64`、`darwin/amd64`，首要，构建/依赖/
+产物都先保证它）→ P1 Windows/amd64 → P2 Windows/arm64、Linux/amd64。
 
 ## 开工前必读（违反会编译失败或架构腐化）
 
@@ -24,17 +26,22 @@ Windows 桌面软件：Go + [MyGo](https://github.com/egoist/mygo) v0.7.3。
    `const Version`，由 `scripts/*.sh` 校验。
 7. **不得自行合并到 `main`**：在 `feature/*` 或 `bugfix/*` 分支上开发并提交，
    完成后报告分支名，等用户拍板再合并。
+8. **macOS 优先**：改构建、依赖或打包配置时，先保证 macOS（P0）的构建、依赖
+   与产物无误，再验证 Windows（P1）与 Linux（P2）。
 
 ## 命令
 
 ```sh
+make deps           # 依赖就绪（下面的构建与打包都会先跑它）
 make run            # 从源码运行
 make dev            # live reload
-make build          # 当前机器 → bin/
+make build          # 当前机器（macOS）→ bin/darwin-arm64/
+make build-macos    # macOS 两个架构
 make build-windows  # 交叉编译 Windows
-make package        # 打包（默认 windows/amd64）
+make package        # 打包（默认当前机器，Mac 上即 macOS：.app + .dmg）
+make package-macos  # macOS 两个架构
 make test           # go test ./...
-make check          # 提交前门禁：全部
+make check          # 提交前门禁：全部，macOS 先编译
 make doctor         # 环境自检
 ```
 

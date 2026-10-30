@@ -1,8 +1,12 @@
 # Xinkgo
 
-Windows 桌面软件，Go 写成，界面由 [MyGo](https://github.com/egoist/mygo) 绘制。
+桌面软件，Go 写成，界面由 [MyGo](https://github.com/egoist/mygo) 绘制。
 当前是**可运行的基础骨架**：主窗口是原生 UI（无 webview），并预留了 Web 窗口
 能力。
+
+**目标平台优先级**：P0 macOS（`darwin/arm64`、`darwin/amd64`，首要）→
+P1 Windows/amd64 → P2 Windows/arm64、Linux/amd64（CI 冒烟）。构建顺序、
+默认产物与门禁检查都以 macOS 为先。
 
 ## 三步跑起来
 
@@ -20,15 +24,16 @@ Win11 自带）。
 ## 构建与打包
 
 ```sh
-make build            # 当前机器 → bin/xinkgo
+make deps             # 依赖就绪（构建与打包的前置）
+make build            # 当前机器（macOS）→ bin/darwin-arm64/xinkgo
+make package          # 打包当前机器 → build/darwin-arm64/Xinkgo.app + .dmg
 make build-windows    # 交叉编译 → bin/windows-amd64/xinkgo.exe
-make package          # 打包 → build/windows-amd64/Xinkgo.exe（约 13 MB）
-make check            # 提交前门禁：格式 + vet + 测试 + 全平台编译
+make check            # 提交前门禁：格式 + vet + 测试 + 全平台编译（macOS 先）
 ```
 
-不需要 cgo，不需要 C 编译器，不需要 Node/Bun：macOS 与 Linux 都能直接编出
-Windows 可执行文件。只有生成 Windows **安装器**才需要 NSIS（在 Windows 上
-`mygo build` 会自行下载）。
+不需要 cgo，不需要 C 编译器，不需要 Node/Bun：在 macOS 上能直接编出 Windows
+与 Linux 的可执行文件。只有生成 Windows **安装器**才需要 NSIS（在 Windows 上
+`mygo build` 会自行下载）；macOS 的 `.app` 与 `.dmg` 在 macOS 上产出。
 
 ## 文档
 
@@ -48,7 +53,9 @@ Windows 可执行文件。只有生成 Windows **安装器**才需要 NSIS（在
 | 框架 | MyGo v0.7.3（`go.mod` 的 `tool` 固定，`go tool mygo` 运行 CLI） |
 | Go | 1.27.3（go.mod 声明） |
 | 界面 | 原生 UI：`mygo/ui`（MyGo 用 GPU 绘制），主窗口走 `ui.View` |
-| 主目标 | Windows 10/11 amd64；arm64 亦可编译 |
+| 目标平台 | P0 macOS（arm64、amd64）→ P1 Windows/amd64 → P2 Windows/arm64、Linux/amd64 |
+| macOS 产物 | `build/darwin-arm64/Xinkgo.app`（12.4 MB）+ `xinkgo-0.1.0-arm64.dmg` |
+| Windows 产物 | `build/windows-amd64/Xinkgo.exe`（13 MB，安装器需 NSIS） |
 | cgo | 禁用（`CGO_ENABLED=0`），可任意平台交叉编译 |
 | 配置 | `config.json`，在用户数据目录（Windows：`%AppData%\Xinkgo`） |
 | 日志 | 开发到终端；安装版到日志目录 `xinkgo.log` |

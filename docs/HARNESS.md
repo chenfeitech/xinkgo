@@ -10,7 +10,8 @@
 |---|---|---|---|
 | Go | 1.27 或更高 | 编译（`go.mod` 声明 1.27.3，低版本由 Go 自动下载 toolchain） | `go version` |
 | MyGo CLI | v0.7.3 | 由 `go.mod` 的 `tool` 指令固定，`go tool mygo` 直接跑，不需要全局安装 | `go tool mygo version` |
-| Windows 目标机 | Windows 10/11 | 运行与冒烟；**仅当使用 Web 窗口时**需要 WebView2 Runtime（Win11 自带，Win10 需安装） | — |
+| macOS | 12 或更高，**首要目标** | 开发、构建、打包（`.app` + `.dmg`）与日常冒烟都在这台机器上 | `sw_vers` |
+| Windows 目标机 | Windows 10/11（次要） | 交叉编译即可产出 `.exe`；实机冒烟与安装器在这台机器上做；**仅当使用 Web 窗口时**需要 WebView2 Runtime（Win11 自带，Win10 需安装） | — |
 | NSIS | 可选 | 生成 Windows 安装器；在 Windows 上 `mygo build` 会自行下载，其它系统需自行安装 `makensis` | `makensis -VERSION` |
 | Delve | 可选 | 断点调试 | `dlv version` |
 | golangci-lint | 可选 | 额外静态检查，非门禁 | `golangci-lint version` |
@@ -26,19 +27,25 @@ make doctor        # go tool mygo doctor
 
 ## 2 命令速查
 
+**macOS 是首要目标平台**：下面的命令默认打 macOS，构建顺序与门禁检查都把
+macOS 放在最前面。Windows 与 Linux 仍然受支持，优先级在其后。
+
 | 命令 | 作用 |
 |---|---|
 | `make help` | 列出全部命令 |
+| `make deps` | 下载并校验依赖、确认固定版本的 MyGo CLI 可用 |
 | `make run` | 从源码运行应用 |
 | `make dev` | 运行并监听改动，自动重建重启（live reload） |
-| `make build` | 为当前机器构建，产物 `bin/xinkgo` |
-| `make build-windows` | 交叉编译 Windows 可执行文件，产物 `bin/windows-amd64/xinkgo.exe` |
-| `make package` | 打包可安装应用，默认 Windows/amd64，产物 `build/windows-amd64/` |
-| `make cross` | 为全部目标平台编译（不打包） |
+| `make build` | 为当前机器构建，产物 `bin/darwin-arm64/xinkgo`（Mac 上） |
+| `make build-macos` | 构建 macOS 两个架构，产物 `bin/darwin-arm64/`、`bin/darwin-amd64/` |
+| `make build-windows` | 交叉编译 Windows，产物 `bin/windows-amd64/xinkgo.exe`、`bin/windows-arm64/xinkgo.exe` |
+| `make package` | 打包可安装应用，**默认当前机器（macOS）**，产物 `build/darwin-arm64/` |
+| `make package-macos` | 打包 macOS 两个架构：`.app` 与 `.dmg` |
+| `make cross` | 为全部目标平台编译，macOS 优先（不打包） |
 | `make test` / `make test-race` | 跑测试 / 带竞态检测跑测试 |
 | `make vet` / `make fmt` / `make fmt-check` | 静态检查 / 格式化 / 格式校验 |
 | `make lint` | golangci-lint（未安装则跳过） |
-| `make check` | **提交前门禁**：格式 + vet + 测试 + 全平台编译 + 版本一致性 |
+| `make check` | **提交前门禁**：格式 + vet + 测试 + 全平台编译（macOS 先）+ 版本一致性 |
 | `make debug` | 在 Delve 下运行 |
 | `make clean` | 清理 `bin/`、`build/`、`.mygo/` |
 
@@ -47,56 +54,78 @@ Windows 上没有 `make` 时，直接跑 `scripts/check.sh`（Git Bash）或 Mak
 
 ## 3 构建
 
-### 3.1 本机构建与运行
+### 3.1 本机构建与运行（macOS，首要目标）
 
 ```sh
-make build          # bin/xinkgo
-./bin/xinkgo        # 或用 make run 一步到位
+make build              # bin/darwin-arm64/xinkgo
+./bin/darwin-arm64/xinkgo
+make run                # 或一步到位：go run ./cmd/xinkgo
 ```
 
-### 3.2 交叉编译（Windows）
+`build`、`build-macos`、`package` 都先跑 `make deps`（`go mod download` +
+`go mod verify` + 确认 CLI 版本），依赖没就绪就不会开始编译。
+
+### 3.2 交叉编译（Windows、Linux）
 
 ```sh
-make build-windows                       # bin/windows-amd64/xinkgo.exe
-make cross                               # 全部平台只编译不打包
-GOOS=windows GOARCH=arm64 CGO_ENABLED=0 go build ./cmd/xinkgo   # arm64
+make build-windows                       # bin/windows-amd64/xinkgo.exe 等
+make cross                               # 全部平台只编译不打包，macOS 在前
+GOOS=windows GOARCH=arm64 CGO_ENABLED=0 go build ./cmd/xinkgo   # 单个目标
 ```
 
-目标平台矩阵：
+目标平台矩阵（**优先级自上而下**）：
 
-| GOOS/GOARCH | 状态 | 说明 |
-|---|---|---|
-| `windows/amd64` | **主目标** | Windows 10/11 x64 |
-| `windows/arm64` | 支持 | Windows on ARM |
-| `darwin/arm64`、`darwin/amd64` | 支持 | 开发机（macOS）自测 |
-| `linux/amd64` | 支持 | CI 冒烟 |
+| 优先级 | GOOS/GOARCH | 保证 | 说明 |
+|---|---|---|---|
+| **P0** | `darwin/arm64` | 构建 + 打包 + 门禁最先检查 | 首要目标：Apple silicon 上的 macOS，日常开发机 |
+| **P0** | `darwin/amd64` | 构建 + 打包 | Intel Mac；`darwin/universal` 可合成一个通用包 |
+| P1 | `windows/amd64` | 构建 + 打包（安装器需 NSIS） | Windows 10/11 x64，仍受支持 |
+| P2 | `windows/arm64` | 构建 | Windows on ARM |
+| P2 | `linux/amd64` | 构建 | CI 冒烟 |
+
+优先级落点：Makefile 的 `ALL_PLATFORMS` 顺序、`scripts/check.sh` 的编译顺序
+（本机平台 → 其余 macOS → Windows → Linux）、`make package` 的默认目标。
 
 ### 3.3 打包可安装应用
 
 ```sh
-make package                                     # Windows x64
-scripts/package.sh windows/amd64 windows/arm64   # 两个架构
-scripts/package.sh darwin/universal              # macOS 通用包（在本机）
+make package                                     # macOS（当前机器）：.app + .dmg
+make package-macos                               # macOS 两个架构
+scripts/package.sh darwin/universal              # macOS 通用包（一个 .app 含两架构）
+PLATFORMS="windows/amd64" make package           # Windows x64
+scripts/package.sh windows/amd64 windows/arm64   # Windows 两个架构
 ```
 
 `mygo build` 做的事：编译（注入 `mygo.json` 的名字、标识符、版本）、把
-`resources/` 复制到可执行文件旁、生成 Windows 资源（图标与版本信息，
-`mygo_windows_*.syso`，已 gitignore）、可用时生成安装器。
+`resources/` 放进产物、为 macOS 生成并签名 `.app` 与 `.dmg`、为 Windows 生成
+资源（图标与版本信息，`mygo_windows_*.syso`，已 gitignore）并在可用时生成
+安装器。
 
-产物（`build/<os>-<arch>/`）：
+macOS 产物（`build/darwin-arm64/`，已在本机验证）：
+
+```
+build/darwin-arm64/
+├── Xinkgo.app                12.4 MB   已签名
+└── xinkgo-0.1.0-arm64.dmg     3.9 MB
+```
+
+Windows 产物（`build/windows-amd64/`）：
 
 ```
 build/windows-amd64/
-├── Xinkgo.exe        13 MB 左右
+├── Xinkgo.exe        13.0 MB
 └── icon.png
 ```
 
-- **安装器**：需要 NSIS。在 macOS 上会打印
+- **安装器**：Windows 需要 NSIS。在 macOS 上会打印
   `Skipping the Windows installer: install NSIS (makensis)` 并继续产出
   `.exe`；在 Windows 上 `mygo build` 会自行下载 NSIS 并生成
   `xinkgo-setup-<version>-amd64.exe`。
-- **签名**（可选）：在 `mygo.json` 配 `windows.certificate`（`.pfx`），密码由
-  环境变量 `MYGO_WINDOWS_CERTIFICATE_PASSWORD` 提供：
+- **macOS 签名**（可选）：在 `mygo.json` 配 `macos.signingIdentity`
+  （Developer ID），未配置时为 ad-hoc 签名，本地可用，分发需 Developer ID
+  并公证（`-skip-notarize` 可跳过公证）。
+- **Windows 签名**（可选）：在 `mygo.json` 配 `windows.certificate`（`.pfx`），
+  密码由环境变量 `MYGO_WINDOWS_CERTIFICATE_PASSWORD` 提供：
 
   ```jsonc
   { "windows": { "certificate": "certs/code-signing.pfx" } }
@@ -207,12 +236,23 @@ go env GOOS GOARCH CGO_ENABLED
 
 ```yaml
 # .github/workflows/ci.yml（骨架未内置，接入时添加）
-- run: go build ./...
-- run: scripts/check.sh          # 格式 + vet + 测试 + 全平台编译 + 版本一致
-- run: scripts/package.sh windows/amd64
-- uses: actions/upload-artifact
-  with: { name: xinkgo-windows, path: build/windows-amd64 }
+# macOS 是首要目标：用 macos  runner 产出主产物，Windows 产物并行跟上。
+jobs:
+  macos:      # P0
+    runs-on: macos-latest
+    steps:
+      - run: scripts/check.sh
+      - run: scripts/package.sh darwin/arm64
+      - uses: actions/upload-artifact
+        with: { name: xinkgo-macos, path: build/darwin-arm64 }
+  windows:    # P1
+    runs-on: windows-latest
+    steps:
+      - run: scripts/check.sh -fast
+      - run: scripts/package.sh windows/amd64   # 这台机器上有 NSIS，出安装器
+      - uses: actions/upload-artifact
+        with: { name: xinkgo-windows, path: build/windows-amd64 }
 ```
 
-Linux  runner 上打包 Windows 会跳过安装器（无 NSIS）；需要安装器时用
-`windows-latest` runner。
+Linux runner 上打包 Windows 会跳过安装器（无 NSIS）；需要安装器时用
+`windows-latest` runner。macOS 的 `.dmg` 只能在 macOS runner 上产出。

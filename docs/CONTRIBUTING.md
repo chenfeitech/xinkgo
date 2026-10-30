@@ -23,7 +23,13 @@ Xinkgo 是 Windows 桌面软件，用 Go 写，界面由 [MyGo](https://github.c
 `golangci-lint` 是可选的加分项（`make lint`），未安装不影响门禁。
 
 不引入需要 cgo 的依赖：整个项目必须能在 `CGO_ENABLED=0` 下从任意机器交叉
-编译到 Windows。这是 MyGo 的底座，破坏它等于放弃跨平台构建。
+编译到其它平台。这是 MyGo 的底座，破坏它等于放弃跨平台构建。
+
+**平台优先级**：macOS 是首要目标（P0），Windows/amd64 次之（P1），
+Windows/arm64 与 Linux/amd64 为 P2。体现为：`make build` / `make package`
+默认当前机器（Mac 上即 macOS）、`make deps` 是构建与打包的前置步骤、
+`scripts/check.sh` 的编译顺序为本机 → 其余 macOS → Windows → Linux。
+改动构建、依赖或打包配置时，先让 macOS 全绿，再看其它平台。
 
 ### 1.2 命名
 
@@ -251,3 +257,5 @@ Closes #18
 4. 视图函数是否只画界面；耗时操作是否堵在主线程。
 5. 测试是否覆盖边界、是否依赖 `sleep`。
 6. 提交与分支是否符合第 4、5 节。
+7. 涉及构建、依赖、打包配置的改动：macOS（P0）是否先绿，Windows 与 Linux
+   是否仍可编译（`make check` 的输出摘要贴进 PR）。
