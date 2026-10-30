@@ -12,6 +12,7 @@ import (
 	"github.com/helightxu/xinkgo/internal/highlight"
 	xmd "github.com/helightxu/xinkgo/internal/markdown"
 	"github.com/helightxu/xinkgo/internal/state"
+	"github.com/helightxu/xinkgo/internal/sync"
 )
 
 // How wide a side panel may be dragged. Below the narrowest there is
@@ -57,6 +58,18 @@ type Workspace struct {
 	codeTheme *editor.Theme
 	themeName string
 	themeDark bool
+
+	// What the editor and the preview follow each other by.
+	previewScroll ui.ScrollState
+	guard         sync.Guard
+	gesture       sync.Gesture
+	lastEdY       float32
+	lastPrY       float32
+	lastMove      time.Time
+	table         sync.AnchorTable
+	tablePath     string
+	tableVersion  uint64
+	scrollPath    string
 }
 
 // codeTheme is the colors code is painted in: one theme for the editor
@@ -114,6 +127,7 @@ func (w *Workspace) View(c *ui.Context) {
 				w.previewPanel(c)
 			}
 		})
+		w.followScroll(c)
 		w.statusBar(c)
 	})
 }
@@ -271,6 +285,7 @@ func (w *Workspace) editor(c *ui.Context) {
 	// tell the editor when what it shows has reached the disk.
 	w.Tabs.Edited(n)
 	n.Synced()
+	w.resetScroll(n.Path)
 	// Code is painted with the same colors the preview paints it with.
 	n.Editor.Theme = w.codeThemeFor(c)
 	editor.View(c, n.Editor).Fill()
@@ -284,7 +299,9 @@ func (w *Workspace) previewPanel(c *ui.Context) {
 			return
 		}
 		opts := w.markdownOptions(c, n.Path)
-		markdown.View(c, n.Note.Text, opts).Fill()
+		ui.Scroll(c).TrackScroll(&w.previewScroll).Fill().Children(func() {
+			markdown.View(c, n.Note.Text, opts)
+		})
 	})
 }
 
