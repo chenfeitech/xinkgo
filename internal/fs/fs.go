@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	iofs "io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -116,6 +117,37 @@ func Copy(src, dst string) error {
 		return err
 	}
 	return nil
+}
+
+// CopyAll copies src to dst, a file as a file and a folder with all that
+// is in it, as a file or folder dragged into the vault is.
+func CopyAll(src, dst string) error {
+	info, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+	if !info.IsDir() {
+		return Copy(src, dst)
+	}
+	if err := os.MkdirAll(dst, 0o755); err != nil {
+		return err
+	}
+	return filepath.WalkDir(src, func(
+		path string, d iofs.DirEntry, err error,
+	) error {
+		if err != nil {
+			return err
+		}
+		rel, err := filepath.Rel(src, path)
+		if err != nil {
+			return err
+		}
+		target := filepath.Join(dst, rel)
+		if d.IsDir() {
+			return os.MkdirAll(target, 0o755)
+		}
+		return Copy(path, target)
+	})
 }
 
 // sameSize reports whether two files have the same number of bytes.

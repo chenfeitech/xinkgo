@@ -215,6 +215,64 @@ func TestTabs_autoSaveOffKeepsTheTextInMemory(t *testing.T) {
 	}
 }
 
+// TestTabs_discardWritesNothing checks the tab of a file that is being
+// taken away: its changes go with the file, and are not written back.
+func TestTabs_discardWritesNothing(t *testing.T) {
+	_, a, b := vaultWithNotes(t)
+	tabs := NewTabs()
+	tabs.AutoSaveDelay = 20 * time.Millisecond
+	first, err := tabs.Open(a)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := tabs.Open(b); err != nil {
+		t.Fatal(err)
+	}
+	first.Editor.Buffer.Set("typed and thrown away")
+	tabs.Edited(first)
+	tabs.Discard(a)
+	if len(tabs.Paths()) != 1 || tabs.Paths()[0] != b {
+		t.Errorf("paths %v, want only b", tabs.Paths())
+	}
+	time.Sleep(100 * time.Millisecond)
+	data, err := os.ReadFile(a)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(data) != "# a" {
+		t.Errorf("the file holds %q, want what it had", data)
+	}
+}
+
+// TestTabs_renameKeepsTheTabInItsPlace checks a note whose file was
+// renamed: the tab keeps its place and does not open a second one.
+func TestTabs_renameKeepsTheTabInItsPlace(t *testing.T) {
+	root, a, b := vaultWithNotes(t)
+	tabs := NewTabs()
+	if _, err := tabs.Open(b); err != nil {
+		t.Fatal(err)
+	}
+	n, err := tabs.Open(a)
+	if err != nil {
+		t.Fatal(err)
+	}
+	moved := filepath.Join(root, "notes", "a.md")
+	if err := os.Rename(a, moved); err != nil {
+		t.Fatal(err)
+	}
+	tabs.Rename(a, moved)
+	paths := tabs.Paths()
+	if len(paths) != 2 || paths[0] != b || paths[1] != moved {
+		t.Errorf("paths %v, want b then the note where it went", paths)
+	}
+	if tabs.Active != moved {
+		t.Errorf("active %q, want the renamed note", tabs.Active)
+	}
+	if n.Note.Path != moved {
+		t.Errorf("the note still points at %q", n.Note.Path)
+	}
+}
+
 // TestTabs_reloadTakesWhatAnotherProgramWrote checks the case of a note
 // edited in another app: its new text comes in.
 func TestTabs_reloadTakesWhatAnotherProgramWrote(t *testing.T) {

@@ -135,13 +135,29 @@ func (t *Tabs) Close(path string) {
 		n.saveTimer.Stop()
 	}
 	delete(t.Notes, key)
-	kept := make([]string, 0, len(t.Order))
-	for _, p := range t.Order {
-		if session.TabKey(p) != key {
-			kept = append(kept, p)
-		}
+	t.Order = withoutPath(t.Order, key)
+	if session.TabKey(t.Active) == key {
+		t.Active = session.ResolveActive(t.Order, "")
 	}
-	t.Order = kept
+	t.changed()
+}
+
+// Discard drops the note at path without writing it: for a file that is
+// being taken away, whose changes go with it.
+func (t *Tabs) Discard(path string) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	key := session.TabKey(path)
+	n, ok := t.Notes[key]
+	if !ok {
+		return
+	}
+	if n.saveTimer != nil {
+		n.saveTimer.Stop()
+	}
+	delete(t.Notes, key)
+	t.Order = withoutPath(t.Order, key)
 	if session.TabKey(t.Active) == key {
 		t.Active = session.ResolveActive(t.Order, "")
 	}
@@ -269,6 +285,48 @@ func (t *Tabs) Dirty(path string) bool {
 	return ok && n.Note.Dirty
 }
 
+// Rename is a note whose file was renamed or moved: its tab keeps its
+// place among the others, and what is written down is written again.
+// A note that is not open is left alone.
+func (t *Tabs) Rename(oldPath, newPath string) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	n, old := t.find(oldPath)
+	if n == nil {
+		return
+	}
+	was := n.Path
+	delete(t.Notes, old)
+	n.Path = newPath
+	n.Note.Path = newPath
+	t.Notes[session.TabKey(newPath)] = n
+	for i, p := range t.Order {
+		if p == was || session.TabKey(p) == old {
+			t.Order[i] = newPath
+			break
+		}
+	}
+	if t.Active == was || session.TabKey(t.Active) == old {
+		t.Active = newPath
+	}
+	t.changed()
+}
+
+// find is the note open at path: by the identity of its file, or, when
+// that has moved, by the path it was opened by.
+func (t *Tabs) find(path string) (*OpenNote, string) {
+	key := session.TabKey(path)
+	if n, ok := t.Notes[key]; ok {
+		return n, key
+	}
+	for k, n := range t.Notes {
+		if n.Path == path {
+			return n, k
+		}
+	}
+	return nil, ""
+}
+
 // Reload brings what another program wrote into the note, when the user
 // has no changes of their own; when they do, their text stays and the app
 // is told, so that it can say so.
@@ -289,6 +347,17 @@ func (t *Tabs) Reload(path string) (bool, bool) {
 	n.Editor.Buffer.Set(text)
 	n.Version = n.Editor.Buffer.Version()
 	return true, false
+}
+
+// withoutPath is the order of the tabs without the one whose file is key.
+func withoutPath(order []string, key string) []string {
+	kept := make([]string, 0, len(order))
+	for _, p := range order {
+		if session.TabKey(p) != key {
+			kept = append(kept, p)
+		}
+	}
+	return kept
 }
 
 // changed tells the app that what is open is different now.

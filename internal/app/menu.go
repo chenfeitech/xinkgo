@@ -8,7 +8,8 @@ import (
 // mainMenu is the application's menu bar: the platform's own menus where
 // it has them, and the app's items on top of them. The keys are the ones
 // the configuration's keymap leaves for each action, so that a key the
-// user moved is the one the menu shows.
+// user moved is the one the menu shows, and the vaults are the ones the
+// user can open.
 func mainMenu(bound []keymap.Resolved) *mygo.Menu {
 	key := func(action string) string {
 		for _, r := range bound {
@@ -31,6 +32,18 @@ func mainMenu(bound []keymap.Resolved) *mygo.Menu {
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current != nil {
 						current.newNote()
+					}
+				}},
+			{Label: "New Folder", Accelerator: key("NewFolder"),
+				Click: func(*mygo.MenuItem, *mygo.Window) {
+					if current != nil {
+						current.newFolderIn(current.ws.Tree.DirOf())
+					}
+				}},
+			{Label: "Paste into Vault", Accelerator: "CmdOrCtrl+Shift+V",
+				Click: func(*mygo.MenuItem, *mygo.Window) {
+					if current != nil {
+						current.pasteIntoVault()
 					}
 				}},
 			{Label: "Save", Accelerator: key("Save"),

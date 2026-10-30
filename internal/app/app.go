@@ -17,7 +17,6 @@ import (
 
 	"github.com/egoist/mygo"
 	"github.com/helightxu/xinkgo/internal/config"
-	"github.com/helightxu/xinkgo/internal/fs"
 	"github.com/helightxu/xinkgo/internal/keymap"
 	"github.com/helightxu/xinkgo/internal/logging"
 	"github.com/helightxu/xinkgo/internal/media"
@@ -169,6 +168,13 @@ func boot(app *mygo.Application) (*appState, error) {
 	}
 	ws.OnOpenVault = st.openVaultDialog
 	ws.OnNewNote = st.newNote
+	// What the tree asks for when the user acts on a file in it.
+	ws.Tree.OnNewNoteIn = st.newNoteIn
+	ws.Tree.OnNewFolderIn = st.newFolderIn
+	ws.Tree.OnRename = st.renameItem
+	ws.Tree.OnDelete = st.deleteItem
+	ws.Tree.OnMove = st.moveItem
+	ws.Tree.OnImport = st.importFiles
 	// What is open is written down every time it changes, so that a
 	// crash loses the words of a note and not which notes were open.
 	ws.Tabs.OnChange = st.saveOpenNotes
@@ -232,17 +238,25 @@ func (s *appState) openVault(path string) error {
 // rememberVault makes the folder the one that is open, adding it to the
 // list when it is not there yet.
 func (s *appState) rememberVault(path string) {
+	known := false
 	for i := range s.vaults.Vaults {
 		if s.vaults.Vaults[i].Path == path {
 			id := s.vaults.Vaults[i].ID
 			s.vaults.Active = &id
-			return
+			known = true
+			break
 		}
 	}
-	e := s.vaults.Add(path)
-	s.vaults.Active = &e.ID
+	if !known {
+		e := s.vaults.Add(path)
+		s.vaults.Active = &e.ID
+	}
 	if err := state.SaveVaults(s.dir, s.vaults); err != nil {
 		slog.Warn("the vaults could not be written", "err", err)
+	}
+	// A vault that is not in the list yet is in the menu from now on.
+	if !known {
+		s.refreshMenu()
 	}
 }
 
@@ -258,37 +272,32 @@ func (s *appState) openVaultDialog() {
 			return
 		}
 		path := picked[0]
-		mygo.RunOnMain(func() {
-			// Notes of another vault are closed: the window shows one
-			// vault at a time.
-			s.ws.Tabs.CloseOutside(path)
-			if err := s.openVault(path); err != nil {
-				s.ws.Say("that folder could not be opened")
-				slog.Warn("vault", "path", path, "err", err)
-				return
-			}
-			s.saveOpenNotes()
-			if err := s.watchVault(); err != nil {
-				slog.Warn("could not watch the vault", "err", err)
-			}
-		})
+		mygo.RunOnMain(func() { s.switchVault(path) })
 	}()
 }
 
-// newNote makes a note in the vault, and opens it.
-func (s *appState) newNote() {
-	if s.root == "" {
+// switchVault makes the vault at path the one that is open: the notes of
+// the one that was are closed, for the window shows one vault at a time.
+func (s *appState) switchVault(path string) {
+	if path == s.root {
 		return
 	}
-	name := fs.UniqueName(s.root, "untitled.md")
-	path := filepath.Join(s.root, name)
-	title := strings.TrimSuffix(name, ".md")
-	if _, err := s.ws.Tabs.Create(path, "# "+title+"\n"); err != nil {
-		slog.Warn("a note could not be made", "path", path, "err", err)
+	s.ws.Tabs.CloseOutside(path)
+	if err := s.openVault(path); err != nil {
+		s.ws.Say("that folder could not be opened")
+		slog.Warn("vault", "path", path, "err", err)
 		return
 	}
-	s.rescan()
-	s.ws.Tree.Reveal(path)
+	s.saveOpenNotes()
+	if err := s.watchVault(); err != nil {
+		slog.Warn("could not watch the vault", "err", err)
+	}
+}
+
+// refreshMenu builds the menu again: what it lists of the vaults changes
+// when one is added, or another one is opened.
+func (s *appState) refreshMenu() {
+	mygo.App.SetMenu(mainMenu(keymap.Resolve(s.config.Editor.Keymap)))
 }
 
 // rescan reads the vault's folder again, as when a file was created or
