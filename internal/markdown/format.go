@@ -8,19 +8,21 @@ import "strings"
 // Format is one button of the Markdown toolbar.
 type Format int
 
-// The buttons, in the order they are shown.
+// The buttons, in the order they are shown. Two of them are named for
+// what they write, which is also what a note holds — a heading, a link —
+// so the Format in front of their names keeps the two apart.
 const (
 	Bold Format = iota
 	Italic
 	Strikethrough
 	InlineCode
-	Heading
+	FormatHeading
 	BulletList
 	NumberedList
 	TaskList
 	Quote
 	CodeBlock
-	Link
+	FormatLink
 	Image
 	Table
 	HorizontalRule
@@ -28,8 +30,8 @@ const (
 
 // Formats are the buttons, in the order they are shown.
 var Formats = []Format{
-	Bold, Italic, Strikethrough, InlineCode, Heading, BulletList,
-	NumberedList, TaskList, Quote, CodeBlock, Link, Image, Table,
+	Bold, Italic, Strikethrough, InlineCode, FormatHeading, BulletList,
+	NumberedList, TaskList, Quote, CodeBlock, FormatLink, Image, Table,
 	HorizontalRule,
 }
 
@@ -44,7 +46,7 @@ func (f Format) Label() string {
 		return "删"
 	case InlineCode:
 		return "码"
-	case Heading:
+	case FormatHeading:
 		return "标题"
 	case BulletList:
 		return "无序"
@@ -56,7 +58,7 @@ func (f Format) Label() string {
 		return "引用"
 	case CodeBlock:
 		return "代码块"
-	case Link:
+	case FormatLink:
 		return "链接"
 	case Image:
 		return "图片"
@@ -78,7 +80,7 @@ func (f Format) Desc() string {
 		return "删除线：包裹选中文本，或插入 ~~ 标记"
 	case InlineCode:
 		return "行内代码：包裹选中文本，或插入 ` 标记"
-	case Heading:
+	case FormatHeading:
 		return "标题：插入 # 标题行"
 	case BulletList:
 		return "无序列表：插入 - 列表项"
@@ -90,7 +92,7 @@ func (f Format) Desc() string {
 		return "引用：插入 > 引用块"
 	case CodeBlock:
 		return "代码块：插入 ``` 代码块"
-	case Link:
+	case FormatLink:
 		return "链接：插入 [文本](地址)，无选中则插入占位"
 	case Image:
 		return "图片：插入 ![描述](地址)，无选中则插入占位"
@@ -121,11 +123,11 @@ func (f Format) syntax() (before, after string, kind int) {
 		return "~~", "~~", surround
 	case InlineCode:
 		return "`", "`", surround
-	case Link:
+	case FormatLink:
 		return "[", "](url)", surround
 	case Image:
 		return "![", "](url)", surround
-	case Heading:
+	case FormatHeading:
 		return "# ", "", block
 	case BulletList:
 		return "- ", "", block

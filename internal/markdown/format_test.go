@@ -34,7 +34,7 @@ func TestPlan_insertsAPairWhenNothingIsSelected(t *testing.T) {
 // TestPlan_linkAndImagePlaceholders checks the two buttons whose second
 // half is a placeholder to fill in.
 func TestPlan_linkAndImagePlaceholders(t *testing.T) {
-	if got := Link.Plan("see", 0, 3).Apply("see"); got != "[see](url)" {
+	if got := FormatLink.Plan("see", 0, 3).Apply("see"); got != "[see](url)" {
 		t.Errorf("link: got %q", got)
 	}
 	if got := Image.Plan("alt", 0, 3).Apply("alt"); got != "![alt](url)" {
@@ -45,7 +45,7 @@ func TestPlan_linkAndImagePlaceholders(t *testing.T) {
 // TestPlan_blockAtTheStartOfALine checks a line's beginning: no break is
 // added when the caret is already there.
 func TestPlan_blockAtTheStartOfALine(t *testing.T) {
-	p := Heading.Plan("# old\n", 6, 6)
+	p := FormatHeading.Plan("# old\n", 6, 6)
 	if got := p.Apply("# old\n"); got != "# old\n# " {
 		t.Errorf("got %q", got)
 	}
