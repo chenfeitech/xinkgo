@@ -126,9 +126,12 @@ make dev          # go tool mygo dev，live reload
 level=INFO msg=starting app="Xinkgo 0.1.0 (darwin/arm64)" data="..." development=true
 ```
 
-窗口显示应用名、版本、一个输入框与计数器；菜单 `File` 里有
-`New Window` 与 `Open Web Window`（macOS 用系统自带的 WKWebView，无需额外
-运行时；Windows 上的 Web 窗口需要 WebView2 Runtime，Win11 自带）。
+窗口是三栏：左边库的文件树，中间打开的笔记（标签页 + 编辑器，300ms 防抖自动
+保存），右边 Markdown 预览。菜单 `File` 下有 `Open Vault…`（Cmd-O）、
+`New Note`（Cmd-N）、`Save`（Cmd-S）、`Close Tab`（Ctrl-W）。
+
+第一次启动没有库：用 `Open Vault…` 选文件夹；库与会话记在用户数据目录里
+（`vaults.json` / `open_notes.json`），与 xink 同构。
 
 ### 3.3 构建与打包（macOS 优先）
 

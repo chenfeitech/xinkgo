@@ -17,9 +17,12 @@ make run            # 从源码运行（首次编译分钟级）
 make dev            # 或：live reload，改 .go 自动重建重启
 ```
 
-跑起来会看到一个窗口：应用名与版本、一个输入框、一个计数器。菜单 `File` 里有
-`New Window` 和 `Open Web Window`（Windows 上 Web 窗口需要 WebView2 Runtime，
-Win11 自带）。
+跑起来是一个笔记窗口：左边是库的文件树，中间是打开的笔记（标签页 + 编辑器），
+右边是 Markdown 预览。菜单 `File` 里有 `Open Vault…`（Cmd-O）、`New Note`
+（Cmd-N）、`Save`（Cmd-S）、`Close Tab`（Ctrl-W）。
+
+第一次跑没有库：用 `Open Vault…` 选一个文件夹，或者像 xink 那样把库路径写进
+`vaults.json`。
 
 ## 构建与打包
 
