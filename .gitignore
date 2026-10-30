@@ -1,0 +1,12 @@
+# What builds produce.
+/build/
+/bin/
+/.mygo/
+# The Windows resource the CLI compiles from the icon and the configuration.
+mygo_windows_*.syso
+
+# Editors and the operating system.
+.DS_Store
+*.log
+.idea/
+.vscode/
