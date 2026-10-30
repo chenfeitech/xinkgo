@@ -156,9 +156,10 @@ func SaveVaults(dir string, reg vault.Registry) error {
 type Layout struct {
 	Version int `json:"version"`
 	// Left and Right are the widths of the file tree and the preview, in
-	// DIPs; 0 hides the panel.
-	Left  int `json:"left"`
-	Right int `json:"right"`
+	// DIPs; 0 hides the panel. The note in the middle takes what is left,
+	// so that making the window wider gives the text more room.
+	Left  float32 `json:"left"`
+	Right float32 `json:"right"`
 }
 
 // DefaultLayout is the layout of a first start.

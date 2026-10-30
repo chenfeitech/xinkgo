@@ -144,6 +144,9 @@ func boot(app *mygo.Application) (*appState, error) {
 	// What is open is written down every time it changes, so that a
 	// crash loses the words of a note and not which notes were open.
 	ws.Tabs.OnChange = st.saveOpenNotes
+	// The widths of the panels are written once a drag has settled, and
+	// not once a frame while it goes on.
+	ws.OnLayoutChanged = st.saveLayout
 	ws.Tabs.OnSave = func(path string) {
 		slog.Debug("saved", "path", path)
 	}

@@ -12,6 +12,18 @@ import (
 	"github.com/helightxu/xinkgo/internal/state"
 )
 
+// How wide a side panel may be dragged. Below the narrowest there is
+// nothing to read in it; above the widest it would cover the note.
+const (
+	MinPanelWidth    float32 = 120
+	MaxPanelWidth    float32 = 900
+	dividerGrip      float32 = 5
+	dividerThickness float32 = 1
+	// layoutSettle is how long the panels stay as they were dragged
+	// before what the user chose is written down.
+	layoutSettle = 400 * time.Millisecond
+)
+
 // Workspace is the window: the vault's tree on the left, the notes in the
 // middle, and what a note looks like on the right.
 type Workspace struct {
@@ -32,8 +44,12 @@ type Workspace struct {
 	// OnStatus is told what the window says at the bottom, such as that
 	// a file changed outside the app.
 	OnStatus func(text string)
+	// OnLayoutChanged is called when the panels have been dragged to
+	// another width, so that the app can write it down.
+	OnLayoutChanged func()
 
-	status string
+	status      string
+	layoutTimer *time.Timer
 }
 
 // NewWorkspace returns a window showing nothing yet: no vault, no notes.
@@ -67,22 +83,73 @@ func milliseconds(ms uint64) time.Duration {
 func (w *Workspace) View(c *ui.Context) {
 	ui.Column(c).Fill().Children(func() {
 		ui.Row(c).Fill().Children(func() {
-			w.sidebar(c)
+			// A panel of no width is one the user closed: it is drawn
+			// with no line to drag it back by.
+			if w.Layout.Left > 0 {
+				w.sidebar(c)
+				w.divider(c, "divider-tree", &w.Layout.Left, 1)
+			}
 			w.center(c)
-			w.previewPanel(c)
+			if w.Layout.Right > 0 {
+				w.divider(c, "divider-preview", &w.Layout.Right, -1)
+				w.previewPanel(c)
+			}
 		})
 		w.statusBar(c)
+	})
+}
+
+// divider is the line between two panels, that the pointer drags to give
+// one of them more room and the other less. dir is 1 when dragging to the
+// right widens the panel before the line, and -1 when it narrows it.
+func (w *Workspace) divider(
+	c *ui.Context, key string, width *float32, dir float32,
+) {
+	line := ui.Box(c.Key(key)).Width(dividerGrip).FillHeight().
+		Focusable().Role(ui.RoleSplitter).
+		Cursor(ui.CursorResizeEW).Label(key)
+	line.Draw(func(p *ui.Painter, r ui.Rect) {
+		color := c.Theme().Border
+		if line.Hovered() || line.Focused() {
+			color = c.Theme().Accent
+		}
+		// The line is a hairline; the box around it is what catches the
+		// pointer.
+		strip := ui.Rect{
+			X: r.X + (r.W-dividerThickness)/2, Y: r.Y,
+			W: dividerThickness, H: r.H,
+		}
+		p.Fill(strip, color, 0)
+	})
+	dx, _, dragging := line.Dragged()
+	if dragging && dx != 0 {
+		line.Focus()
+		w.dragPanel(width, *width+dir*dx)
+	}
+}
+
+// dragPanel is what a drag does to a panel's width: it is kept between
+// the narrowest and the widest, and written down once it settles.
+func (w *Workspace) dragPanel(width *float32, v float32) {
+	v = min(max(v, MinPanelWidth), MaxPanelWidth)
+	if v == *width {
+		return
+	}
+	*width = v
+	if w.layoutTimer != nil {
+		w.layoutTimer.Stop()
+	}
+	w.layoutTimer = time.AfterFunc(layoutSettle, func() {
+		if w.OnLayoutChanged != nil {
+			w.OnLayoutChanged()
+		}
 	})
 }
 
 // sidebar is the file tree, and the way to open a vault when there is
 // none.
 func (w *Workspace) sidebar(c *ui.Context) {
-	width := float32(w.Layout.Left)
-	if width <= 0 {
-		return
-	}
-	ui.Column(c).Width(width).Children(func() {
+	ui.Column(c).Width(w.Layout.Left).Children(func() {
 		if w.Tree.Root == nil {
 			ui.Column(c).Fill().Center().Gap(8).Padding(16).Children(func() {
 				ui.Text(c, "No vault yet").
@@ -102,7 +169,9 @@ func (w *Workspace) sidebar(c *ui.Context) {
 
 // center is the tabs and the editor.
 func (w *Workspace) center(c *ui.Context) {
-	ui.Column(c).Fill().Children(func() {
+	// What the side panels leave is the note's: widening the window
+	// gives the text room, not the panels.
+	ui.Column(c).Grow(1).FillHeight().Children(func() {
 		w.tabBar(c)
 		w.editor(c)
 	})
@@ -152,11 +221,7 @@ func (w *Workspace) editor(c *ui.Context) {
 
 // previewPanel is what the note looks like, on the right.
 func (w *Workspace) previewPanel(c *ui.Context) {
-	width := float32(w.Layout.Right)
-	if width <= 0 {
-		return
-	}
-	ui.Column(c).Width(width).Children(func() {
+	ui.Column(c).Width(w.Layout.Right).Children(func() {
 		n := w.Tabs.ActiveNote()
 		if n == nil {
 			return
