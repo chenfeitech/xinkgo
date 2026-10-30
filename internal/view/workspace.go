@@ -323,6 +323,7 @@ func (w *Workspace) editor(c *ui.Context) {
 	w.resetScroll(n.Path)
 	// Code is painted with the same colors the preview paints it with.
 	n.Editor.Theme = w.codeThemeFor(c)
+	w.applyEditor(n)
 	ed := editor.View(c, n.Editor).Fill()
 	// While a link is being written, what it may name is offered.
 	w.completion(c, ed, n)
@@ -337,7 +338,10 @@ func (w *Workspace) previewPanel(c *ui.Context) {
 		}
 		opts := w.markdownOptions(c, n.Path)
 		ui.Scroll(c).TrackScroll(&w.previewScroll).Fill().Children(func() {
-			markdown.View(c, n.Note.Text, opts)
+			width, _ := c.Size()
+			ui.Box(c).MaxWidth(w.previewWidth(width)).Children(func() {
+				markdown.View(c, n.Note.Text, opts)
+			})
 		})
 	})
 }
@@ -347,18 +351,16 @@ func (w *Workspace) previewPanel(c *ui.Context) {
 func (w *Workspace) markdownOptions(
 	c *ui.Context, path string,
 ) *markdown.Options {
-	return &markdown.Options{
-		Theme:     w.previewTheme(c),
-		LoadImage: markdown.FileImages(filepath.Dir(path)),
-		OnLink:    func(url string) { w.openLink(url, path) },
+	opts := &markdown.Options{
+		Theme:  w.previewTheme(c),
+		OnLink: func(url string) { w.openLink(url, path) },
 	}
-}
-
-// previewTheme is how the preview looks: what the window's theme leaves
-// to it, and the code colors of the preset the user chose, the ones the
-// editor paints with.
-func (w *Workspace) previewTheme(c *ui.Context) *markdown.Theme {
-	return &markdown.Theme{CodeColors: w.codeThemeFor(c)}
+	// Pictures come from the note's own folder, unless the user has
+	// asked for none of them.
+	if w.Config.Preview.ImageDisplay != config.ImageHidden {
+		opts.LoadImage = markdown.FileImages(filepath.Dir(path))
+	}
+	return opts
 }
 
 // openLink is what a click in the preview does: another note of the vault

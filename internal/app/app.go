@@ -14,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/egoist/mygo"
 	"github.com/helightxu/xinkgo/internal/config"
@@ -61,6 +62,9 @@ type appState struct {
 	vaultsWin   *mygo.Window
 	// draft is what the settings window is changing.
 	draft settings
+	// shownAll is whether the tree was last read with every file in it.
+	shownAll bool
+
 	// vaultRename is the vault whose name is being asked for.
 	vaultRename string
 	vaultName   string
@@ -338,6 +342,19 @@ func (s *appState) switchVault(path string) {
 func (s *appState) applyConfig() {
 	s.ws.Config = s.config
 	mygo.Theme.SetSource(mygo.ThemeSource(s.config.Basic.Theme))
+	// Saving as the user types, after the pause they chose.
+	s.ws.Tabs.AutoSave = s.config.Editor.AutoSave
+	s.ws.Tabs.AutoSaveDelay = time.Duration(
+		s.config.Editor.AutoSaveDelayMs) * time.Millisecond
+	s.ws.Tree.FontSize = s.config.Basic.TreeFont.Size
+	// Which files the tree shows is a choice too: one that changed is
+	// read again.
+	if s.shownAll != s.config.Basic.ShowAllFiles {
+		s.shownAll = s.config.Basic.ShowAllFiles
+		s.rescan()
+	}
+	// The menu says what the keys are, and the keys may have changed.
+	s.refreshMenu()
 }
 
 // refreshMenu builds the menu again: what it lists of the vaults changes

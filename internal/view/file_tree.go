@@ -45,6 +45,10 @@ type Tree struct {
 	// OnRefresh reads the vault's folder again, when the user asks.
 	OnRefresh func()
 
+	// FontSize is how large the names are drawn, as the user chose; 0
+	// takes the size the window's theme has.
+	FontSize float32
+
 	// Renaming is the path whose name is being asked for, and Name the
 	// name the user has typed so far.
 	Renaming string
@@ -144,6 +148,9 @@ func (t *Tree) View(c *ui.Context) {
 				}
 				ui.Text(c, marker(r.Entry)).TextColor(c.Theme().TextMuted)
 				name := ui.Button(c.Key(r.Entry.Path), r.Entry.Name)
+				if t.FontSize > 0 {
+					name.FontSize(t.FontSize)
+				}
 				name.ContextMenu(func(m *ui.Menu) { t.menu(m, r.Entry) })
 				if name.Clicked() {
 					t.choose(r.Entry)
