@@ -97,6 +97,12 @@ type Workspace struct {
 	// tagOpen is the tag whose notes the drawer is showing, empty for
 	// all of them.
 	tagOpen string
+
+	// The completion of a link: whether it is open, where the brackets
+	// stand, and which of the names offered is chosen.
+	completeOpen   bool
+	completeStart  int
+	completeChosen int
 }
 
 // codeTheme is the colors code is painted in: one theme for the editor
@@ -317,7 +323,9 @@ func (w *Workspace) editor(c *ui.Context) {
 	w.resetScroll(n.Path)
 	// Code is painted with the same colors the preview paints it with.
 	n.Editor.Theme = w.codeThemeFor(c)
-	editor.View(c, n.Editor).Fill()
+	ed := editor.View(c, n.Editor).Fill()
+	// While a link is being written, what it may name is offered.
+	w.completion(c, ed, n)
 }
 
 // previewPanel is what the note looks like, on the right.
