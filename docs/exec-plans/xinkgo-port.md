@@ -58,7 +58,24 @@ Everything passed.
 | T-21 | 单实例（pid 文件） | — | R-8.21 | 人工 |
 | T-22 | 快捷键表与键位覆盖 | T-1 | R-8.19 | `go test ./internal/keymap/...` |
 
-## M2 = P1（进行中：T-23 ~ T-29 完成 ✅；T-30 / T-31 / T-32 待做）
+## M2 = P1（T-23 ~ T-32 全部完成 ✅，2006-10-30；待人工验收）
+
+人工验收登记在 [../ACCEPTANCE.md](../ACCEPTANCE.md)：B1 ~ B8（面板与检索）
+与 C1 ~ C9（设置、库、配置生效、数据文件）。
+
+最后一次 `scripts/check.sh`（提交 92f4ebc）：
+
+```
+== go test ./... ==       19 个包全 ok
+== 全平台编译 ==          ok darwin/arm64 · darwin/amd64 · windows/amd64
+                          ok windows/arm64 · linux/amd64
+== versions agree ==	   ok 0.1.0
+Everything passed.
+```
+
+决策：YAML / TOML 只判定不校验、不格式化——本机 `go get gopkg.in/yaml.v3`
+取不到（网络不通），判定集中在 `internal/datafile` 一个包里，日后补库
+不必动窗口。
 
 | ID | 任务 | 依赖 | 关联需求 |
 |---|---|---|---|
@@ -70,7 +87,7 @@ Everything passed.
 | T-28 | 右侧按钮条 + 抽屉承载 大纲/反链/标签（同项再点收起） | T-24、T-27 | R-8.15 |
 | T-29 | `[[` 补全浮层 + 写入相对路径 | T-24 | R-8.9、R-8.10 |
 
-### M2 = P1 任务表（原计划）
+### P1 任务表
 
 | ID | 任务 | 依赖 | 关联需求 |
 |---|---|---|---|
