@@ -94,6 +94,9 @@ type Workspace struct {
 	outlineHeadings []xmd.Heading
 	outlinePath     string
 	outlineVersion  uint64
+	// tagOpen is the tag whose notes the drawer is showing, empty for
+	// all of them.
+	tagOpen string
 }
 
 // codeTheme is the colors code is painted in: one theme for the editor

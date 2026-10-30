@@ -19,7 +19,11 @@ const (
 
 // Drawers are the panels the buttons on the rail open: the outline of
 // the note, and later who points at it and what it is tagged with.
-const drawerOutline = "outline"
+const (
+	drawerOutline = "outline"
+	drawerLinks   = "backlinks"
+	drawerTags    = "tags"
+)
 
 // rail is the strip of buttons down the right of the note, and the
 // drawer they open beside it. It floats over the window rather than
@@ -39,6 +43,8 @@ func (w *Workspace) rail(c *ui.Context) {
 			}
 			ui.Column(c).Width(railWidth).Children(func() {
 				w.railButton(c, drawerOutline, "◫", "大纲")
+				w.railButton(c, drawerLinks, "⇄", "反向链接")
+				w.railButton(c, drawerTags, "＃", "标签")
 			})
 		})
 	})
@@ -67,8 +73,13 @@ func (w *Workspace) railButton(
 func (w *Workspace) drawerPanel(c *ui.Context) {
 	ui.Column(c).Width(drawerWidth).ClipY().MaxHeight(
 		drawerHeight).Children(func() {
-		if w.drawer == drawerOutline {
+		switch w.drawer {
+		case drawerOutline:
 			w.outline(c)
+		case drawerLinks:
+			w.backlinks(c)
+		case drawerTags:
+			w.tags(c)
 		}
 	})
 }
