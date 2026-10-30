@@ -9,6 +9,7 @@ import (
 	"github.com/egoist/mygo/ui/editor"
 	"github.com/egoist/mygo/ui/markdown"
 	"github.com/helightxu/xinkgo/internal/config"
+	"github.com/helightxu/xinkgo/internal/datafile"
 	"github.com/helightxu/xinkgo/internal/highlight"
 	"github.com/helightxu/xinkgo/internal/index"
 	xmd "github.com/helightxu/xinkgo/internal/markdown"
@@ -269,7 +270,14 @@ func (w *Workspace) tabBar(c *ui.Context) {
 // button wraps what is selected, and stands for a pair of marks when
 // nothing is.
 func (w *Workspace) toolbar(c *ui.Context) {
-	if w.Tabs.ActiveNote() == nil {
+	n := w.Tabs.ActiveNote()
+	if n == nil {
+		return
+	}
+	// A file of data has no use of the buttons that write Markdown: it
+	// is told which it is, and whether it reads.
+	if kind := datafile.KindOf(n.Path); kind != datafile.None {
+		w.dataBar(c, n, kind)
 		return
 	}
 	ui.Row(c).Gap(2).Padding(4).Children(func() {
@@ -281,6 +289,71 @@ func (w *Workspace) toolbar(c *ui.Context) {
 			}
 		}
 	})
+}
+
+// dataBar is what the toolbar says of a file of data: which of the three
+// it is, and whether it is well formed.
+func (w *Workspace) dataBar(
+	c *ui.Context, n *OpenNote, kind datafile.Kind,
+) {
+	ui.Row(c).Gap(2).Padding(4).Children(func() {
+		ui.Text(c, kind.Name()).Bold()
+		problem, bad := datafile.Check(kind, n.Note.Text)
+		if bad {
+			ui.Text(c, "· "+problem.Message).TextColor(c.Theme().Danger)
+			return
+		}
+		ui.Text(c, "· well formed").TextColor(c.Theme().TextMuted)
+	})
+}
+
+// previewText is what the preview is given: a note as it is, and a file
+// of data as a block of code, written out evenly when it can be.
+func (w *Workspace) previewText(n *OpenNote) string {
+	kind := datafile.KindOf(n.Path)
+	if kind == datafile.None {
+		return n.Note.Text
+	}
+	text := n.Note.Text
+	// A file of megabytes is shown as it stands.
+	if !datafile.TooLarge(uint64(len(text)),
+		w.Config.Editor.DataFile.MaxFormatBytes) {
+		if even, ok := datafile.Format(kind, text,
+			int(w.Config.Editor.DataFile.Indent)); ok {
+			text = even
+		}
+	}
+	return "```" + strings.ToLower(kind.Name()) + "\n" + text + "\n```"
+}
+
+// dataDiagnostics is what the app says of a file of data that is not well
+// formed: the problem, underlined where it stands, so that the user is
+// told of it as they write.
+func (w *Workspace) dataDiagnostics(n *OpenNote) {
+	kind := datafile.KindOf(n.Path)
+	if kind == datafile.None {
+		return
+	}
+	ed := n.Editor
+	text := ed.Buffer.String()
+	version := ed.Buffer.Version()
+	problem, bad := datafile.Check(kind, text)
+	if !bad {
+		ed.SetDiagnostics(version, nil)
+		return
+	}
+	start := ed.Buffer.Offset(editor.Pos{Line: problem.Line})
+	end := ed.Buffer.Offset(editor.Pos{Line: problem.Line + 1})
+	if end <= start {
+		end = start + 1
+	}
+	ed.SetDiagnostics(version, []editor.Diagnostic{{
+		Start:    start,
+		End:      end,
+		Severity: editor.SeverityError,
+		Message:  problem.Message,
+		Source:   kind.Name(),
+	}})
 }
 
 // format is what a toolbar button does: the marks go around what is
@@ -324,6 +397,7 @@ func (w *Workspace) editor(c *ui.Context) {
 	// Code is painted with the same colors the preview paints it with.
 	n.Editor.Theme = w.codeThemeFor(c)
 	w.applyEditor(n)
+	w.dataDiagnostics(n)
 	ed := editor.View(c, n.Editor).Fill()
 	// While a link is being written, what it may name is offered.
 	w.completion(c, ed, n)
@@ -340,7 +414,7 @@ func (w *Workspace) previewPanel(c *ui.Context) {
 		ui.Scroll(c).TrackScroll(&w.previewScroll).Fill().Children(func() {
 			width, _ := c.Size()
 			ui.Box(c).MaxWidth(w.previewWidth(width)).Children(func() {
-				markdown.View(c, n.Note.Text, opts)
+				markdown.View(c, w.previewText(n), opts)
 			})
 		})
 	})
