@@ -242,14 +242,15 @@ func (t *Tabs) CloseOutside(root string) {
 
 // Edited is what the view calls whenever the window draws: the editor's
 // text is compared with the note's, and what was typed is taken in, once
-// per change.
-func (t *Tabs) Edited(n *OpenNote) {
+// per change. It says whether anything was taken in, so that the caller
+// knows when the note is different from what it was.
+func (t *Tabs) Edited(n *OpenNote) bool {
 	if n == nil {
-		return
+		return false
 	}
 	version := n.Editor.Buffer.Version()
 	if version == n.Version {
-		return
+		return false
 	}
 	n.Version = version
 	n.Note.SetText(n.Editor.Buffer.String())
@@ -257,6 +258,7 @@ func (t *Tabs) Edited(n *OpenNote) {
 	if t.OnEdit != nil {
 		t.OnEdit(n.Path)
 	}
+	return true
 }
 
 // scheduleSave writes the note after the user has stopped typing. A new

@@ -41,6 +41,7 @@ func (s *appState) newNoteIn(dir string) {
 		return
 	}
 	s.rescan()
+	s.idx.Reindex(path)
 	s.ws.Tree.Reveal(path)
 }
 
@@ -82,6 +83,8 @@ func (s *appState) renameItem(path, name string) {
 	}
 	// A note that is open follows its file: its tab keeps its place.
 	s.ws.Tabs.Rename(path, newPath)
+	s.idx.Remove(path)
+	s.idx.Reindex(newPath)
 	s.rescan()
 	s.ws.Tree.Reveal(newPath)
 }
@@ -123,6 +126,7 @@ func (s *appState) removeItem(path string) {
 		s.ws.Say("that could not be taken away")
 		return
 	}
+	s.idx.Remove(path)
 	s.rescan()
 	s.saveOpenNotes()
 }
@@ -160,6 +164,8 @@ func (s *appState) moveItemTo(path, dir string) {
 		return
 	}
 	s.ws.Tabs.Rename(path, target)
+	s.idx.Remove(path)
+	s.idx.Reindex(target)
 	s.rescan()
 	s.ws.Tree.Reveal(target)
 }
@@ -187,6 +193,7 @@ func (s *appState) importFiles(dir string, paths []string) {
 		}
 		mygo.RunOnMain(func() {
 			s.rescan()
+			s.reindexAll()
 			switch {
 			case brought > 0 && failed > 0:
 				s.ws.Say(sayCount(brought, "brought in") + ", " +
@@ -235,6 +242,7 @@ func (s *appState) pastePicture(dir string, picture []byte) {
 		return
 	}
 	s.rescan()
+	s.idx.Reindex(path)
 	s.ws.Tree.Reveal(path)
 }
 
@@ -253,6 +261,7 @@ func (s *appState) pasteText(dir, text string) {
 		return
 	}
 	s.rescan()
+	s.idx.Reindex(path)
 	s.ws.Tree.Reveal(path)
 }
 

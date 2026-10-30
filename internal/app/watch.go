@@ -73,6 +73,9 @@ func (s *appState) handleEvents(events []mygo.FileEvent) {
 			continue
 		}
 		path := filepath.Join(s.root, e.Path)
+		// What the index knows of this note is read again, whether or
+		// not it is open.
+		s.idx.Reindex(path)
 		changed, conflict := s.ws.Tabs.Reload(path)
 		switch {
 		case conflict:
@@ -84,5 +87,8 @@ func (s *appState) handleEvents(events []mygo.FileEvent) {
 	}
 	if structure {
 		s.rescan()
+		// What notes there are is different: the index is worked out
+		// again, in the background.
+		s.reindexAll()
 	}
 }

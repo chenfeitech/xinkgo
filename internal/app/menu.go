@@ -73,6 +73,12 @@ func mainMenu(bound []keymap.Resolved, vaults vault.Registry) *mygo.Menu {
 						current.pasteIntoVault()
 					}
 				}},
+			{Label: "Go to Note…", Accelerator: key("OpenCommandPalette"),
+				Click: func(*mygo.MenuItem, *mygo.Window) {
+					if current != nil {
+						current.ws.OpenPalette()
+					}
+				}},
 			{Label: "Save", Accelerator: key("Save"),
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current != nil {

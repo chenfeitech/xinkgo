@@ -17,6 +17,7 @@ import (
 
 	"github.com/egoist/mygo"
 	"github.com/helightxu/xinkgo/internal/config"
+	"github.com/helightxu/xinkgo/internal/index"
 	"github.com/helightxu/xinkgo/internal/keymap"
 	"github.com/helightxu/xinkgo/internal/logging"
 	"github.com/helightxu/xinkgo/internal/media"
@@ -56,6 +57,9 @@ type appState struct {
 	win *mygo.Window
 	// root is the folder of the vault that is open.
 	root string
+	// idx is what is known of the whole vault. It is worked out again
+	// from the disk, and is never written down.
+	idx *index.Index
 
 	watch  *mygo.FileWatcher
 	cancel context.CancelFunc
@@ -158,11 +162,16 @@ func boot(app *mygo.Application) (*appState, error) {
 
 	ws := view.NewWorkspace(cfg)
 	ws.Layout = layout
+	// The index is worked out again from the vault, in the background,
+	// as soon as one is open.
+	idx := index.New()
+	ws.Index = idx
 	st := &appState{
 		dir:    dir,
 		config: cfg,
 		vaults: vaults,
 		layout: layout,
+		idx:    idx,
 		ws:     ws,
 	}
 	ws.OnOpenVault = st.openVaultDialog
@@ -231,8 +240,29 @@ func (s *appState) openVault(path string) error {
 	s.root = path
 	s.ws.Tree.SetRoot(root)
 	s.rememberVault(path)
+	s.rebuildIndex(root)
 	slog.Info("vault open", "path", path)
 	return nil
+}
+
+// reindexAll is the whole vault read again for what its notes say, as
+// when files were brought in from outside it.
+func (s *appState) reindexAll() {
+	if root := s.ws.Tree.Root; root != nil {
+		s.rebuildIndex(root)
+	}
+}
+
+// rebuildIndex reads the whole vault for what its notes say, in the
+// background: a vault of thousands of notes is no reason to keep the
+// window waiting.
+func (s *appState) rebuildIndex(root *vault.Entry) {
+	paths := vault.Files(root)
+	dir := s.root
+	go func() {
+		s.idx.Build(dir, paths)
+		slog.Info("index built", "notes", len(paths))
+	}()
 }
 
 // rememberVault makes the folder the one that is open, adding it to the

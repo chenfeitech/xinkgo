@@ -10,6 +10,7 @@ import (
 	"github.com/egoist/mygo/ui/markdown"
 	"github.com/helightxu/xinkgo/internal/config"
 	"github.com/helightxu/xinkgo/internal/highlight"
+	"github.com/helightxu/xinkgo/internal/index"
 	xmd "github.com/helightxu/xinkgo/internal/markdown"
 	"github.com/helightxu/xinkgo/internal/state"
 	"github.com/helightxu/xinkgo/internal/sync"
@@ -38,6 +39,9 @@ type Workspace struct {
 	Layout state.Layout
 	// Config is what the user chose; it decides what is drawn.
 	Config config.AppConfig
+	// Index is what is known of the whole vault: who points at whom,
+	// and what is tagged how. The palette and the panels ask it.
+	Index *index.Index
 
 	// OnOpenVault opens the dialog that chooses a folder, when there is
 	// no vault yet.
@@ -70,6 +74,13 @@ type Workspace struct {
 	tablePath     string
 	tableVersion  uint64
 	scrollPath    string
+
+	// The command palette: whether it is open, what was typed in it,
+	// and which of its answers the keys are on.
+	paletteOpen   bool
+	paletteQuery  string
+	paletteChosen int
+	paletteFocus  bool
 }
 
 // codeTheme is the colors code is painted in: one theme for the editor
@@ -96,13 +107,7 @@ func NewWorkspace(cfg config.AppConfig) *Workspace {
 	w.Tabs.AutoSave = cfg.Editor.AutoSave
 	w.Tabs.AutoSaveDelay = milliseconds(cfg.Editor.AutoSaveDelayMs)
 	w.Tabs.SoftWrap = cfg.Editor.SoftWrap
-	w.Tree.OnOpen = func(path string) {
-		if _, err := w.Tabs.Open(path); err != nil {
-			w.status = "could not open " + PathOf(path)
-			return
-		}
-		w.Tree.Reveal(path)
-	}
+	w.Tree.OnOpen = w.openNote
 	return w
 }
 
@@ -130,6 +135,7 @@ func (w *Workspace) View(c *ui.Context) {
 		w.followScroll(c)
 		w.statusBar(c)
 	})
+	w.palette(c)
 }
 
 // divider is the line between two panels, that the pointer drags to give
@@ -283,7 +289,12 @@ func (w *Workspace) editor(c *ui.Context) {
 	}
 	// Take in what was typed since the last frame, once per change, and
 	// tell the editor when what it shows has reached the disk.
-	w.Tabs.Edited(n)
+	if w.Tabs.Edited(n) && w.Index != nil {
+		// What the index knows of the note is what is typed, and not
+		// what the disk holds: the links the user writes are known at
+		// once, before the note is saved.
+		w.Index.Put(n.Path, n.Editor.Buffer.String())
+	}
 	n.Synced()
 	w.resetScroll(n.Path)
 	// Code is painted with the same colors the preview paints it with.
