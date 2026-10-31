@@ -70,10 +70,15 @@ func (w *Workspace) railButton(
 	}
 }
 
-// drawerPanel is what the open drawer holds.
+// drawerPanel is what the open drawer holds: a panel of the theme's own
+// look, so that what it says is read over the note and not mixed into
+// the note it is over.
 func (w *Workspace) drawerPanel(c *ui.Context) {
+	th := c.Theme()
 	ui.Column(c).Width(drawerWidth).ClipY().MaxHeight(
-		drawerHeight).Children(func() {
+		drawerHeight).Padding(th.Space(2)).Background(th.Background).
+		Border(1, th.Border).Radius(th.Radius+2).
+		Shadow(0, 6, 20, 0, ui.RGBA(0, 0, 0, 0.18)).Children(func() {
 		switch w.drawer {
 		case drawerOutline:
 			w.outline(c)

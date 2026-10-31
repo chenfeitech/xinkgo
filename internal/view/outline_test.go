@@ -1,6 +1,7 @@
 package view
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/egoist/mygo/ui"
@@ -44,5 +45,57 @@ func TestRailView_theRailStaysPutWhenThePreviewIsShut(t *testing.T) {
 	if open.X != shut.X {
 		t.Fatalf("the rail moved from %v to %v when the preview was shut",
 			shut.X, open.X)
+	}
+}
+
+// drawerStrip is how many of the pixels of a thin strip inside where the
+// drawer stands are not the face of the window: the drawer's own face,
+// once it is open, hides the note behind it, and the strip is then all
+// one color, while the note behind it is not.
+func drawerStrip(t *testing.T, open bool) int {
+	t.Helper()
+	const width, preview = float32(1000), float32(320)
+	w, _ := workspaceShown(t)
+	w.Layout.Right = preview
+	// A note long enough that the preview fills the panel with lines of
+	// text, so that there is something behind the drawer to hide.
+	w.Tabs.ActiveNote().Editor.Buffer.Set("# a heading\n\n" +
+		strings.Repeat("word ", 3000))
+	if open {
+		w.drawer = drawerOutline
+	}
+	tt := ui.NewTester(w.View, int(width), 600)
+	tt.Frame()
+	tt.Frame()
+	img := tt.Image()
+	face := ui.LightTheme().Background
+	rail, ok := tt.Find("大纲")
+	if !ok {
+		t.Fatalf("no rail button in the window")
+	}
+	// The strip stands well inside the drawer: near its right edge, where
+	// nothing of what it says reaches, as what it says reads from the
+	// left, and over the height it was given beside the rail.
+	other := 0
+	for y := int(rail.Y) + 30; y <= int(rail.Y)+60; y++ {
+		r, g, b, _ := img.At(int(rail.X)-16, y).RGBA()
+		if int(r>>8) != int(face.R) || int(g>>8) != int(face.G) ||
+			int(b>>8) != int(face.B) {
+			other++
+		}
+	}
+	return other
+}
+
+// TestDrawerPanel_theDrawerStandsOnItsOwnFace checks that a drawer open
+// over the note is read on its own face, and not on the note it covers.
+func TestDrawerPanel_theDrawerStandsOnItsOwnFace(t *testing.T) {
+	if behind := drawerStrip(t, false); behind == 0 {
+		t.Fatalf("the note behind the drawer shows nothing, so the test " +
+			"would pass with a drawer of no face at all")
+	}
+	if over := drawerStrip(t, true); over != 0 {
+		t.Errorf("%d of the drawer's pixels are the note behind it, "+
+			"want none of them", over)
 	}
 }
