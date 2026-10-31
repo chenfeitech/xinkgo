@@ -9,7 +9,7 @@
 | [ACCEPTANCE.md](ACCEPTANCE.md) | **人工验收项**：只能靠人眼/手感验的都在这里 | 交付前后逐条走 |
 | [requirements/xink-port.md](requirements/xink-port.md) | 复刻 xink 的需求口径（R-1 ~ R-10，附 xink 证据） | 开工、验收 |
 | [design/xink-port.md](design/xink-port.md) | 复刻的技术设计（底座核查、数据模型、流程、风险） | 动手前 |
-| [exec-plans/xinkgo-port.md](exec-plans/xinkgo-port.md) | 研发计划与状态（T-1 ~ T-44） | 接着做、看进度 |
+| [exec-plans/xinkgo-port.md](exec-plans/xinkgo-port.md) | 研发计划与状态（T-1 ~ T-45） | 接着做、看进度 |
 | [../README.md](../README.md) | 仓库首页：三步跑起来 + 文档入口 | — |
 | [../AGENTS.md](../AGENTS.md) | AI / 新人的操作地图与技术铁律 | 交给 AI 任务时 |
 
@@ -28,14 +28,15 @@
   C1 ~ C9。
 - **P2（R-10，AI）**：主体完成。Provider 抽象（Ollama native + OpenAI 兼容）、
   流式事件解析、对话条、会话持久化、AI 修订逐块接受、只读工具集与 agent loop、
-  Skills、模型能力清单与探针、批量标签任务、改前快照与取回、模型列表克隆与排序。
-  验收项 D1 ~ D16。
+  Skills、模型能力清单与探针、批量标签任务、改前快照与取回、模型列表克隆与排序、
+  AI 旋钮（超时 / 重试 / 步数 / 上下文 / 输出语言）。验收项 D1 ~ D16。
 - 门禁：`scripts/check.sh` 全绿 —— 22 个包单测通过，darwin/arm64、
   darwin/amd64、windows/amd64、windows/arm64、linux/amd64 全部编译通过。
 
 ## 还剩什么
 
-计划里的任务（T-1 ~ T-44）已全部完成。剩下的是**人眼验收**：见
-[ACCEPTANCE.md](ACCEPTANCE.md) 的 E1 ~ E3（面板显隐、快照取回、模型克隆与排序）。
+计划里的任务（T-1 ~ T-45）已全部完成。剩下的是**人眼验收**：见
+[ACCEPTANCE.md](ACCEPTANCE.md) 的 E1 ~ E5（面板显隐、快照取回、模型克隆与排序、
+模型的 Key 真的发出去、AI 旋钮）。
 
 已知缺口与人工验收项一并登记在 [ACCEPTANCE.md](ACCEPTANCE.md)（末尾「已知缺口」）。

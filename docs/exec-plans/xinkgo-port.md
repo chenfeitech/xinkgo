@@ -118,6 +118,7 @@ Everything passed.
 | T-42 | `.xink` 目录恒跳过（树/索引/命令面板） | T-7 | R-10.10 |
 | T-43 | 快照取回：历史窗口 + 取回（取回前先把当前存一份） | T-38 | R-10.6 |
 | T-44 | 模型列表的克隆与排序（副本深拷贝、上下移动一位） | T-41 | R-10.9 |
+| T-45 | 设置里补上只在 `config.json` 里能改的 AI 旋钮，并给 Ollama 常驻时间一个输入框 | T-41 | R-10.9 |
 
 ## M3 进度
 
@@ -135,8 +136,9 @@ Everything passed.
 | T-41 | ✅ | 能力清单：领域层 `internal/ai/capability.go`（字典 + 推断 + 生效优先级）+ `probe.go`（`ai.Try` 探针）；设置窗口 `internal/app/settings_ai.go`（模型增删、地址/密钥/协议、能力勾选即 pin、Try it 把实测 `tools_enabled` 写回） |
 | T-43 | ✅ | 快照取回：`internal/snapshot` 补 `List`（新的在前）与 `Taken`（从名字读回时间）；`internal/app/history_window.go` 列快照（文件名 + 时间 + 开头一行），Put it back **先把当前内容存成一份新快照**再写回（还是 `note.Save` 原子写），写完回灌索引并让开着的标签页重新读盘（`Tabs.PutText`） |
 | T-44 | ✅ | 模型克隆与排序：`config.ModelEntry.Clone` 深拷贝（能力切片与三个指针都不共享）并给副本 `<原名>-copy`（重名加数字）；每行 Clone / ↑ / ↓，三种改动与 Forget 一样**画完这一帧再做**，免得从后面几行的脚下抽走它们要画的东西 |
+| T-45 | ✅ | AI 旋钮：设置 ▸ AI 加 Asking 一组（输出语言 / 两个超时 / 重试次数与间隔 / 步数 / 笔记与工具能看见多少字），加 Ollama 常驻时间输入框。两端与 `AiConfig.Sanitize` 的夹取**完全一致**；整数用 `NumberInput`（说得出当前值、一次走一格）而非 `Slider`，写回按四舍五入取整 |
 
-人工验收登记在 [../ACCEPTANCE.md](../ACCEPTANCE.md)：D1 ~ D19 与 E1、E2、E3。
+人工验收登记在 [../ACCEPTANCE.md](../ACCEPTANCE.md)：D1 ~ D19 与 E1 ~ E5。
 
 冒烟：`vault open` + `index built`，窗口 ALIVE。
 
@@ -185,6 +187,13 @@ Everything passed.
   比不放回更糟**。
 - **取回要碰到编辑区，不能只写盘**：`Tabs.PutText` 让开着的标签页重新读盘并更新
   buffer；否则自动保存会把编辑区里的旧文字又盖回去。
+- **只给"真有人读"的字段做界面**：把 AI 配置全查了一遍，`Ollama.NumCtx`（全局那个，
+  只有模型自己没设时才该起作用，而它从没被进请求体）、`ApiKeySource`、`ContextLimit`、
+  `LastCheckedMs`、`MemoryEnabled`、`AutoApply` 六个**运行期无人读取**或一个也不发，
+  所以一个都不补——给一个不生效的值做旋钮，是骗人。补的八个都是
+  `internal/ai` 或 `internal/view` 里真有读取点的。
+- **窗口的两端就是设置的两端**：每个 `NumberInput` 的 lo/hi 抄 `AiConfig.Sanitize`
+  的夹取范围（5–600、1000–200000…），免得窗口给出设置随后又拒绝的数。
 - **副本要深拷贝**：`ModelEntry` 里有切片（`Capabilities`）和三个指针
   （`ContextLimit`、`Params.NumCtx`、`Params.KeepAlive`）。复制是为了改它，共享
   这些就是"改副本也改了原件"，所以 `Clone` 一个个拷过去。副本名 `<原名>-copy`，

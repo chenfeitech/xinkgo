@@ -92,6 +92,7 @@
 | E2 | 快照取回 | 先让模型改一篇笔记（D18 会在 `ai-history/` 留下旧版本），再手工改动这篇，然后菜单 ▸ Snapshots… | 窗口按**新的在前**列出，每行是「文件名 + 时间 + 开头一行」，点 Put it back 后笔记回到旧版本；**当前内容先被存成一份新快照**（再点一次能回来）；若这篇笔记正开着，编辑区立刻显示取回的内容 |
 | E3 | 模型克隆与排序 | 设置 ▸ AI：给某行改个 Address / 勾个能力，点 Clone，再点 ↑ / ↓ | 多出一行 `<原名>-copy`，**排在被复制那行的后面**，地址与能力都一样；改副本的 Address / 能力 / 上下文**不会**动到原行；↑ / ↓ 让它前后挪一位，第一行 ↑ 与最后一行 ↓ 是灰的；再 Clone 一次叫 `-copy2` |
 | E4 | 模型的 Key 真的发出去 | 加一个 OpenAI 兼容模型（Speaks = open_ai_compatible），填 Address 与 Key，提问 | 请求带上 `Authorization: Bearer <key>`（配错的 key 得到的是 401，而不是"连不上/没鉴权"的含糊提示）；留空仍是匿名请求 |
+| E5 | AI 旋钮 | 设置 ▸ AI ▸ Asking：改「How long an answer may take」「How often it is tried again」等，关掉设置再打开；再看 `config.json` | 数字**带得回来**（不是默认值）；`config.json` 里同步；`Answer in` 选 zh / en 后提问，模型的回答跟着换语言 |
 
 ## 已自动化、不必人验的
 
