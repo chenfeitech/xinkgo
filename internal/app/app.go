@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/egoist/mygo"
+	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/config"
 	"github.com/helightxu/xinkgo/internal/index"
 	"github.com/helightxu/xinkgo/internal/keymap"
@@ -26,6 +27,7 @@ import (
 	"github.com/helightxu/xinkgo/internal/skill"
 	"github.com/helightxu/xinkgo/internal/state"
 	"github.com/helightxu/xinkgo/internal/sysinfo"
+	"github.com/helightxu/xinkgo/internal/task"
 	"github.com/helightxu/xinkgo/internal/vault"
 	"github.com/helightxu/xinkgo/internal/view"
 )
@@ -87,6 +89,13 @@ type appState struct {
 	// disk, and are never written down.
 	skills      []skill.Skill
 	skillIssues []skill.Issue
+	// tasksWin is the window of the long work over the vault.
+	tasksWin *mygo.Window
+	// taskDraft is the task being put together there, and work the one
+	// that has been planned.
+	taskDraft  taskDraft
+	taskScroll ui.ScrollState
+	work       *task.Task
 }
 
 // Run starts the application and does not return until it quits.

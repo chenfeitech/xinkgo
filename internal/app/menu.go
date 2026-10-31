@@ -98,6 +98,12 @@ func mainMenu(bound []keymap.Resolved, vaults vault.Registry) *mygo.Menu {
 						current.openSettings()
 					}
 				}},
+			{Label: "Library tasks…",
+				Click: func(*mygo.MenuItem, *mygo.Window) {
+					if current != nil {
+						current.openTasks()
+					}
+				}},
 			{Label: "Save", Accelerator: key("Save"),
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current != nil {

@@ -80,6 +80,7 @@
 | D14 | Skills 坏文件 | 写一个缺 `description` 的 SKILL.md | 设置里列出路径 + 原因（「缺少 description」等），**不**静默消失 |
 | D15 | 让它先查库 | 设置 ▸ AI 勾「Let it look through the vault」，先给模型点 Try it（把 `tools_enabled` 勾上），再问"库里有什么" | 对话里出现 `read_note → …` / `search_notes → …` 之类的小字，然后才是答案；走满步数时提示「走了太多步…」 |
 | D16 | 工具只读 | 让模型去读 `../../` 外面的文件 | 回灌「不允许…」/「读不到…」，**不会**把库外文件内容发给模型 |
+| D17 | 库级批量任务 | 菜单 ▸ Library tasks…：选「改标签」、填 `AI` → `人工智能`，点 Plan it | 列出每篇笔记的 `− 旧行 / + 新行` 预览，没有该标签的显示「跳过（没有 #AI）」；此时磁盘**未改**；点 Do the next batch 后磁盘才改，且标签面板里立刻变成新标签 |
 
 ## 已自动化、不必人验的
 
@@ -96,6 +97,6 @@
 | 编辑区 Markdown 装饰 | 行首标记淡化等待自研 tokenizer（R-4.10） |
 | 图片宽度百分比 | `preview.image_width_percent` 目前只存不生效（MyGo 的 Markdown 视图没有图片宽度选项） |
 | YAML / TOML 只认不校验 | `internal/datafile` 能识别 `.yaml` / `.toml` 并渲染，但**不做语法校验**：网络取不到 `gopkg.in/yaml.v3`，不引入手写解析器（见 C9） |
-| 批量标签任务没有入口 | 领域层 `internal/task` 已实现并有测试，但设置里还没有发起面板（T-40b） |
+| ~~批量标签任务没有入口~~ | 已补：`internal/app/tasks_window.go`，菜单 ▸ Library tasks…（见 D17） |
 | AI 改完的校验与快照轮转 | R-10.6 后半未做：改完不复核，也没有 `.xink/snapshots` 回滚（T-38 尾） |
 | 模型列表不能克隆 / 排序 | 设置里目前只能增删与编辑，不影响使用 |

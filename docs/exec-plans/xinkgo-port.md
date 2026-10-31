@@ -127,7 +127,7 @@ Everything passed.
 | T-36 | ✅ | 会话持久化（`internal/state/ai_sessions.go`，30 会话 / 200 块裁剪） |
 | T-37 | ✅ | AI 修订评审：`editor.DiffView` 逐块 Take/Revert + 整篇写入 |
 | T-42 | ✅ | `.xink` 恒跳过：随 T-7 一起做完（`vault.Scan` 的 `ignored` 用 `media.AIDirName`，树/索引/命令面板都不出现），`vault_test.go` 有断言 |
-| T-40a | ✅ | 库级批量任务领域层 `internal/task`：改/加/删标签的纯文本改写（整 token 才命中、代码块与 front-matter 分别处理、跳过必带原因）+ `Plan`（只读）+ `Run`（分批、可续跑、失败不重跑）。**尚未接线**：设置里发起任务的面板是 T-40b |
+| T-40 | ✅ | 库级批量任务：领域层 `internal/task`（整 token 命中、代码块/front-matter 分别处理、跳过必带原因、`Plan` 只读、`Run` 分批可续跑）+ 窗口 `internal/app/tasks_window.go`（选动作/填标签/看预览/分批执行，写盘走 `note.Save` 原子写，写完回灌索引） |
 | T-38 | ✅ | 只读工具集 `internal/ai/tool.go`（7 个工具 + schema + `Execute`）→ `agent.go` 的 `ai.Loop`（要工具→执行→回灌→再问，走满步数报 `ErrSteps`）→ `app/host.go` 的 `ai.Host` 实现（工具只能读**库内**，路径越界一律拒绝）→ 对话条显示 `tool → 结果` 小字 |
 | T-39 | ✅ | Skills：`internal/skill` 发现与解析（库内 `.xink/skills` + 用户级、同名库内优先、坏文件进 issues）、命令面板入口、AI 条里「using X」可放下、设置里启停 |
 | T-41 | ✅ | 能力清单：领域层 `internal/ai/capability.go`（字典 + 推断 + 生效优先级）+ `probe.go`（`ai.Try` 探针）；设置窗口 `internal/app/settings_ai.go`（模型增删、地址/密钥/协议、能力勾选即 pin、Try it 把实测 `tools_enabled` 写回） |
