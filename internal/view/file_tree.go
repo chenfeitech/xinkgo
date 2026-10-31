@@ -45,6 +45,9 @@ type Tree struct {
 	OnImport func(dir string, paths []string)
 	// OnRefresh reads the vault's folder again, when the user asks.
 	OnRefresh func()
+	// OnOpenSettings opens the settings window, asked for at the foot
+	// of the tree, which stands there whether a vault is open or not.
+	OnOpenSettings func()
 
 	// FontSize is how large the names are drawn, as the user chose; 0
 	// takes the size the window's theme has.
@@ -202,7 +205,39 @@ func (t *Tree) View(c *ui.Context) {
 			}
 			t.line(c, rows[i])
 		}).Fill()
+		t.footer(c)
 	})
+}
+
+// footer is the foot of the tree: the way to the settings, which stands
+// below the files whatever is in the vault, and is drawn on its own when
+// there is no vault at all.
+func (t *Tree) footer(c *ui.Context) {
+	if t.OnOpenSettings == nil {
+		return
+	}
+	th := c.Theme()
+	ui.Box(c).FillWidth().Height(1).Background(th.Border)
+	line := ui.ButtonBase(c.Key("tree-settings")).Label("Settings").
+		Tooltip("Settings").FillWidth().Height(treeRowHeight).
+		Radius(th.Radius).Justify(ui.Start).AlignItems(ui.Center)
+	line.Draw(func(p *ui.Painter, box ui.Rect) {
+		if line.Hovered() {
+			p.Fill(box, th.SurfaceHover, th.Radius)
+		}
+	})
+	line.Children(func() {
+		ui.Row(c).FillWidth().Height(treeRowHeight).Gap(treeGap).
+			AlignItems(ui.Center).
+			PaddingStart(treePad).PaddingEnd(treePad).Children(func() {
+			ui.Icon(c, iconSettings).Size(treeIcon, treeIcon).
+				TextColor(th.TextMuted)
+			ui.Text(c, "Settings").Grow(1).Ellipsis("…").NoWrap()
+		})
+	})
+	if line.Clicked() {
+		t.OnOpenSettings()
+	}
 }
 
 // header is the head of the tree: which vault it is, what it holds, and

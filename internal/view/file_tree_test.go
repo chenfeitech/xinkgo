@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/egoist/mygo/ui"
+	"github.com/helightxu/xinkgo/internal/config"
 	"github.com/helightxu/xinkgo/internal/vault"
 )
 
@@ -181,4 +182,86 @@ func TestTreeCounts_whatTheHeaderSays(t *testing.T) {
 	if got := tr.counts(); got != "3 notes · 1 folder" {
 		t.Errorf("the header says %q, want 3 notes and 1 folder", got)
 	}
+}
+
+// TestTreeView_theSettingsStandAtTheFoot checks the way to the settings
+// the tree gives: it is at the foot of it, below the files, whether the
+// vault holds anything or not, and a click on it opens them.
+func TestTreeView_theSettingsStandAtTheFoot(t *testing.T) {
+	for _, root := range []*vault.Entry{nil, treeRoot()} {
+		tr := NewTree()
+		tr.SetRoot(root)
+		opened := 0
+		tr.OnOpenSettings = func() { opened++ }
+		tt := treeTester(t, tr)
+		if !tt.HasText("Settings") {
+			t.Fatal("the tree says nothing of the settings")
+		}
+		if err := tt.Click("Settings"); err != nil {
+			t.Fatal(err)
+		}
+		if opened != 1 {
+			t.Errorf("opened %d times, want once", opened)
+		}
+	}
+}
+
+// TestTreeView_withNoWayToTheSettingsThereIsNoFoot checks a tree that was
+// given nowhere to open the settings: it says nothing of them, rather
+// than offering a way that goes nowhere.
+func TestTreeView_withNoWayToTheSettingsThereIsNoFoot(t *testing.T) {
+	tr := NewTree()
+	tr.SetRoot(treeRoot())
+	if tt := treeTester(t, tr); tt.HasText("Settings") {
+		t.Error("the tree offers settings it cannot open")
+	}
+}
+
+// TestSidebar_theSettingsStandAtTheFootOfThePanel checks the panel the
+// tree is in: the way to the settings is at its foot even before a vault
+// has been opened, which is when a user is most likely to look for it.
+func TestSidebar_theSettingsStandAtTheFootOfThePanel(t *testing.T) {
+	w := NewWorkspace(config.Default())
+	opened := 0
+	w.Tree.OnOpenSettings = func() { opened++ }
+	tt := ui.NewTester(w.sidebar, 260, 600)
+	if !tt.HasText("Settings") {
+		t.Fatal("the panel says nothing of the settings")
+	}
+	if err := tt.Click("Settings"); err != nil {
+		t.Fatal(err)
+	}
+	if opened != 1 {
+		t.Errorf("opened %d times, want once", opened)
+	}
+}
+
+// TestSidebar_theFootStandsOnce checks that the way to the settings is
+// drawn once and not twice, which it would be if the tree drew its foot
+// and the panel drew one of its own under it.
+func TestSidebar_theFootStandsOnce(t *testing.T) {
+	w := NewWorkspace(config.Default())
+	w.Tree.SetRoot(treeRoot())
+	w.Tree.OnOpenSettings = func() {}
+	tt := ui.NewTester(func(c *ui.Context) {
+		ui.Column(c).Fill().Children(func() {
+			ui.Row(c).Fill().Children(func() { w.sidebar(c) })
+		})
+	}, 260, 600)
+	// One foot says the word twice: once as the button's own label,
+	// once as the words beside the gear.
+	if n := countOf(tt.Texts(), "Settings"); n != 2 {
+		t.Errorf("the foot stands %d times, want once", n/2)
+	}
+}
+
+// countOf is how many times the list says this.
+func countOf(list []string, want string) int {
+	n := 0
+	for _, one := range list {
+		if one == want {
+			n++
+		}
+	}
+	return n
 }

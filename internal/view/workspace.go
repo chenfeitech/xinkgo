@@ -328,7 +328,8 @@ func (w *Workspace) dragPanel(width *float32, v float32) {
 // none.
 func (w *Workspace) sidebar(c *ui.Context) {
 	// A row centers what has no height of its own: the panel takes the
-	// window's height, so that the tree stands at the top of it.
+	// window's height, so that the tree stands at the top of it, and
+	// the foot of it at the foot.
 	ui.Column(c).Width(w.Layout.Left).FillHeight().Children(func() {
 		if w.Tree.Root == nil {
 			ui.Column(c).Fill().Center().Gap(8).Padding(16).Children(func() {
@@ -341,6 +342,10 @@ func (w *Workspace) sidebar(c *ui.Context) {
 					}
 				}
 			})
+			// A tree that is not drawn draws no foot of its own: the
+			// panel's foot is the one that stands, so that the way to
+			// the settings is there before a vault is opened too.
+			w.Tree.footer(c)
 			return
 		}
 		w.Tree.View(c)
