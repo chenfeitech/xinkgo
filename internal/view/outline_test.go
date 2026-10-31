@@ -184,3 +184,51 @@ func TestDrawerPanel_theDrawerIsAsTallAsThePanels(t *testing.T) {
 			"it to end about 300 lower", grew)
 	}
 }
+
+// TestDrawerPanel_theDrawerStandsLevelWithThePreview checks the line the
+// drawer was asked to stand on: the top of the preview beside it, and not
+// somewhere down the window.
+func TestDrawerPanel_theDrawerStandsLevelWithThePreview(t *testing.T) {
+	const width, height = 1000, 600
+	w, _ := workspaceShown(t)
+	w.Layout.Right = 320
+	w.Tabs.ActiveNote().Editor.Buffer.Set("# a heading\n")
+	// The drawer shut: where the preview draws the note's first line is
+	// where the preview begins, and that is the line to stand level with.
+	tt := ui.NewTester(w.View, width, height)
+	tt.Frame()
+	line, ok := tt.Find("a heading")
+	if !ok {
+		t.Fatalf("the preview draws no heading")
+	}
+	top, _ := drawerEdge(t, height)
+	if off := float32(top) - line.Y; off > 12 || off < -12 {
+		t.Errorf("the drawer begins at %v and the preview at %v, want them "+
+			"level with each other", top, line.Y)
+	}
+}
+
+// TestRailView_aButtonOpensItsDrawer checks that the buttons are pressed
+// where they stand: over the panels, in the row that holds them, and not
+// in an overlay of their own.
+func TestRailView_aButtonOpensItsDrawer(t *testing.T) {
+	const width, preview = float32(1000), float32(320)
+	w, _ := workspaceShown(t)
+	w.Layout.Right = preview
+	tt := ui.NewTester(w.View, int(width), 600)
+	tt.Frame()
+	if err := tt.Click("大纲"); err != nil {
+		t.Fatalf("Click: %v", err)
+	}
+	tt.Frame()
+	if w.drawer != drawerOutline {
+		t.Errorf("the drawer is %q, want the outline", w.drawer)
+	}
+	if err := tt.Click("大纲"); err != nil {
+		t.Fatalf("Click: %v", err)
+	}
+	tt.Frame()
+	if w.drawer != "" {
+		t.Errorf("the drawer is %q, want it shut again", w.drawer)
+	}
+}

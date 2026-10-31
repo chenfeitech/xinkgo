@@ -9,11 +9,13 @@ import (
 
 // How wide the drawer is, where it hangs, and how far a heading stands
 // in for each level of it. Its height is not one of them: it is as tall
-// as the panels it stands over.
+// as the panels it stands over. It hangs railGap in from the top, the
+// right and the foot of them, as the preview begins at the top of the
+// window and not lower down, and its buttons hang from the top of it.
 const (
 	drawerWidth float32 = 300
-	drawerTop   float32 = 72
-	drawerFoot  float32 = 6
+	drawerTop           = railGap
+	drawerFoot          = railGap
 	railWidth   float32 = 34
 	railGap     float32 = 6
 	indentStep  float32 = 12
@@ -37,9 +39,10 @@ func (w *Workspace) rail(c *ui.Context) {
 	}
 	// The rail belongs to the window, and not to the note: it stands at
 	// the window right edge, over whatever panel is there, and so keeps
-	// its place when the panels are dragged wider or shut. Its buttons
-	// keep to the top of it: a drawer as tall as the window is must not
-	// push them down the note.
+	// its place when the panels are dragged wider or shut. It hangs from
+	// the top of the window, where the preview begins, and its buttons
+	// under it: a drawer as tall as the window is must not push them
+	// down the note.
 	ui.Row(c).Absolute().Right(railGap).Top(drawerTop).Bottom(drawerFoot).
 		AlignItems(ui.Start).Children(func() {
 		if w.drawer != "" {

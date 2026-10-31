@@ -546,3 +546,44 @@ func TestTabs_theCloseClosesAndTheNameShows(t *testing.T) {
 		t.Errorf("open = %v, want the two notes", w.Tabs.Paths())
 	}
 }
+
+// madeNote is how many notes the button at the end of the tab bar made
+// when it was clicked, in a window of the width given, with the preview
+// as wide as the preview says and the drawer named open, or none of them
+// when it is named "".
+func madeNote(
+	t *testing.T, width, preview float32, drawer string,
+) int {
+	t.Helper()
+	w, _, _ := shownWorkspace(t)
+	w.Layout.Right = preview
+	w.Tree.SetRoot(treeRoot())
+	made := 0
+	w.OnNewNote = func() { made++ }
+	w.drawer = drawer
+	tt := ui.NewTester(w.View, int(width), 600)
+	tt.Frame()
+	if err := tt.Click("+"); err != nil {
+		t.Fatalf("Click: %v", err)
+	}
+	tt.Frame()
+	return made
+}
+
+// TestTabs_theNewNoteStandsClearOfTheRail checks that the button that
+// makes a note is never under what hangs over the window's right edge:
+// the rail hangs from the top of the window, and its drawer beside it
+// when one is open, over the end of the tab bar, so the bar gives the
+// room they take up.
+func TestTabs_theNewNoteStandsClearOfTheRail(t *testing.T) {
+	const width = float32(1000)
+	for _, drawer := range []string{"", drawerOutline} {
+		for _, preview := range []float32{0, 100, 320} {
+			if made := madeNote(t, width, preview, drawer); made != 1 {
+				t.Errorf("with the preview %.0f wide and the drawer %q, "+
+					"clicking the button made %d notes, want one",
+					preview, drawer, made)
+			}
+		}
+	}
+}

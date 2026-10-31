@@ -411,6 +411,30 @@ const (
 	tabNameMax float32 = 142
 )
 
+// railBand is how much room the rail takes at the right edge of the
+// window: its own, and its drawer's when one is open.
+func (w *Workspace) railBand() float32 {
+	band := railWidth + railGap + 2
+	if w.drawer != "" {
+		band += drawerWidth + 2
+	}
+	return band
+}
+
+// railClear is how much of that room a row has to give up: the rail
+// hangs from the top of the window over whatever ends there, so a row as
+// wide as the window, as the tab bar is when the preview is shut, would
+// end its last button under it. The preview, which ends at the window's
+// own edge, is not in the way: what it leaves of the band is what a row
+// beside it gives up.
+func (w *Workspace) railClear() float32 {
+	clear := w.railBand() - w.Layout.Right
+	if clear < 0 {
+		return 0
+	}
+	return clear
+}
+
 // tabBar is one tab per open note, and the way to make a new one: the
 // tabs are read from left to right, and the strip is scrolled sideways
 // when there are more of them than there is room for, as the tabs of the
@@ -418,23 +442,24 @@ const (
 // outside what is scrolled, so that it is always there.
 func (w *Workspace) tabBar(c *ui.Context) {
 	paths := w.Tabs.Paths()
-	ui.Row(c).AlignItems(ui.Center).Children(func() {
-		ui.ScrollHorizontal(c).Grow(1).Height(tabHeight + 8).
-			Children(func() {
-				ui.Row(c).Gap(2).Padding(4).AlignItems(ui.Center).
-					Children(func() {
-						for _, path := range paths {
-							path := path
-							w.tab(c, path)
-						}
-					})
-			})
-		if w.OnNewNote != nil && w.Tree.Root != nil {
-			if ui.Button(c.Key("new"), "+").Label("New note").Clicked() {
-				w.OnNewNote()
+	ui.Row(c).AlignItems(ui.Center).PaddingEnd(w.railClear()).
+		Children(func() {
+			ui.ScrollHorizontal(c).Grow(1).Height(tabHeight + 8).
+				Children(func() {
+					ui.Row(c).Gap(2).Padding(4).AlignItems(ui.Center).
+						Children(func() {
+							for _, path := range paths {
+								path := path
+								w.tab(c, path)
+							}
+						})
+				})
+			if w.OnNewNote != nil && w.Tree.Root != nil {
+				if ui.Button(c.Key("new"), "+").Label("New note").Clicked() {
+					w.OnNewNote()
+				}
 			}
-		}
-	})
+		})
 }
 
 // tab is one open note: its name, marked when it has changes the disk
@@ -550,10 +575,11 @@ func (w *Workspace) toolbarDivider(c *ui.Context) {
 }
 
 // editorWidth is how wide the note is, which is how wide its toolbar may
-// be: what the panels on either side leave of the window.
+// be: what the panels on either side leave of the window, and what the
+// rail and its drawer leave of it besides.
 func (w *Workspace) editorWidth(c *ui.Context) float32 {
 	width, _ := c.Size()
-	return max(width-w.Layout.Left-w.Layout.Right-railWidth, 0)
+	return max(width-w.Layout.Left-w.Layout.Right-w.railClear(), 0)
 }
 
 // dataBar is what the toolbar says of a file of data: which of the three
