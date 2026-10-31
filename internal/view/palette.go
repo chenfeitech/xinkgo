@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/egoist/mygo/ui"
+	"github.com/helightxu/xinkgo/internal/config"
 	"github.com/helightxu/xinkgo/internal/fuzzy"
 	"github.com/helightxu/xinkgo/internal/skill"
 )
@@ -19,6 +20,11 @@ const (
 	// skillPaletteLimit is how many skills the palette shows: there
 	// are not many of them, and the notes are what it is for.
 	skillPaletteLimit = 10
+	// actionPrefix is what one of the app's own actions is called in
+	// the palette, for the same reason: it is not a note either.
+	actionPrefix = "Action · "
+	// actionPaletteLimit is how many actions the palette shows.
+	actionPaletteLimit = 10
 )
 
 // OpenPalette is the palette opened: what was typed last time is
@@ -80,7 +86,7 @@ func (w *Workspace) paletteList(c *ui.Context, items []paletteItem) {
 	ui.Column(c).ClipY().MaxHeight(320).Children(func() {
 		for i, item := range items {
 			i, item := i, item
-			row := ui.Button(c.Key(item.Path), "")
+			row := ui.Button(c.Key(item.key()), "")
 			row.Children(func() {
 				ui.Column(c).Grow(1).Children(func() {
 					ui.Row(c).Children(func() {
@@ -121,6 +127,10 @@ func (w *Workspace) choose(i int) {
 		w.useSkill(*items[i].Skill)
 		return
 	}
+	if items[i].Action != nil {
+		w.runAction(*items[i].Action)
+		return
+	}
 	w.openNote(items[i].Path)
 }
 
@@ -157,13 +167,65 @@ type paletteItem struct {
 	Positions []int
 	// Skill is the skill this answer is, when it is not a note.
 	Skill *skill.Skill
+	// Action is one of the app's own actions this answer is, when it
+	// is not a note either.
+	Action *config.AiAction
+}
+
+// key is what an answer is known by in the window: a note by where it
+// stands, and a skill or an action by its name, for two of them that
+// stand nowhere must not be taken for each other.
+func (p paletteItem) key() string {
+	if p.Path != "" {
+		return p.Path
+	}
+	return p.Name
 }
 
 // paletteItems is what the palette answers with: the notes of the vault,
-// and with them the skills a model may be told to use.
+// and with them the skills a model may be told to use and the app's own
+// actions over a note.
 func (w *Workspace) paletteItems() []paletteItem {
 	items := w.noteItems()
-	return append(items, w.skillItems()...)
+	items = append(items, w.skillItems()...)
+	return append(items, w.actionItems()...)
+}
+
+// actionItems is the app's own actions, found by their names, each shown
+// with what it asks of the model.
+func (w *Workspace) actionItems() []paletteItem {
+	if len(w.Actions) == 0 {
+		return nil
+	}
+	names := make([]string, 0, len(w.Actions))
+	for _, one := range w.Actions {
+		names = append(names, one.Name)
+	}
+	found := fuzzy.Search(names, w.paletteQuery, actionPaletteLimit)
+	items := make([]paletteItem, 0, len(found))
+	for _, r := range found {
+		one := actionNamed(w.Actions, r.Text)
+		if one == nil {
+			continue
+		}
+		items = append(items, paletteItem{
+			Name:      actionPrefix + r.Text,
+			Title:     one.Prompt,
+			Positions: shifted(r.Positions, len(actionPrefix)),
+			Action:    one,
+		})
+	}
+	return items
+}
+
+// actionNamed is the action of that name, when there is one.
+func actionNamed(list []config.AiAction, name string) *config.AiAction {
+	for i := range list {
+		if list[i].Name == name {
+			return &list[i]
+		}
+	}
+	return nil
 }
 
 // skillItems is the skills, found by their names, each shown as what it

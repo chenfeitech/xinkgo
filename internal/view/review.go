@@ -18,9 +18,16 @@ type reviewState struct {
 	// path is the note the revision is of.
 	path string
 	// before is the note as it was, kept so that the whole revision can
-	// be sent back at once.
+	// be sent back at once. It is the piece the revision is of, when
+	// the revision is of a piece and not of the whole.
 	before string
-	diff   *editor.DiffState
+	// part is whether the revision is of a piece of the note and not
+	// of the whole of it, and from and to where that piece stands: an
+	// action done to a selection revises the selection and leaves the
+	// rest of the note as it is.
+	part     bool
+	from, to int
+	diff     *editor.DiffState
 }
 
 // StartReview puts a revision of the note before the user: what the note
@@ -37,18 +44,50 @@ func (w *Workspace) StartReview(text string) {
 		return
 	}
 	w.review = reviewState{
-		open:   true,
-		path:   n.Path,
-		before: before,
-		diff: &editor.DiffState{
-			Old:      editor.NewBuffer(before),
-			New:      editor.NewBuffer(text),
-			Wrap:     true,
-			Editable: true,
-			// The changes are taken or sent back where they show,
-			// one at a time, as an agent's are.
-			HunkActions: true,
-		},
+		open: true, path: n.Path, before: before,
+		diff: pieceDiff(before, text),
+	}
+}
+
+// StartPieceReview puts a revision of one piece of a note before the
+// user: what the piece says on one side, and what the model made of it
+// on the other. The rest of the note is left as it stands, and what is
+// taken goes back where the piece was taken from.
+func (w *Workspace) StartPieceReview(from, to int, text string) {
+	n := w.Tabs.ActiveNote()
+	if n == nil {
+		return
+	}
+	whole := n.Editor.Buffer.String()
+	if from < 0 || to > len(whole) || from > to {
+		// The note is not as it was when the piece was taken out of
+		// it: where it went is no longer known.
+		w.status = "the note has changed: the piece cannot be put back"
+		return
+	}
+	before := whole[from:to]
+	if text == before {
+		w.status = "the model said what the piece says"
+		return
+	}
+	w.review = reviewState{
+		open: true, path: n.Path, before: before,
+		part: true, from: from, to: to,
+		diff: pieceDiff(before, text),
+	}
+}
+
+// pieceDiff is a revision held as a diff: the one side what it was, the
+// other what was made of it, and the changes taken where they show.
+func pieceDiff(before, after string) *editor.DiffState {
+	return &editor.DiffState{
+		Old:      editor.NewBuffer(before),
+		New:      editor.NewBuffer(after),
+		Wrap:     true,
+		Editable: true,
+		// The changes are taken or sent back where they show,
+		// one at a time, as an agent's are.
+		HunkActions: true,
 	}
 }
 
@@ -117,7 +156,19 @@ func (w *Workspace) writeReview() {
 		return
 	}
 	text := diff.New.String()
-	if text == w.review.before {
+	whole := n.Editor.Buffer.String()
+	if w.review.part {
+		from, to := w.review.from, w.review.to
+		if from > len(whole) || to > len(whole) || from > to {
+			w.status = "the note has changed: the piece cannot be " +
+				"put back"
+			return
+		}
+		// The piece goes back where it was taken from, and the rest
+		// of the note is left as it stands.
+		text = whole[:from] + text + whole[to:]
+	}
+	if text == whole {
 		// Nothing was taken: the note is left as it was, and saying
 		// otherwise would be a lie.
 		w.review.open = false
@@ -125,9 +176,11 @@ func (w *Workspace) writeReview() {
 		return
 	}
 	// What the note said before is kept: a save is on the disk at once,
-	// and there is no stack of undone things to come back to.
+	// and there is no stack of undone things to come back to. What is
+	// kept is the whole note, and not only the piece, for it is the
+	// whole note that is written over.
 	if w.OnSnapshot != nil {
-		w.OnSnapshot(w.review.path, w.review.before)
+		w.OnSnapshot(w.review.path, whole)
 	}
 	n.Editor.Buffer.Set(text)
 	w.Tabs.Edited(n)

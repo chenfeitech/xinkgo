@@ -65,6 +65,20 @@ type aiSession struct {
 	// down, and it is not written down: it is a thing of the moment,
 	// and the skill itself is on the disk.
 	Skill *skill.Skill
+	// waiting is the revision an answer is to be put before the user as
+	// when it is over: what an action asked for, and which piece of the
+	// note it was about. It is looked at by the frame and not by the
+	// goroutine that hears the answer, for a revision is made out of
+	// the note's own editor.
+	waiting *waitReview
+}
+
+// waitReview is what an action is waiting for: whether what it asked
+// about was a piece of the note and not the whole of it, and where that
+// piece stands.
+type waitReview struct {
+	part     bool
+	from, to int
 }
 
 // blocks is what has been said, as it stands now.
@@ -266,16 +280,123 @@ func (w *Workspace) aiCompose(c *ui.Context, s *aiSession, n *OpenNote) {
 	})
 }
 
-// aiAsk is the question sent: it is written into the conversation before
+// runAction is one of the app's own actions run on the note: what the
+// action says is asked of the model, and what comes back is put before
+// the user as a revision — as any other revision is, and not written
+// into the note on the model's word.
+func (w *Workspace) runAction(a config.AiAction) {
+	n := w.Tabs.ActiveNote()
+	if n == nil {
+		w.status = "no note is open to do that to"
+		return
+	}
+	s := w.aiOf(n.Path)
+	if s.isBusy() {
+		w.status = "the model is still answering"
+		return
+	}
+	piece, from, to, part := pieceOf(n, a)
+	s.Open = true
+	w.aiSend(n, s, askingOf(a, piece, part),
+		&waitReview{part: part, from: from, to: to})
+	w.status = a.Name + " asked of it"
+}
+
+// pieceOf is what an action is done to: the selection, when the note has
+// one and the action is one that goes by what is selected; and the whole
+// note otherwise. It gives back the words, and where they stand in the
+// note — 0 and 0 when they are the whole of it.
+func pieceOf(
+	n *OpenNote, a config.AiAction,
+) (text string, from, to int, part bool) {
+	whole := n.Editor.Buffer.String()
+	sel := n.Editor.Selection()
+	if a.Scope == config.ActionScopeWhole || sel.Empty() {
+		return whole, 0, 0, false
+	}
+	from, to = sel.Start(), sel.End()
+	if from < 0 {
+		from = 0
+	}
+	if to > len(whole) {
+		to = len(whole)
+	}
+	if from > to {
+		from = to
+	}
+	return whole[from:to], from, to, true
+}
+
+// askingOf is what the model is asked when an action is run: what the
+// action says. When the action is done to a piece of the note and not to
+// the whole of it, the piece goes with it — the note as a whole the
+// model has already been told — and it is told to answer with the piece
+// and nothing else, for what comes back goes back where the piece was
+// taken from.
+func askingOf(a config.AiAction, piece string, part bool) string {
+	if !part {
+		return a.Prompt
+	}
+	return a.Prompt + "\n\nThis is the piece to do it to. Answer with " +
+		"the piece as it should be, and with nothing else:\n\n" + piece
+}
+
+// aiReviewDone is an answer that an action was waiting for, put before
+// the user as a revision now that it is over.
+//
+// It is done here, by the frame, and not where the answer is heard: a
+// revision is made out of the note's own editor, and only this thread
+// may touch that.
+func (w *Workspace) aiReviewDone() {
+	n := w.Tabs.ActiveNote()
+	if n == nil || w.ai == nil {
+		return
+	}
+	s := w.ai[n.Path]
+	if s == nil {
+		return
+	}
+	s.mu.Lock()
+	wait := s.waiting
+	text, failed := "", ""
+	if wait != nil && !s.busy && len(s.Blocks) > 0 {
+		last := s.Blocks[len(s.Blocks)-1]
+		if last.Over {
+			text, failed = last.Text, last.Failed
+			s.waiting = nil
+		}
+	}
+	s.mu.Unlock()
+	if text == "" || failed != "" {
+		return
+	}
+	if wait.part {
+		w.StartPieceReview(wait.from, wait.to, text)
+		return
+	}
+	w.StartReview(text)
+}
+
+// aiAsk is the question asked: what was typed into the place to ask.
+func (w *Workspace) aiAsk(n *OpenNote, s *aiSession) {
+	w.aiSend(n, s, strings.TrimSpace(s.Input), nil)
+	s.Input = ""
+	s.focus = true
+}
+
+// aiSend is a question sent: it is written into the conversation before
 // the model is asked, and the answer grows into the block after it as it
 // comes.
-func (w *Workspace) aiAsk(n *OpenNote, s *aiSession) {
-	text := strings.TrimSpace(s.Input)
+//
+// wait, when there is one, is what the answer is to be put before the
+// user as when it is over, and which piece of the note it is about.
+func (w *Workspace) aiSend(
+	n *OpenNote, s *aiSession, asking string, wait *waitReview,
+) {
+	text := strings.TrimSpace(asking)
 	if text == "" {
 		return
 	}
-	s.Input = ""
-	s.focus = true
 	s.mu.Lock()
 	s.Blocks = append(s.Blocks,
 		aiBlock{Role: ai.User, Text: text, Over: true},
@@ -284,6 +405,7 @@ func (w *Workspace) aiAsk(n *OpenNote, s *aiSession) {
 	at := len(s.Blocks) - 1
 	s.busy = true
 	s.dirty = true
+	s.waiting = wait
 	s.mu.Unlock()
 
 	if w.OnAsk == nil {

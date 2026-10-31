@@ -50,6 +50,11 @@ type Workspace struct {
 	// vault and in the application's own folder. Those turned off are
 	// not here at all: the app is the one that says which they are.
 	Skills []skill.Skill
+	// Actions are the app's own shortcuts over a note — polish,
+	// condense, translate and the rest: a thing often asked for, kept
+	// in the settings and offered by name. Those turned off are not
+	// here either.
+	Actions []config.AiAction
 
 	// OnOpenVault opens the dialog that chooses a folder, when there is
 	// no vault yet.
@@ -180,6 +185,10 @@ func (w *Workspace) View(c *ui.Context) {
 	if err := w.Tabs.SaveDue(); err != nil {
 		w.Say("the note could not be saved")
 	}
+	// What an action's answer came to is put before the user as a
+	// revision, now that it is over: a revision is made out of the
+	// note's own editor, and only this thread may touch that.
+	w.aiReviewDone()
 	ui.Column(c).Fill().Children(func() {
 		ui.Row(c).Fill().Children(func() {
 			// A panel of no width is one the user closed: it is drawn

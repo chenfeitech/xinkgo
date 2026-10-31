@@ -236,6 +236,8 @@ func boot(app *mygo.Application) (*appState, error) {
 	// What the window asks of a model goes through the app: it is the
 	// app that knows which model the settings name.
 	ws.OnAsk = st.ask
+	// The app's own actions over a note are the settings' as well.
+	ws.Actions = config.EnabledActions(cfg.Ai.Actions)
 	// What was said about a note is kept between two runs.
 	ws.OnAiLoad = st.aiLoad
 	ws.OnAiSave = st.aiSave
@@ -390,8 +392,10 @@ func (s *appState) applyConfig() {
 	s.ws.Tabs.AutoSaveDelay = time.Duration(
 		s.config.Editor.AutoSaveDelayMs) * time.Millisecond
 	s.ws.Tree.FontSize = s.config.Basic.TreeFont.Size
-	// Which skills may be used is a choice as well.
+	// Which skills may be used is a choice, and so are the app's own
+	// actions over a note.
 	s.publishSkills()
+	s.publishActions()
 	// Which files the tree shows is a choice too: one that changed is
 	// read again.
 	if s.shownAll != s.config.Basic.ShowAllFiles {

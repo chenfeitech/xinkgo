@@ -211,6 +211,19 @@ func DefaultActions() []AiAction {
 	return actions
 }
 
+// EnabledActions is the actions that are turned on: one that is not is
+// not offered to the user, and asking for it would be asking for
+// nothing.
+func EnabledActions(list []AiAction) []AiAction {
+	out := make([]AiAction, 0, len(list))
+	for _, one := range list {
+		if one.Enable && strings.TrimSpace(one.ID) != "" {
+			out = append(out, one)
+		}
+	}
+	return out
+}
+
 func (o OllamaConfig) isEmpty() bool {
 	return o.BaseURL == "" && o.KeepAlive == "" && o.NumCtx == 0
 }

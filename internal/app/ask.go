@@ -81,6 +81,16 @@ func (s *appState) publishSkills() {
 	s.ws.Skills = skill.Enabled(s.skills, s.config.Ai.DisabledSkills)
 }
 
+// publishActions is what the window is given: the app's own actions over
+// a note, the ones that are turned on. They are the settings', and are
+// given again whenever the settings change.
+func (s *appState) publishActions() {
+	if s.ws == nil {
+		return
+	}
+	s.ws.Actions = config.EnabledActions(s.config.Ai.Actions)
+}
+
 // snapshotNote keeps what a note said before a revision was written into
 // it: a save is on the disk at once, and there is no stack of undone
 // things to come back to.
