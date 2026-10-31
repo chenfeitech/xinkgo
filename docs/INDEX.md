@@ -22,11 +22,22 @@
 ## 状态
 
 - 骨架：完成（构建、运行、测试、Windows 打包均已验证）。
-- **P0（R-1 ~ R-7）**：完成，在 `feature/port-xink` 分支上待人工验收
-  （[ACCEPTANCE.md](ACCEPTANCE.md) A1 ~ A18）。`make check` 全绿：
-  15 个包单测通过，darwin/arm64、darwin/amd64、windows/amd64、
-  windows/arm64、linux/amd64 全部编译通过。
-- 待办：P1（索引 / 双链 / 反链 / 标签 / 搜索 / 大纲 / 命令面板 / 设置窗口）、
-  P2（AI 全量）。
-- 已知缺口：见 [ACCEPTANCE.md](ACCEPTANCE.md) 末尾（面板隐藏、数据文件工具栏、
-  编辑区 Markdown 装饰、库管理窗口、预览密度接线）。
+- **P0（R-1 ~ R-7）**：完成。人工验收项 [ACCEPTANCE.md](ACCEPTANCE.md) A1 ~ A18。
+- **P1（R-8、R-9）**：完成。索引 / 双链补全 / 反链 / 标签 / 全文搜索 / 大纲 /
+  命令面板 / 设置窗口 / 库管理 / 数据文件（JSON 校验与格式化）。验收项 B1 ~ B8、
+  C1 ~ C9。
+- **P2（R-10，AI）**：主体完成。Provider 抽象（Ollama native + OpenAI 兼容）、
+  流式事件解析、对话条、会话持久化、AI 修订逐块接受、只读工具集与 agent loop、
+  Skills、模型能力清单与探针、批量标签任务领域层。验收项 D1 ~ D16。
+- 门禁：`scripts/check.sh` 全绿 —— 21 个包单测通过，darwin/arm64、
+  darwin/amd64、windows/amd64、windows/arm64、linux/amd64 全部编译通过。
+
+## 还剩什么
+
+| 项 | 说明 |
+|---|---|
+| T-40b | 批量标签任务还没有发起入口：要在设置 / 面板里选动作、填标签、看预览、确认后跑 |
+| 结果校验与快照轮转 | R-10.6 后半：AI 改完校验一遍，`.xink/snapshots` 保留最近 N 份以便回滚 |
+| 模型列表的克隆与排序 | 设置里目前只能增删，不影响使用 |
+
+已知缺口与人工验收项一并登记在 [ACCEPTANCE.md](ACCEPTANCE.md)（末尾「已知缺口」）。

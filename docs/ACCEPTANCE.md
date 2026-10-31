@@ -88,12 +88,14 @@
 `keymap` 的冲突与清理、`sync` 的锚点换算与方向锁、`markdown` 的工具栏插入规则、
 `highlight` 的三套主题取值：均有 Go 单元测试（`make test`）。
 
-## 已知缺口（P0 不做，登记待办）
+## 已知缺口（登记待办，不在本轮范围）
 
 | 项 | 说明 |
 |---|---|
-| 面板隐藏 | 三栏目前始终显示；`layout.json` 写 0 才隐藏，且拖不回来。P1 的设置窗口里补开关 |
+| 面板隐藏 | 三栏目前始终显示；`layout.json` 写 0 才隐藏，且拖不回来。设置窗口里补开关 |
 | 编辑区 Markdown 装饰 | 行首标记淡化等待自研 tokenizer（R-4.10） |
 | 图片宽度百分比 | `preview.image_width_percent` 目前只存不生效（MyGo 的 Markdown 视图没有图片宽度选项） |
-| 面板隐藏 | 三栏目前始终显示；`layout.json` 写 0 才隐藏，且拖不回来 |
-| 编辑区 Markdown 装饰 | 行首标记淡化等待自研 tokenizer（R-4.10） |
+| YAML / TOML 只认不校验 | `internal/datafile` 能识别 `.yaml` / `.toml` 并渲染，但**不做语法校验**：网络取不到 `gopkg.in/yaml.v3`，不引入手写解析器（见 C9） |
+| 批量标签任务没有入口 | 领域层 `internal/task` 已实现并有测试，但设置里还没有发起面板（T-40b） |
+| AI 改完的校验与快照轮转 | R-10.6 后半未做：改完不复核，也没有 `.xink/snapshots` 回滚（T-38 尾） |
+| 模型列表不能克隆 / 排序 | 设置里目前只能增删与编辑，不影响使用 |
