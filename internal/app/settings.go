@@ -41,6 +41,14 @@ type settings struct {
 	size, lineHeight, treeSize float64
 	imageWidth, width, delay   float64
 	indent                     float64
+	// scroll is where the window is scrolled to: there is more in it
+	// than fits.
+	scroll ui.ScrollState
+	// models is what each model's row keeps between two frames.
+	models map[string]*modelState
+	// drop is the model to be forgotten, named by the row that was
+	// clicked and taken out after the rows are drawn.
+	drop string
 }
 
 // openSettings shows the settings window, or brings it back when it is
@@ -55,8 +63,8 @@ func (s *appState) openSettings() {
 	s.draft.read(&s.config)
 	s.settingsWin = mygo.NewWindow(mygo.WindowOptions{
 		Title:    Name + " Settings",
-		Width:    520,
-		Height:   640,
+		Width:    560,
+		Height:   720,
 		MinWidth: 420,
 		// The window shows the interface MyGo draws, not a web page.
 		Content: ui.View(s.settingsView),
@@ -66,12 +74,15 @@ func (s *appState) openSettings() {
 // settingsView is the settings window: what the user chose, grouped by
 // what it is about.
 func (s *appState) settingsView(c *ui.Context) {
-	ui.Column(c).Fill().Children(func() {
-		s.appearance(c)
-		s.editorSettings(c)
-		s.previewSettings(c)
-		s.vaultSettings(c)
-		s.configFile(c)
+	ui.Scroll(c).TrackScroll(&s.draft.scroll).Fill().Children(func() {
+		ui.Column(c).Fill().Children(func() {
+			s.appearance(c)
+			s.editorSettings(c)
+			s.previewSettings(c)
+			s.vaultSettings(c)
+			s.ai(c)
+			s.configFile(c)
+		})
 	})
 	// What the user changed is kept, and takes effect at once.
 	s.draft.write(&s.draft.cfg)

@@ -74,6 +74,7 @@
 | D8 | 会话持久化 | 对话几轮后**退出应用再打开**，打开同一篇笔记；再点 Forget 后重启 | 重启后对话还在这篇笔记下（换一篇笔记没有）；Forget 后重启不再出现 |
 | D9 | AI 修订评审 | 对话里让模型重写笔记，答完后点回答下方的 Look it over | 编辑区换成 diff 视图（原文 vs 模型稿）；悬停改动处有 Take/Revert；Take all / Send all back / Write it in / Away 四个按钮可用；Write it in 后回到编辑区且内容是剩下的那份 |
 | D10 | 自动保存改动后仍稳 | 打字后立刻按 Cmd+S（与自动保存撞在一起） | 不崩、不写半截；`-race` 下不再报竞争 |
+| D11 | 模型设置 | 设置 ▸ Settings ▸ AI：勾「Ask a model at all」，Add a model，Open 填 Address / Name / Speaks | 列表可增删；能力勾选后即"手动指定"（猜测不再覆盖）；点 Try it 出一行「It answers（xx ms），and it calls tools / but it calls no tools」；连不上时给一句能行动的话 |
 
 ## 已自动化、不必人验的
 

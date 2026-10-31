@@ -103,6 +103,15 @@ type AiModelParams struct {
 	KeepAlive   *string `json:"keep_alive,omitempty"`
 }
 
+// DefaultModelParams is what a model is set to before the user says
+// otherwise.
+func DefaultModelParams() AiModelParams {
+	return AiModelParams{
+		NumPredict:  defaultNumPredict,
+		Temperature: defaultTemperature,
+	}
+}
+
 // AiAction is a shortcut the user runs on a note or a selection.
 type AiAction struct {
 	ID     string  `json:"id"`
