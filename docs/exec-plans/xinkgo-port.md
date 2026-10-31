@@ -127,6 +127,7 @@ Everything passed.
 | T-36 | ✅ | 会话持久化（`internal/state/ai_sessions.go`，30 会话 / 200 块裁剪） |
 | T-37 | ✅ | AI 修订评审：`editor.DiffView` 逐块 Take/Revert + 整篇写入 |
 | T-42 | ✅ | `.xink` 恒跳过：随 T-7 一起做完（`vault.Scan` 的 `ignored` 用 `media.AIDirName`，树/索引/命令面板都不出现），`vault_test.go` 有断言 |
+| T-38a | ✅ | 只读工具集 `internal/ai/tool.go`：7 个工具 + schema + `Execute`（失败一律转成文本回灌）+ 截断。**尚未接线**：agent loop 与 `ai.Host` 的 app 侧实现是 T-38b |
 | T-39 | ✅ | Skills：`internal/skill` 发现与解析（库内 `.xink/skills` + 用户级、同名库内优先、坏文件进 issues）、命令面板入口、AI 条里「using X」可放下、设置里启停 |
 | T-41 | ✅ | 能力清单：领域层 `internal/ai/capability.go`（字典 + 推断 + 生效优先级）+ `probe.go`（`ai.Try` 探针）；设置窗口 `internal/app/settings_ai.go`（模型增删、地址/密钥/协议、能力勾选即 pin、Try it 把实测 `tools_enabled` 写回） |
 
