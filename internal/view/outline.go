@@ -14,6 +14,7 @@ const (
 	drawerHeight float32 = 420
 	drawerTop    float32 = 72
 	railWidth    float32 = 34
+	railGap      float32 = 6
 	indentStep   float32 = 12
 )
 
@@ -25,19 +26,19 @@ const (
 	drawerTags    = "tags"
 )
 
-// rail is the strip of buttons down the right of the note, and the
-// drawer they open beside it. It floats over the window rather than
+// rail is the strip of buttons down the right of the window, and the
+// drawer they open beside them. It floats over the window rather than
 // taking a place in the layout: a panel that is open for a moment
 // should not move the note the user is reading.
 func (w *Workspace) rail(c *ui.Context) {
 	if w.Tabs.ActiveNote() == nil {
 		return
 	}
-	// The drawer stands beside the preview, or at the window's edge
-	// when there is none.
-	right := w.Layout.Right
+	// The rail belongs to the window, and not to the note: it stands at
+	// the window right edge, over whatever panel is there, and so keeps
+	// its place when the panels are dragged wider or shut.
 	ui.Overlay(c, func() {
-		ui.Row(c).Absolute().Right(right).Top(drawerTop).Children(func() {
+		ui.Row(c).Absolute().Right(railGap).Top(drawerTop).Children(func() {
 			if w.drawer != "" {
 				w.drawerPanel(c)
 			}
