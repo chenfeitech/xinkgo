@@ -117,6 +117,7 @@ Everything passed.
 | T-41 | 模型能力清单（静态推断 + 手动改 + 探针） | T-33 | R-10.9 |
 | T-42 | `.xink` 目录恒跳过（树/索引/命令面板） | T-7 | R-10.10 |
 | T-43 | 快照取回：历史窗口 + 取回（取回前先把当前存一份） | T-38 | R-10.6 |
+| T-44 | 模型列表的克隆与排序（副本深拷贝、上下移动一位） | T-41 | R-10.9 |
 
 ## M3 进度
 
@@ -133,8 +134,9 @@ Everything passed.
 | T-39 | ✅ | Skills：`internal/skill` 发现与解析（库内 `.xink/skills` + 用户级、同名库内优先、坏文件进 issues）、命令面板入口、AI 条里「using X」可放下、设置里启停 |
 | T-41 | ✅ | 能力清单：领域层 `internal/ai/capability.go`（字典 + 推断 + 生效优先级）+ `probe.go`（`ai.Try` 探针）；设置窗口 `internal/app/settings_ai.go`（模型增删、地址/密钥/协议、能力勾选即 pin、Try it 把实测 `tools_enabled` 写回） |
 | T-43 | ✅ | 快照取回：`internal/snapshot` 补 `List`（新的在前）与 `Taken`（从名字读回时间）；`internal/app/history_window.go` 列快照（文件名 + 时间 + 开头一行），Put it back **先把当前内容存成一份新快照**再写回（还是 `note.Save` 原子写），写完回灌索引并让开着的标签页重新读盘（`Tabs.PutText`） |
+| T-44 | ✅ | 模型克隆与排序：`config.ModelEntry.Clone` 深拷贝（能力切片与三个指针都不共享）并给副本 `<原名>-copy`（重名加数字）；每行 Clone / ↑ / ↓，三种改动与 Forget 一样**画完这一帧再做**，免得从后面几行的脚下抽走它们要画的东西 |
 
-人工验收登记在 [../ACCEPTANCE.md](../ACCEPTANCE.md)：D1 ~ D19 与 E1、E2。
+人工验收登记在 [../ACCEPTANCE.md](../ACCEPTANCE.md)：D1 ~ D19 与 E1、E2、E3。
 
 冒烟：`vault open` + `index built`，窗口 ALIVE。
 
@@ -183,6 +185,13 @@ Everything passed.
   比不放回更糟**。
 - **取回要碰到编辑区，不能只写盘**：`Tabs.PutText` 让开着的标签页重新读盘并更新
   buffer；否则自动保存会把编辑区里的旧文字又盖回去。
+- **副本要深拷贝**：`ModelEntry` 里有切片（`Capabilities`）和三个指针
+  （`ContextLimit`、`Params.NumCtx`、`Params.KeepAlive`）。复制是为了改它，共享
+  这些就是"改副本也改了原件"，所以 `Clone` 一个个拷过去。副本名 `<原名>-copy`，
+  重名再加数字——名字是提问时用来说清问哪一个的。
+- **列表的增删改一律\"画完这一帧再做\"**：`for i := range` 已经把长度定下了，而每行
+  又拿着 `&Models[at]` 的指针；中途插入、删除或换位，后面几行就会画到别的模型上。
+  所以 Forget / Clone / ↑↓ 都只记下\"要做哪个\"，画完才动手（与 Forget 已有的做法一致）。
 - **自动保存改为"记下时间、由画帧去写"**，不再用 `time.AfterFunc` 直接写。
   `Note` 与 `OpenNote` 都没有锁，定时器那条 goroutine 与主线程（Cmd+S）同时
   写就是数据竞争——`-race` 已实测复现（`n.saving` 与 `Note.Text`）。写盘只
