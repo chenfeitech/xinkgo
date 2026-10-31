@@ -7,13 +7,14 @@
 package view
 
 import (
+	"fmt"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/egoist/mygo/transfer"
 	"github.com/egoist/mygo/ui"
-	"github.com/helightxu/xinkgo/internal/media"
 	"github.com/helightxu/xinkgo/internal/vault"
 )
 
@@ -57,6 +58,19 @@ type Tree struct {
 	refreshed time.Time
 	list      ui.ListState
 }
+
+// How the tree is drawn: the height of a line, how far a line starts for
+// every level it is in, and the sizes of the chevron, the icon and the
+// header's buttons.
+const (
+	treeRowHeight float32 = 26
+	treeIndent    float32 = 14
+	treePad       float32 = 6
+	treeGap       float32 = 6
+	treeChevron   float32 = 12
+	treeIcon      float32 = 14
+	treeButton    float32 = 22
+)
 
 // RefreshQuiet is how long a second press of the refresh button is
 // ignored, so that pressing it twice reads the folder once.
@@ -104,7 +118,38 @@ func (t *Tree) Toggle(path string) {
 	t.Open[path] = !t.Open[path]
 }
 
-// count is how many notes the vault holds, for the header.
+// CollapseAll closes every directory, so that only the vault's own
+// children are left.
+func (t *Tree) CollapseAll() {
+	t.Open = map[string]bool{}
+}
+
+// ExpandAll opens every directory the vault holds.
+func (t *Tree) ExpandAll() {
+	if t.Root == nil {
+		return
+	}
+	vault.Walk(t.Root, func(e *vault.Entry) error {
+		if e.IsDir {
+			t.Open[e.Path] = true
+		}
+		return nil
+	})
+}
+
+// AnyOpen is whether a directory stands open, which the header's button
+// asks before it decides whether it folds them or opens them.
+func (t *Tree) AnyOpen() bool {
+	for _, open := range t.Open {
+		if open {
+			return true
+		}
+	}
+	return false
+}
+
+// count is how many notes the vault holds, and dirs how many folders,
+// for the header.
 func (t *Tree) count() int {
 	if t.Root == nil {
 		return 0
@@ -112,52 +157,177 @@ func (t *Tree) count() int {
 	return len(vault.Files(t.Root))
 }
 
-// View draws the tree.
+// dirs is how many folders the vault holds, its own not counted.
+func (t *Tree) dirs() int {
+	if t.Root == nil {
+		return 0
+	}
+	n := 0
+	vault.Walk(t.Root, func(e *vault.Entry) error {
+		if e.IsDir && e != t.Root {
+			n++
+		}
+		return nil
+	})
+	return n
+}
+
+// counts is what the header says the vault holds.
+func (t *Tree) counts() string {
+	return fmt.Sprintf("%s · %s", plural(t.count(), "note"),
+		plural(t.dirs(), "folder"))
+}
+
+// plural is a number and the word for what it counts, with an s when it
+// is not one of them.
+func plural(n int, word string) string {
+	if n == 1 {
+		return strconv.Itoa(n) + " " + word
+	}
+	return strconv.Itoa(n) + " " + word + "s"
+}
+
+// View draws the tree: the vault at the head, and under it one line for
+// each file and folder, a folder with a chevron that turns as it opens,
+// a file with the icon of what it is, and the one that is open marked.
 func (t *Tree) View(c *ui.Context) {
 	rows := t.Rows()
 	tree := ui.Column(c).Fill()
 	defer func() { t.takeDrop(tree) }()
 	tree.Children(func() {
-		// The header: what is open, and how much is in it.
-		ui.Row(c).Gap(8).Padding(8).Children(func() {
-			name := "no vault"
-			if t.Root != nil {
-				name = t.Root.Name
-			}
-			ui.Text(c, name).Bold()
-			ui.Textf(c, "%d notes", t.count()).TextColor(c.Theme().TextMuted)
-			if t.OnRefresh != nil {
-				if ui.Button(c.Key("refresh"), "↻").
-					Label("Read the folder again").Clicked() {
-					t.refresh()
-				}
-			}
-		})
-
+		t.header(c)
 		ui.List(c, &t.list, len(rows), func(i int) {
 			if i >= len(rows) {
 				return
 			}
-			r := rows[i]
-			ui.Row(c).Children(func() {
-				// The deeper a file is, the further it starts.
-				ui.Box(c).Width(float32(8 + r.Depth*12))
-				if t.Renaming == r.Entry.Path {
-					t.renameField(c, r.Entry)
-					return
-				}
-				ui.Text(c, marker(r.Entry)).TextColor(c.Theme().TextMuted)
-				name := ui.Button(c.Key(r.Entry.Path), r.Entry.Name)
-				if t.FontSize > 0 {
-					name.FontSize(t.FontSize)
-				}
-				name.ContextMenu(func(m *ui.Menu) { t.menu(m, r.Entry) })
-				if name.Clicked() {
-					t.choose(r.Entry)
-				}
-			})
+			t.line(c, rows[i])
 		}).Fill()
 	})
+}
+
+// header is the head of the tree: which vault it is, what it holds, and
+// the buttons that make things in it, fold it and read it again.
+func (t *Tree) header(c *ui.Context) {
+	th := c.Theme()
+	name := "no vault"
+	if t.Root != nil {
+		name = t.Root.Name
+	}
+	ui.Column(c).FillWidth().Padding(8, treePad, 6).Gap(4).Children(func() {
+		ui.Row(c).FillWidth().Gap(treeGap).AlignItems(ui.Center).
+			Children(func() {
+				ui.Icon(c, iconFolder).Size(treeIcon, treeIcon).
+					TextColor(th.TextMuted)
+				ui.Text(c, name).Bold().Grow(1).Ellipsis("…").NoWrap()
+				if t.OnRefresh != nil {
+					t.button(c, "refresh", iconRefresh,
+						"Read the folder again", t.refresh)
+				}
+			})
+		ui.Row(c).FillWidth().Gap(4).AlignItems(ui.Center).
+			Children(func() {
+				ui.Text(c, t.counts()).FontSize(th.FontSize - 1).
+					TextColor(th.TextMuted).Grow(1).Ellipsis("…").NoWrap()
+				if t.Root == nil {
+					return
+				}
+				if t.OnNewNoteIn != nil {
+					t.button(c, "new-note", iconFilePlus, "New note here",
+						func() { t.OnNewNoteIn(t.DirOf()) })
+				}
+				if t.OnNewFolderIn != nil {
+					t.button(c, "new-folder", iconFolderPlus,
+						"New folder here",
+						func() { t.OnNewFolderIn(t.DirOf()) })
+				}
+				if t.AnyOpen() {
+					t.button(c, "fold", iconFoldAll,
+						"Fold every folder", t.CollapseAll)
+				} else {
+					t.button(c, "fold", iconUnfoldAll,
+						"Open every folder", t.ExpandAll)
+				}
+			})
+	})
+	ui.Box(c).FillWidth().Height(1).Background(th.Border)
+}
+
+// button is one of the header's buttons: it shows no face of its own
+// until the pointer is over it, and says what it does when it is.
+func (t *Tree) button(
+	c *ui.Context, key string, img *ui.SVG, label string, fn func(),
+) {
+	th := c.Theme()
+	b := ui.ButtonBase(c.Key("tree-"+key)).Label(label).Tooltip(label).
+		Size(treeButton, treeButton).Radius(th.Radius).
+		Justify(ui.Center).AlignItems(ui.Center)
+	b.Draw(func(p *ui.Painter, box ui.Rect) {
+		switch {
+		case b.Pressed():
+			p.Fill(box, th.SurfacePressed, th.Radius)
+		case b.Hovered():
+			p.Fill(box, th.SurfaceHover, th.Radius)
+		}
+	})
+	b.Children(func() {
+		ui.Icon(c, img).Size(treeIcon, treeIcon).TextColor(th.TextMuted)
+	})
+	if b.Clicked() {
+		fn()
+	}
+}
+
+// line is one file or folder: it starts further in for every level it is
+// in, shows what it is, and is chosen by a click. The one that is open is
+// marked, and the one under the pointer is lit, as in the file explorers
+// the reader knows.
+func (t *Tree) line(c *ui.Context, r row) {
+	e := r.Entry
+	th := c.Theme()
+	chosen := t.Selected == e.Path
+	open := t.Open[e.Path]
+	line := ui.ButtonBase(c.Key(e.Path)).Label(e.Name).
+		FillWidth().Height(treeRowHeight).Radius(th.Radius).
+		ContextMenu(func(m *ui.Menu) { t.menu(m, e) })
+	line.Draw(func(p *ui.Painter, box ui.Rect) {
+		switch {
+		case chosen:
+			p.Fill(box, th.Accent.Alpha(0.18), th.Radius)
+		case line.Hovered():
+			p.Fill(box, th.SurfaceHover, th.Radius)
+		}
+	})
+	line.Children(func() {
+		ui.Row(c).FillWidth().Height(treeRowHeight).Gap(treeGap).
+			AlignItems(ui.Center).
+			PaddingStart(treePad + float32(r.Depth)*treeIndent).
+			PaddingEnd(treePad).Children(func() {
+			if t.Renaming == e.Path {
+				t.renameField(c, e)
+				return
+			}
+			if e.IsDir {
+				chevron := ui.Icon(c, iconChevron).
+					Size(treeChevron, treeChevron).TextColor(th.TextMuted)
+				if open {
+					chevron.Rotate(90)
+				}
+			} else {
+				// A file has no chevron, but its icon stands where a
+				// folder's does.
+				ui.Box(c).Size(treeChevron, treeChevron)
+			}
+			ui.Icon(c, iconOf(e, open)).Size(treeIcon, treeIcon).
+				TextColor(th.TextMuted)
+			name := ui.Text(c, e.Name).Grow(1).Ellipsis("…").NoWrap()
+			if t.FontSize > 0 {
+				name.FontSize(t.FontSize)
+			}
+		})
+	})
+	if line.Clicked() {
+		t.choose(e)
+	}
 }
 
 // refresh reads the folder again when the user asks. Pressing the button
@@ -298,26 +468,6 @@ func (t *Tree) choose(e *vault.Entry) {
 	t.Selected = e.Path
 	if t.OnOpen != nil {
 		t.OnOpen(e.Path)
-	}
-}
-
-// marker is what is drawn before a name: a directory is open or closed, a
-// file says what it is.
-func marker(e *vault.Entry) string {
-	if e.IsDir {
-		return "▸"
-	}
-	switch media.KindOf(e.Path) {
-	case media.KindMarkdown:
-		return "·"
-	case media.KindImage:
-		return "▣"
-	case media.KindData:
-		return "{}"
-	case media.KindCode:
-		return "</>"
-	default:
-		return "·"
 	}
 }
 

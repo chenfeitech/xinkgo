@@ -136,3 +136,49 @@ func TestTreeCount_countsTheNotes(t *testing.T) {
 		t.Errorf("%d notes, want 3", n)
 	}
 }
+
+// TestTreeCollapseAll_foldsEveryOpenFolder checks the header's button:
+// what was opened is closed again, so that only the vault's own children
+// are left.
+func TestTreeCollapseAll_foldsEveryOpenFolder(t *testing.T) {
+	tr := NewTree()
+	tr.SetRoot(treeRoot())
+	tr.Toggle("/vault/notes")
+	if !tr.AnyOpen() {
+		t.Fatal("nothing is open, want the directory opened")
+	}
+	tr.CollapseAll()
+	if tr.AnyOpen() {
+		t.Error("a directory is still open after all were folded")
+	}
+	if rows := tr.Rows(); len(rows) != 3 {
+		t.Errorf("%d rows, want the three the vault holds itself", len(rows))
+	}
+}
+
+// TestTreeExpandAll_opensEveryFolder checks the other half of the
+// button: every directory opens, and what was inside it is drawn.
+func TestTreeExpandAll_opensEveryFolder(t *testing.T) {
+	tr := NewTree()
+	tr.SetRoot(treeRoot())
+	tr.ExpandAll()
+	if !tr.Open["/vault/notes"] {
+		t.Error("the directory stayed closed")
+	}
+	if rows := tr.Rows(); len(rows) != 4 {
+		t.Errorf("%d rows, want the note inside the directory too", len(rows))
+	}
+}
+
+// TestTreeCounts_whatTheHeaderSays checks the two numbers beside the
+// vault's name.
+func TestTreeCounts_whatTheHeaderSays(t *testing.T) {
+	tr := NewTree()
+	if got := tr.counts(); got != "0 notes · 0 folders" {
+		t.Errorf("with no vault the header says %q", got)
+	}
+	tr.SetRoot(treeRoot())
+	if got := tr.counts(); got != "3 notes · 1 folder" {
+		t.Errorf("the header says %q, want 3 notes and 1 folder", got)
+	}
+}
