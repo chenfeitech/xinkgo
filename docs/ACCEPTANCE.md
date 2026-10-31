@@ -81,6 +81,8 @@
 | D15 | 让它先查库 | 设置 ▸ AI 勾「Let it look through the vault」，先给模型点 Try it（把 `tools_enabled` 勾上），再问"库里有什么" | 对话里出现 `read_note → …` / `search_notes → …` 之类的小字，然后才是答案；走满步数时提示「走了太多步…」 |
 | D16 | 工具只读 | 让模型去读 `../../` 外面的文件 | 回灌「不允许…」/「读不到…」，**不会**把库外文件内容发给模型 |
 | D17 | 库级批量任务 | 菜单 ▸ Library tasks…：选「改标签」、填 `AI` → `人工智能`，点 Plan it | 列出每篇笔记的 `− 旧行 / + 新行` 预览，没有该标签的显示「跳过（没有 #AI）」；此时磁盘**未改**；点 Do the next batch 后磁盘才改，且标签面板里立刻变成新标签 |
+| D18 | 改前快照 | 让模型改一篇笔记，Write it in 之后看 `~/Library/Application Support/Xinkgo/ai-history/` | 出现 `2026-…-<文件名>` 的旧版本；保留最近 200 份，多了删最旧 |
+| D19 | 改后校验 | 让模型写一段带 `[[不存在的笔记]]` 的稿子，Write it in | 底部提示「written, but N 处要再看一眼：[双链] 第 N 行：…」，但**稿子照样写进去了**（校验只提示、不阻断） |
 
 ## 已自动化、不必人验的
 
@@ -98,5 +100,5 @@
 | 图片宽度百分比 | `preview.image_width_percent` 目前只存不生效（MyGo 的 Markdown 视图没有图片宽度选项） |
 | YAML / TOML 只认不校验 | `internal/datafile` 能识别 `.yaml` / `.toml` 并渲染，但**不做语法校验**：网络取不到 `gopkg.in/yaml.v3`，不引入手写解析器（见 C9） |
 | ~~批量标签任务没有入口~~ | 已补：`internal/app/tasks_window.go`，菜单 ▸ Library tasks…（见 D17） |
-| AI 改完的校验与快照轮转 | R-10.6 后半未做：改完不复核，也没有 `.xink/snapshots` 回滚（T-38 尾） |
+| ~~AI 改完的校验与快照轮转~~ | 已补：`internal/ai/verify.go` 校验 + `internal/snapshot` 快照（见 D18 / D19） |
 | 模型列表不能克隆 / 排序 | 设置里目前只能增删与编辑，不影响使用 |

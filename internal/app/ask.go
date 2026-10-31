@@ -3,10 +3,12 @@ package app
 import (
 	"context"
 	"log/slog"
+	"path/filepath"
 
 	"github.com/helightxu/xinkgo/internal/ai"
 	"github.com/helightxu/xinkgo/internal/config"
 	"github.com/helightxu/xinkgo/internal/skill"
+	"github.com/helightxu/xinkgo/internal/snapshot"
 	"github.com/helightxu/xinkgo/internal/state"
 )
 
@@ -77,6 +79,33 @@ func (s *appState) publishSkills() {
 		return
 	}
 	s.ws.Skills = skill.Enabled(s.skills, s.config.Ai.DisabledSkills)
+}
+
+// snapshotNote keeps what a note said before a revision was written into
+// it: a save is on the disk at once, and there is no stack of undone
+// things to come back to.
+//
+// A note that cannot be kept is not a reason to stop the revision: it is
+// said in the log, and the user is not told their work failed.
+func (s *appState) snapshotNote(path, text string) string {
+	where, err := snapshot.Write(snapshot.Dir(s.dir),
+		filepath.Base(path), text)
+	if err != nil {
+		slog.Warn("the note could not be kept before it was changed",
+			"err", err)
+		return ""
+	}
+	return where
+}
+
+// verifyNote is whether a note still holds together after a model has
+// written it: its links, its front matter, and its tags.
+func (s *appState) verifyNote(text string) []ai.Issue {
+	if s.idx == nil {
+		// No vault open: there is nothing to resolve a link against.
+		return ai.Verify(text, nil)
+	}
+	return ai.Verify(text, s.idx)
 }
 
 // aiLoad is what was said about a note before, read back when the bar is

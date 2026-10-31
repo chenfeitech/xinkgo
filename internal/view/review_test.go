@@ -1,8 +1,10 @@
 package view
 
 import (
+	"strings"
 	"testing"
 
+	"github.com/helightxu/xinkgo/internal/ai"
 	"github.com/helightxu/xinkgo/internal/config"
 )
 
@@ -125,6 +127,66 @@ func TestWriteReview_whatIsSentBackLeavesTheNoteAlone(t *testing.T) {
 		t.Fatal("nothing was said of it")
 	}
 }
+
+// TestWriteReview_whatTheNoteSaidIsKeptBeforeItIsChanged checks the way
+// back: a save is on the disk at once, and there is no stack of undone
+// things to come back to.
+func TestWriteReview_whatTheNoteSaidIsKeptBeforeItIsChanged(t *testing.T) {
+	w, _ := workspaceAndNote(t, "one\ntwo\n")
+	w.OnSnapshot = func(path, text string) string {
+		kept = text
+		return "/somewhere"
+	}
+	defer func() { kept = "" }()
+	w.StartReview("one\nTWO\n")
+	// Nothing is kept before the user says to write it in.
+	if kept != "" {
+		t.Fatalf("kept %q before it was written", kept)
+	}
+	w.writeReview()
+	if kept != "one\ntwo\n" {
+		t.Fatalf("kept %q, want what the note said before", kept)
+	}
+}
+
+// TestWriteReview_whatIsWrongWithItIsSaidAfterItIsWritten checks that the
+// note is looked at after it was changed, and what is wrong is said —
+// without undoing the writing.
+func TestWriteReview_whatIsWrongWithItIsSaidAfterItIsWritten(t *testing.T) {
+	w, n := workspaceAndNote(t, "# A\n")
+	w.OnVerify = func(text string) []ai.Issue {
+		return []ai.Issue{{
+			Kind: ai.IssueWikiLink, Line: 2,
+			Detail: "[[none]] 指向的笔记不存在",
+		}}
+	}
+	w.StartReview("# A\n\nsee [[none]]\n")
+	w.writeReview()
+	// It is written all the same: a link to a note still to be written
+	// is no reason to throw a draft away.
+	if !strings.Contains(n.Editor.Buffer.String(), "[[none]]") {
+		t.Fatalf("note = %q, want it written", n.Editor.Buffer.String())
+	}
+	if !strings.Contains(w.status, "[[none]]") {
+		t.Fatalf("status = %q, want what is wrong said", w.status)
+	}
+}
+
+// TestWriteReview_aNoteThatHoldsTogetherIsNotFaulted checks that a good
+// note is not said to be wrong: a verifier that finds fault with
+// everything is of no use.
+func TestWriteReview_aNoteThatHoldsTogetherIsNotFaulted(t *testing.T) {
+	w, _ := workspaceAndNote(t, "# A\n")
+	w.OnVerify = func(string) []ai.Issue { return nil }
+	w.StartReview("# A\n\nmore\n")
+	w.writeReview()
+	if strings.Contains(w.status, "再看一眼") {
+		t.Fatalf("status = %q, want nothing said against it", w.status)
+	}
+}
+
+// kept is what the last snapshot held, in these tests.
+var kept string
 
 // TestReviewStale_anotherNotePutsTheRevisionAway checks that a revision
 // of one note is not left over the text of another.

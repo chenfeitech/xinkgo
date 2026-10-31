@@ -229,6 +229,10 @@ func boot(app *mygo.Application) (*appState, error) {
 	// What was said about a note is kept between two runs.
 	ws.OnAiLoad = st.aiLoad
 	ws.OnAiSave = st.aiSave
+	// What a note said before it was changed is kept, and whether it
+	// still holds together after.
+	ws.OnSnapshot = st.snapshotNote
+	ws.OnVerify = st.verifyNote
 	ws.Tabs.OnSave = func(path string) {
 		slog.Debug("saved", "path", path)
 	}

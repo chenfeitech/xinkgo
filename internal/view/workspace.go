@@ -73,6 +73,13 @@ type Workspace struct {
 	// OnAiSave is told what has been said about a note, so that it can
 	// be kept between two runs.
 	OnAiSave func(path string, blocks []state.AiBlock)
+	// OnSnapshot is told what a note said before a revision was written
+	// into it, so that there is a way back. It gives back where it was
+	// put, if anywhere.
+	OnSnapshot func(path, text string) string
+	// OnVerify is asked whether a note still holds together after it
+	// has been changed.
+	OnVerify func(text string) []ai.Issue
 
 	status      string
 	layoutTimer *time.Timer

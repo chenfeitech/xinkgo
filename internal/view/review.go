@@ -124,8 +124,23 @@ func (w *Workspace) writeReview() {
 		w.status = "nothing was taken"
 		return
 	}
+	// What the note said before is kept: a save is on the disk at once,
+	// and there is no stack of undone things to come back to.
+	if w.OnSnapshot != nil {
+		w.OnSnapshot(w.review.path, w.review.before)
+	}
 	n.Editor.Buffer.Set(text)
 	w.Tabs.Edited(n)
 	w.review.open = false
 	w.status = "the revision is in the note"
+	// And whether what was written still holds together. What is found
+	// is said, and does not undo the writing: a vault may well not have
+	// the note a draft points at yet.
+	if w.OnVerify == nil {
+		return
+	}
+	if issues := w.OnVerify(text); len(issues) > 0 {
+		w.status = "written, but " + strconv.Itoa(len(issues)) +
+			" 处要再看一眼：" + issues[0].Feedback()
+	}
 }
