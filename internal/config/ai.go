@@ -94,6 +94,38 @@ type ModelEntry struct {
 	LastCheckedMs      uint64        `json:"last_checked_ms"`
 }
 
+// Clone is the same model under another name.
+//
+// Nothing in the copy is shared with the one it was taken of: a copy is
+// made to be changed afterwards, and a copy whose capabilities or
+// context are the original's is one that changes the original as well.
+//
+// A name that only echoed what the model is known by follows it, so that
+// the copy is not shown under the name of the one it came from.
+func (m ModelEntry) Clone(id string) ModelEntry {
+	out := m
+	out.ID = id
+	if out.Label == m.ID {
+		out.Label = id
+	}
+	if m.Capabilities != nil {
+		out.Capabilities = append([]string(nil), m.Capabilities...)
+	}
+	if m.ContextLimit != nil {
+		limit := *m.ContextLimit
+		out.ContextLimit = &limit
+	}
+	if m.Params.NumCtx != nil {
+		ctx := *m.Params.NumCtx
+		out.Params.NumCtx = &ctx
+	}
+	if m.Params.KeepAlive != nil {
+		alive := *m.Params.KeepAlive
+		out.Params.KeepAlive = &alive
+	}
+	return out
+}
+
 // AiModelParams is what a request to a model asks for.
 type AiModelParams struct {
 	NumCtx      *uint32 `json:"num_ctx,omitempty"`

@@ -131,12 +131,80 @@ func (s *appState) aiModels(c *ui.Context) {
 				s.newModel())
 		}
 	})
-	// Forgetting is done after the rows are drawn: a row is not taken
-	// out from under the one that follows it.
+	// Forgetting, copying and moving are done after the rows are
+	// drawn: a row is not taken out, nor made into two, nor moved, from
+	// under the one that follows it.
 	if s.draft.drop != "" {
 		s.draft.forgetModel(s.draft.drop)
 		s.draft.drop = ""
 	}
+	if s.draft.clone != "" {
+		s.cloneModel(s.draft.clone)
+		s.draft.clone = ""
+	}
+	if s.draft.moveID != "" {
+		s.moveModel(s.draft.moveID, s.draft.moveBy)
+		s.draft.moveID = ""
+		s.draft.moveBy = 0
+	}
+}
+
+// cloneModel makes a model into two: the copy is the same model under a
+// name of its own, and stands next to the one it was taken of.
+//
+// What is worth copying is worth copying whole: see
+// `config.ModelEntry.Clone` for what is shared and what is not.
+func (s *appState) cloneModel(id string) {
+	list := s.draft.cfg.Ai.Models
+	at := -1
+	for i := range list {
+		if list[i].ID == id {
+			at = i
+			break
+		}
+	}
+	if at < 0 {
+		return
+	}
+	name := id + "-copy"
+	for n := 2; named(list, name); n++ {
+		name = id + "-copy" + strconv.Itoa(n)
+	}
+	out := make([]config.ModelEntry, 0, len(list)+1)
+	out = append(out, list[:at+1]...)
+	out = append(out, list[at].Clone(name))
+	out = append(out, list[at+1:]...)
+	s.draft.cfg.Ai.Models = out
+}
+
+// moveModel moves a model earlier or later in the list, by one place.
+//
+// The order is not only the order they are shown in: when no model has
+// been named as the one to ask, the first one that is turned on is the
+// one that is asked.
+func (s *appState) moveModel(id string, by int) {
+	list := s.draft.cfg.Ai.Models
+	for i := range list {
+		if list[i].ID != id {
+			continue
+		}
+		to := i + by
+		if to < 0 || to >= len(list) {
+			return
+		}
+		list[i], list[to] = list[to], list[i]
+		return
+	}
+}
+
+// named is whether a model of that name is one of them.
+func named(list []config.ModelEntry, id string) bool {
+	for i := range list {
+		if list[i].ID == id {
+			return true
+		}
+	}
+	return false
 }
 
 // forgetModel takes a model out of the settings, and out of the two
@@ -163,17 +231,7 @@ func (st *settings) forgetModel(id string) {
 // the rest left to be filled in.
 func (s *appState) newModel() config.ModelEntry {
 	id := "model"
-	for n := 2; ; n++ {
-		taken := false
-		for i := range s.draft.cfg.Ai.Models {
-			if s.draft.cfg.Ai.Models[i].ID == id {
-				taken = true
-				break
-			}
-		}
-		if !taken {
-			break
-		}
+	for n := 2; named(s.draft.cfg.Ai.Models, id); n++ {
 		id = "model" + strconv.Itoa(n)
 	}
 	return config.ModelEntry{
@@ -187,10 +245,24 @@ func (s *appState) newModel() config.ModelEntry {
 func (s *appState) aiModel(c *ui.Context, at int) {
 	m := &s.draft.cfg.Ai.Models[at]
 	st := s.draft.stateOf(m.ID)
+	last := at == len(s.draft.cfg.Ai.Models)-1
 	ui.Column(c).Gap(4).Children(func() {
 		ui.Row(c).Gap(6).Children(func() {
 			ui.Checkbox(c, &m.Enabled, "Turned on")
 			ui.Text(c, m.ID).Bold().Grow(1)
+			// The order is the order they are asked in: the
+			// first one turned on is the one asked when none
+			// has been named.
+			if ui.Button(c.Key("model-up#"+m.ID), "↑").
+				Label("Ask it earlier").Disabled(at == 0).Clicked() {
+				s.draft.moveID = m.ID
+				s.draft.moveBy = -1
+			}
+			if ui.Button(c.Key("model-down#"+m.ID), "↓").
+				Label("Ask it later").Disabled(last).Clicked() {
+				s.draft.moveID = m.ID
+				s.draft.moveBy = 1
+			}
 			open := st.open
 			label := "Open"
 			if open {
@@ -202,6 +274,10 @@ func (s *appState) aiModel(c *ui.Context, at int) {
 			if ui.Button(c.Key("model-try#"+m.ID), "Try it").
 				Clicked() && !st.trying {
 				s.tryModel(m.ID)
+			}
+			if ui.Button(c.Key("model-clone#"+m.ID), "Clone").
+				Label("The same model under another name").Clicked() {
+				s.draft.clone = m.ID
 			}
 			if ui.Button(c.Key("model-drop#"+m.ID), "Forget").
 				Clicked() {

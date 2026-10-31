@@ -143,3 +143,120 @@ func TestStateOf_theSameRowComesBack(t *testing.T) {
 		t.Fatal("two models share one row")
 	}
 }
+
+// modelsOf is an app whose settings hold those models.
+func modelsOf(ids ...string) *appState {
+	s := &appState{}
+	s.draft.cfg = config.Default()
+	s.draft.cfg.Ai.Models = nil
+	for _, id := range ids {
+		s.draft.cfg.Ai.Models = append(s.draft.cfg.Ai.Models,
+			config.ModelEntry{ID: id, Label: id, Enabled: true})
+	}
+	return s
+}
+
+// TestCloneModel_theCopyStandsByTheOneItWasTakenOf checks that a copy is
+// put next to the model it came from, and is the same model otherwise.
+func TestCloneModel_theCopyStandsByTheOneItWasTakenOf(t *testing.T) {
+	s := modelsOf("first", "second")
+	s.cloneModel("first")
+	list := s.draft.cfg.Ai.Models
+	if len(list) != 3 {
+		t.Fatalf("models = %d, want three", len(list))
+	}
+	if list[1].ID != "first-copy" {
+		t.Fatalf("the copy is at %q, want it next to its own",
+			list[1].ID)
+	}
+	if list[0].ID != "first" || list[2].ID != "second" {
+		t.Fatalf("order = %q, want the rest left where they were",
+			[]string{list[0].ID, list[2].ID})
+	}
+	if list[1].Label != "first-copy" {
+		t.Fatalf("label = %q, want it not to wear the other's name",
+			list[1].Label)
+	}
+}
+
+// TestCloneModel_twoCopiesOfOneAreToldApart checks that a copy made
+// twice is given two names: the name is what the app asks by.
+func TestCloneModel_twoCopiesOfOneAreToldApart(t *testing.T) {
+	s := modelsOf("first")
+	s.cloneModel("first")
+	s.cloneModel("first")
+	ids := []string{}
+	for _, m := range s.draft.cfg.Ai.Models {
+		ids = append(ids, m.ID)
+	}
+	// Each copy stands next to the one it was taken of, so the last
+	// made is the nearer of the two.
+	if len(ids) != 3 || ids[1] != "first-copy2" ||
+		ids[2] != "first-copy" {
+		t.Fatalf("ids = %v, want two copies told apart", ids)
+	}
+}
+
+// TestCloneModel_theCopyIsChangedWithoutTheOtherChanging checks the one
+// thing a copy is for: it can be changed afterwards.
+func TestCloneModel_theCopyIsChangedWithoutTheOtherChanging(t *testing.T) {
+	s := modelsOf("first")
+	s.draft.cfg.Ai.Models[0].Capabilities = []string{"tools"}
+	s.draft.cfg.Ai.Models[0].BaseURL = "http://localhost:11434"
+	s.cloneModel("first")
+	one, two := &s.draft.cfg.Ai.Models[0], &s.draft.cfg.Ai.Models[1]
+	two.Capabilities[0] = "vision"
+	two.BaseURL = "http://elsewhere:1234"
+	if one.Capabilities[0] != "tools" {
+		t.Fatalf("the one it came from can %q now",
+			one.Capabilities[0])
+	}
+	if one.BaseURL == two.BaseURL {
+		t.Fatal("the copy asks the same place as the original")
+	}
+}
+
+// TestMoveModel_earlierAndLater checks that a model may be moved through
+// the list, and not out of either end of it.
+func TestMoveModel_earlierAndLater(t *testing.T) {
+	s := modelsOf("a", "b", "c")
+	s.moveModel("c", -1)
+	if idsOf(s) != "a,c,b" {
+		t.Fatalf("order = %s, want c moved earlier", idsOf(s))
+	}
+	s.moveModel("a", 1)
+	if idsOf(s) != "c,a,b" {
+		t.Fatalf("order = %s, want a moved later", idsOf(s))
+	}
+	// The ends hold: nothing is moved out of the list.
+	s.moveModel("c", -1)
+	s.moveModel("b", 1)
+	if idsOf(s) != "c,a,b" {
+		t.Fatalf("order = %s, want the ends to hold", idsOf(s))
+	}
+	// A model that is not one of them is not a failure.
+	s.moveModel("nope", -1)
+	if idsOf(s) != "c,a,b" {
+		t.Fatalf("order = %s, want it left alone", idsOf(s))
+	}
+}
+
+// TestCloneModel_oneThatIsNotThereIsNotCopied checks that a copy asked
+// for twice in one frame does not make two.
+func TestCloneModel_oneThatIsNotThereIsNotCopied(t *testing.T) {
+	s := modelsOf("a")
+	s.cloneModel("nope")
+	if len(s.draft.cfg.Ai.Models) != 1 {
+		t.Fatalf("models = %d, want it left alone",
+			len(s.draft.cfg.Ai.Models))
+	}
+}
+
+// idsOf is the models' names, in the order they stand.
+func idsOf(s *appState) string {
+	ids := []string{}
+	for _, m := range s.draft.cfg.Ai.Models {
+		ids = append(ids, m.ID)
+	}
+	return strings.Join(ids, ",")
+}

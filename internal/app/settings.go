@@ -46,9 +46,15 @@ type settings struct {
 	scroll ui.ScrollState
 	// models is what each model's row keeps between two frames.
 	models map[string]*modelState
-	// drop is the model to be forgotten, named by the row that was
-	// clicked and taken out after the rows are drawn.
-	drop string
+	// drop is the model to be forgotten, clone the one to be made into
+	// two, and moveID with moveBy the one to be moved earlier or later
+	// (-1 or 1). All are named by the row that was clicked and done
+	// after the rows are drawn: a row must not be taken out, copied or
+	// moved from under the one that follows it.
+	drop   string
+	clone  string
+	moveID string
+	moveBy int
 }
 
 // openSettings shows the settings window, or brings it back when it is

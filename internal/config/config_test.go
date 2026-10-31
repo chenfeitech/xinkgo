@@ -317,3 +317,54 @@ func mustQuote(s string) string {
 	}
 	return string(b)
 }
+
+// TestModelEntry_cloneIsChangedWithoutTheOtherChanging checks the one
+// thing a copy is for: it may be changed afterwards. A copy that shares
+// its capabilities, its context or its keep-alive with the original is
+// one that changes the original as well.
+func TestModelEntry_cloneIsChangedWithoutTheOtherChanging(t *testing.T) {
+	ctx := uint32(4096)
+	alive := "5m"
+	limit := uint32(8192)
+	one := ModelEntry{
+		ID:           "first",
+		Label:        "first",
+		Capabilities: []string{"tools"},
+		ContextLimit: &limit,
+		Params: AiModelParams{
+			NumCtx:     &ctx,
+			KeepAlive:  &alive,
+			NumPredict: 512,
+		},
+	}
+	two := one.Clone("second")
+	if two.ID != "second" {
+		t.Fatalf("id = %q, want the name it was given", two.ID)
+	}
+	if two.Label != "second" {
+		t.Fatalf("label = %q, want it not to wear the other's name",
+			two.Label)
+	}
+	two.Capabilities[0] = "vision"
+	*two.Params.NumCtx = 128
+	*two.Params.KeepAlive = "0"
+	*two.ContextLimit = 1
+	if one.Capabilities[0] != "tools" || *one.Params.NumCtx != 4096 ||
+		*one.Params.KeepAlive != "5m" || *one.ContextLimit != 8192 {
+		t.Fatalf("the one it came from changed too: %+v", one)
+	}
+	// What was not said stays as it was.
+	if two.Params.NumPredict != 512 {
+		t.Fatalf("num_predict = %d, want the same", two.Params.NumPredict)
+	}
+}
+
+// TestModelEntry_cloneKeepsANameOfItsOwn checks that a label the user
+// wrote is left alone: only one that echoed what the model is known by
+// follows the new name.
+func TestModelEntry_cloneKeepsANameOfItsOwn(t *testing.T) {
+	one := ModelEntry{ID: "first", Label: "The one at home"}
+	if got := one.Clone("second").Label; got != "The one at home" {
+		t.Fatalf("label = %q, want the one the user wrote", got)
+	}
+}
