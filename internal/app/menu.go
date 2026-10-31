@@ -104,6 +104,12 @@ func mainMenu(bound []keymap.Resolved, vaults vault.Registry) *mygo.Menu {
 						current.openTasks()
 					}
 				}},
+			{Label: "Snapshots…",
+				Click: func(*mygo.MenuItem, *mygo.Window) {
+					if current != nil {
+						current.openHistory()
+					}
+				}},
 			{Label: "Save", Accelerator: key("Save"),
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current != nil {

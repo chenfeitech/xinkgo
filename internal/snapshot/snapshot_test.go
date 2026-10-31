@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 // TestName_theNameSortsInTimeOrder checks the one thing the name is for:
@@ -165,5 +166,55 @@ func TestClear_everyOneGoesAndTheFolderStays(t *testing.T) {
 func TestDir_whereTheyStand(t *testing.T) {
 	if got := Dir("/app"); got != filepath.Join("/app", DirName) {
 		t.Fatalf("dir = %q", got)
+	}
+}
+
+// TestList_theNewestIsFirst checks the order the way back is looked for
+// in: from what was kept last backwards.
+func TestList_theNewestIsFirst(t *testing.T) {
+	dir := filepath.Join(t.TempDir(), DirName)
+	early, err := Write(dir, "a.md", "first")
+	if err != nil {
+		t.Fatal(err)
+	}
+	later, err := Write(dir, "a.md", "second")
+	if err != nil {
+		t.Fatal(err)
+	}
+	all := List(dir)
+	if len(all) != 2 {
+		t.Fatalf("list = %v, want both", all)
+	}
+	if filepath.Base(all[0]) <= filepath.Base(all[1]) {
+		t.Fatalf("list = %v, want %q first", all,
+			filepath.Base(later))
+	}
+	if all[0] != later || all[1] != early {
+		t.Fatalf("list = %v, want the newest first", all)
+	}
+	// A folder that is not there has none, and that is not a failure.
+	if got := List(filepath.Join(t.TempDir(), "nowhere")); len(got) != 0 {
+		t.Fatalf("list = %v, want none", got)
+	}
+}
+
+// TestTaken_theNameSaysWhen checks that the time is read back off a name
+// that was written to sort in time order.
+func TestTaken_theNameSaysWhen(t *testing.T) {
+	when, ok := Taken("2026-10-31-104500-a.md")
+	if !ok {
+		t.Fatal("the time was not read")
+	}
+	if want := time.Date(2026, 10, 31, 10, 45, 0, 0, time.UTC); !when.Equal(
+		want) {
+		t.Fatalf("taken = %v, want %v", when, want)
+	}
+	// A name that is not one of ours says nothing, and is not a
+	// failure either.
+	if _, ok := Taken("no-stamp-here"); ok {
+		t.Error("a name with no stamp was read as a time")
+	}
+	if _, ok := Taken("2026-13-45-999999-a.md"); ok {
+		t.Error("a stamp that cannot be was read as a time")
 	}
 }

@@ -96,6 +96,16 @@ type appState struct {
 	taskDraft  taskDraft
 	taskScroll ui.ScrollState
 	work       *task.Task
+
+	// histWin is the window of what was kept before notes were changed:
+	// one of them, brought back rather than opened again.
+	histWin *mygo.Window
+	// kept is what that window shows, read when it is opened and again
+	// after a snapshot has been put back.
+	kept []keptOne
+	// histStatus is what last came of putting one back.
+	histStatus string
+	histScroll ui.ScrollState
 }
 
 // Run starts the application and does not return until it quits.

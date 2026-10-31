@@ -416,6 +416,29 @@ func (t *Tabs) Reload(path string) (bool, bool) {
 	return true, false
 }
 
+// PutText is the text of a note set from outside its editor, as when a
+// snapshot is put back into it: the file on the disk is read again and
+// the editor is made to show it, whether the user had changes in it or
+// not, for a note that says one thing on the disk and another in the
+// editor is a note whose next save throws the disk's words away.
+//
+// What the user had and had not saved is gone from the editor, so it is
+// the caller's care to have kept it first. It reports whether the note
+// was open at all.
+func (t *Tabs) PutText(path string) bool {
+	t.mu.Lock()
+	n, ok := t.Notes[session.TabKey(path)]
+	t.mu.Unlock()
+	if !ok {
+		return false
+	}
+	if text, changed := n.Note.TakeExternalText(); changed {
+		n.Editor.Buffer.Set(text)
+	}
+	n.Version = n.Editor.Buffer.Version()
+	return true
+}
+
 // withoutPath is the order of the tabs without the one whose file is key.
 func withoutPath(order []string, key string) []string {
 	kept := make([]string, 0, len(order))

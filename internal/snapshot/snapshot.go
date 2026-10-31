@@ -25,6 +25,10 @@ const DirName = "ai-history"
 // forever.
 const Max = 200
 
+// stampFormat is how the time is written in a snapshot's name: a fixed
+// number of digits, so that it is both sorted and read back.
+const stampFormat = "2006-01-02-150405"
+
 // Name is what a snapshot of that file is called:
 // `<yyyy-mm-dd-HHMMSS>-<文件名>`.
 //
@@ -32,7 +36,7 @@ const Max = 200
 // oldest is the first of a sorted list and there is nothing to read off
 // the disk to find out which it is.
 func Name(fileName string) string {
-	stamp := time.Now().UTC().Format("2006-01-02-150405")
+	stamp := time.Now().UTC().Format(stampFormat)
 	return stamp + "-" + fileName
 }
 
@@ -68,6 +72,37 @@ func Write(dir, fileName, content string) (string, error) {
 	}
 	_, _ = Rotate(dir, Max)
 	return path, nil
+}
+
+// List is the snapshots of the folder, the newest first: the way back is
+// looked for from the newest backwards, and the names sort in time order,
+// so this is the same reading of the folder the other way round.
+//
+// A folder that is not there has none, and that is not a failure.
+func List(dir string) []string {
+	paths, ok := list(dir)
+	if !ok {
+		return nil
+	}
+	out := make([]string, 0, len(paths))
+	for i := len(paths) - 1; i >= 0; i-- {
+		out = append(out, paths[i])
+	}
+	return out
+}
+
+// Taken is when a snapshot was taken, and whether the name says it: a
+// name that sorts in time order is a name that says the time.
+func Taken(snapshotPath string) (time.Time, bool) {
+	base := filepath.Base(snapshotPath)
+	if len(base) < len(stampFormat) {
+		return time.Time{}, false
+	}
+	when, err := time.Parse(stampFormat, base[:len(stampFormat)])
+	if err != nil {
+		return time.Time{}, false
+	}
+	return when, true
 }
 
 // Count is how many snapshots there are. A folder that is not there has

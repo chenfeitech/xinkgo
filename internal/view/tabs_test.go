@@ -433,3 +433,34 @@ func TestTabs_createMakesTheFileAndOpensIt(t *testing.T) {
 		t.Errorf("paths %v, want the new note open", tabs.Paths())
 	}
 }
+
+// TestTabs_putTextIsWhatTheDiskSays checks that a note open is made to
+// show what another wrote into its file, unsaved words and all: a note
+// that says one thing on the disk and another in the editor is a note
+// whose next save throws the disk's words away.
+func TestTabs_putTextIsWhatTheDiskSays(t *testing.T) {
+	_, a, _ := vaultWithNotes(t)
+	tabs := NewTabs()
+	open, err := tabs.Open(a)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// As when a snapshot is put back: the file is written, and the
+	// editor is told.
+	if err := os.WriteFile(a, []byte("what it was"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if !tabs.PutText(a) {
+		t.Fatal("the note that is open was not found")
+	}
+	if got := open.Editor.Buffer.String(); got != "what it was" {
+		t.Fatalf("buffer = %q, want what the disk says", got)
+	}
+	if open.Note.Dirty {
+		t.Error("the note is said to have changes the disk does not")
+	}
+	// A note that is not open is not one that can be told.
+	if tabs.PutText(filepath.Join(filepath.Dir(a), "other.md")) {
+		t.Error("a note that is not open was said to be told")
+	}
+}
