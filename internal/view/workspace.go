@@ -106,14 +106,19 @@ type Workspace struct {
 	// What the editor and the preview follow each other by.
 	previewScroll ui.ScrollState
 	guard         sync.Guard
-	gesture       sync.Gesture
-	lastEdY       float32
-	lastPrY       float32
-	lastMove      time.Time
-	table         sync.AnchorTable
-	tablePath     string
-	tableVersion  uint64
-	scrollPath    string
+	// edGesture and prGesture are how long each side is left to the
+	// user after they scrolled it; follow is the side the user moved
+	// whose other side has yet to be brought over.
+	edGesture    sync.Gesture
+	prGesture    sync.Gesture
+	follow       *sync.Side
+	lastEdY      float32
+	lastPrY      float32
+	lastMove     time.Time
+	table        sync.AnchorTable
+	tablePath    string
+	tableVersion uint64
+	scrollPath   string
 
 	// The command palette: whether it is open, what was typed in it,
 	// and which of its answers the keys are on.

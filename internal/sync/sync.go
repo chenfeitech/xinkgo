@@ -218,9 +218,9 @@ func (g *Guard) Claim(side Side, now time.Time) bool {
 }
 
 // Expect remembers the place the app wrote, so that reading it back is
-// known for what it is.
-func (g *Guard) Expect(a Anchor) {
-	g.expected, g.expectedAt = &a, time.Now()
+// known for what it is. now is the clock the caller reads it back by.
+func (g *Guard) Expect(a Anchor, now time.Time) {
+	g.expected, g.expectedAt = &a, now
 }
 
 // IsEcho reports whether the place now read is the one the app wrote,

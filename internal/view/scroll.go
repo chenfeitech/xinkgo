@@ -13,47 +13,95 @@ import (
 const scrollMoved = 0.5
 
 // followScroll keeps the note and what it looks like at the same place.
-// The side the user moved drives, and the other is moved to it: a moment
-// of quiet is left after a gesture, and a lock keeps the two from
-// pushing each other back and forth.
+// The side the user scrolls drives, and the other is brought to it: the
+// side under the user's hand is theirs alone, and the app writes nothing
+// to it, but there is no cause to wait before moving the other, so the
+// two follow each other as the user goes, and once more when they stop.
+//
+// A lock keeps the two from pushing each other back and forth: the side
+// the user moved keeps the direction for a moment, and what the app
+// wrote is known again for what it is when it is read back.
 func (w *Workspace) followScroll(c *ui.Context) {
 	n := w.Tabs.ActiveNote()
 	if n == nil || w.Layout.Right <= 0 || !w.Config.Preview.SyncScroll {
 		return
 	}
-	now := time.Now()
+	now := c.Now()
 	ed := n.Editor
 	edY, prY := float32(ed.ScrollY()), w.previewScroll.Y
 	edMoved, prMoved := moved(edY, w.lastEdY), moved(prY, w.lastPrY)
 	w.lastEdY, w.lastPrY = edY, prY
-	if edMoved || prMoved {
-		w.gesture.NoteUserMovement(now)
-		w.lastMove = now
+	// A move is the user's unless it is the app's own, read back.
+	if edMoved && !w.guard.IsEcho(sync.LineAnchor(topLine(ed)),
+		lineTolerance(ed), now) {
+		w.userScrolled(sync.Editor, now)
 	}
-	if w.gesture.IsQuiet(now) {
+	if prMoved && !w.guard.IsEcho(w.previewAnchor(),
+		w.previewTolerance(), now) {
+		w.userScrolled(sync.Preview, now)
+	}
+	if w.follow == nil {
 		return
 	}
-	// Waiting for the scrolling to stop: don't move the other side
-	// while this one is still going.
+	// Following on stop: the other side is moved once the scrolling has
+	// stood still for a moment, and not under the user's hand.
 	if sync.ModeOf(w.Config.Preview.SyncMode) == sync.OnStop &&
 		now.Sub(w.lastMove) < sync.StopQuiet {
 		return
 	}
-	table := w.anchorTable(n)
-	switch {
-	case edMoved && !w.guard.IsEcho(sync.LineAnchor(topLine(ed)),
-		lineTolerance(ed), now) && w.guard.Claim(sync.Editor, now):
-		w.toPreview(ed, table, topLine(ed))
-	case prMoved && !w.guard.IsEcho(w.previewAnchor(), w.previewTolerance(),
-		now) && w.guard.Claim(sync.Preview, now):
-		w.toEditor(ed, table, w.previewRatio())
+	// What the app writes, it writes to the other side, and only while
+	// the user's hand is not on that one either: a side they are
+	// scrolling themselves is left as they leave it.
+	if w.gestureOf(theOther(*w.follow)).IsQuiet(now) {
+		return
 	}
+	table := w.anchorTable(n)
+	switch *w.follow {
+	case sync.Editor:
+		if !w.guard.Claim(sync.Editor, now) {
+			return
+		}
+		w.toPreview(ed, table, topLine(ed), now)
+	case sync.Preview:
+		if !w.guard.Claim(sync.Preview, now) {
+			return
+		}
+		w.toEditor(ed, table, w.previewRatio(), now)
+	}
+	// The other side has been brought over: nothing is owed it until
+	// the user moves again.
+	w.follow = nil
+}
+
+// userScrolled is the user moving one side: that side is theirs for a
+// moment, and the other owes them the place they left it at.
+func (w *Workspace) userScrolled(side sync.Side, now time.Time) {
+	w.gestureOf(side).NoteUserMovement(now)
+	w.lastMove = now
+	w.follow = &side
+}
+
+// gestureOf is the gesture of one side: how long the user's scrolling of
+// it keeps the app from writing to it.
+func (w *Workspace) gestureOf(side sync.Side) *sync.Gesture {
+	if side == sync.Editor {
+		return &w.edGesture
+	}
+	return &w.prGesture
+}
+
+// theOther is the side that is not the one given.
+func theOther(side sync.Side) sync.Side {
+	if side == sync.Editor {
+		return sync.Preview
+	}
+	return sync.Editor
 }
 
 // toPreview moves the preview to where the editor is, and remembers the
 // place it was sent to, so that seeing it come back is known for an echo.
 func (w *Workspace) toPreview(
-	ed *editor.State, table sync.AnchorTable, line float32,
+	ed *editor.State, table sync.AnchorTable, line float32, now time.Time,
 ) {
 	ratio := w.previewRatio()
 	if !table.IsEmpty() && sync.ModeOf(w.Config.Preview.SyncMode) ==
@@ -69,12 +117,12 @@ func (w *Workspace) toPreview(
 	}
 	ratio = sync.RatioAnchor(ratio).Clamped(1).Value
 	w.previewScroll.Y = ratio * w.previewScroll.MaxY
-	w.guard.Expect(sync.RatioAnchor(ratio))
+	w.guard.Expect(sync.RatioAnchor(ratio), now)
 }
 
 // toEditor moves the editor to where the preview is, the other way round.
 func (w *Workspace) toEditor(
-	ed *editor.State, table sync.AnchorTable, ratio float32,
+	ed *editor.State, table sync.AnchorTable, ratio float32, now time.Time,
 ) {
 	line := ratio * float32(table.TotalLines())
 	if !table.IsEmpty() && sync.ModeOf(w.Config.Preview.SyncMode) ==
@@ -88,7 +136,7 @@ func (w *Workspace) toEditor(
 	line = sync.LineAnchor(line).
 		Clamped(float32(table.TotalLines())).Value
 	ed.SetScrollY(lineTop(ed, line))
-	w.guard.Expect(sync.LineAnchor(line))
+	w.guard.Expect(sync.LineAnchor(line), now)
 }
 
 // previewRatio is how far down the preview is scrolled, 0 to 1.
@@ -134,7 +182,9 @@ func (w *Workspace) resetScroll(path string) {
 	}
 	w.scrollPath = path
 	w.guard.Reset()
-	w.gesture.Reset()
+	w.edGesture.Reset()
+	w.prGesture.Reset()
+	w.follow = nil
 	w.lastEdY, w.lastPrY = 0, 0
 	w.lastMove = time.Time{}
 }

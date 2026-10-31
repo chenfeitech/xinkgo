@@ -156,7 +156,7 @@ func TestGuard_theSameSideKeepsIt(t *testing.T) {
 func TestGuard_isEcho(t *testing.T) {
 	var g Guard
 	now := time.Now()
-	g.Expect(LineAnchor(10))
+	g.Expect(LineAnchor(10), now)
 	if !g.IsEcho(LineAnchor(10.2), 0.5, now) {
 		t.Error("a place near what was written is not an echo")
 	}
@@ -178,7 +178,7 @@ func TestGuard_resetForgetsEverything(t *testing.T) {
 	var g Guard
 	now := time.Now()
 	g.Claim(Editor, now)
-	g.Expect(LineAnchor(10))
+	g.Expect(LineAnchor(10), now)
 	g.Reset()
 	if !g.Claim(Preview, now.Add(time.Millisecond)) {
 		t.Error("the preview could not take the direction after a reset")
