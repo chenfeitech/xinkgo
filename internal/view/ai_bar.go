@@ -2,6 +2,7 @@ package view
 
 import (
 	"context"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -153,7 +154,7 @@ func (w *Workspace) aiTalk(c *ui.Context, s *aiSession, n *OpenNote) {
 				// The last of them is still being written, and
 				// is shown as it comes.
 				coming := busy && i == len(blocks)-1
-				w.aiSaid(c, blocks[i], opts, coming)
+				w.aiSaid(c, i, blocks[i], opts, coming)
 			}
 		})
 	})
@@ -162,7 +163,8 @@ func (w *Workspace) aiTalk(c *ui.Context, s *aiSession, n *OpenNote) {
 // aiSaid is one thing said: the user's words plain, and the model's as
 // Markdown, for that is how a model answers.
 func (w *Workspace) aiSaid(
-	c *ui.Context, b aiBlock, opts *markdown.Options, coming bool,
+	c *ui.Context, at int, b aiBlock, opts *markdown.Options,
+	coming bool,
 ) {
 	ui.Column(c).Gap(2).Children(func() {
 		if b.Role == ai.User {
@@ -187,6 +189,16 @@ func (w *Workspace) aiSaid(
 		if b.Failed != "" {
 			ui.Text(c, b.Failed).FontSize(12).
 				TextColor(c.Theme().Danger)
+		}
+		// An answer that is over and has words in it can be looked over
+		// as a revision of the note: what the model made of it, a
+		// change at a time.
+		if b.Over && b.Text != "" {
+			if ui.Button(c.Key("ai-review#"+strconv.Itoa(at)),
+				"Look it over").Label("Look over these changes").
+				Clicked() {
+				w.StartReview(b.Text)
+			}
 		}
 	})
 }

@@ -27,8 +27,12 @@ type OpenNote struct {
 	// that typing is taken in once and not again for the same text.
 	Version uint64
 
-	saveTimer *time.Timer
-	saving    bool
+	// saveAt is when the note is to be written, after the user has
+	// stopped typing. The writing itself is done by the frame, and not
+	// by a timer of its own: the note is the view's, and only the main
+	// thread may touch it.
+	saveAt time.Time
+	saving bool
 }
 
 // Tabs is the notes the app has open, in the order their tabs are in.
@@ -147,9 +151,7 @@ func (t *Tabs) Close(path string) {
 	if n.Note.Dirty {
 		_ = n.Note.Save()
 	}
-	if n.saveTimer != nil {
-		n.saveTimer.Stop()
-	}
+	n.saveAt = time.Time{}
 	delete(t.Notes, key)
 	t.Order = withoutPath(t.Order, key)
 	if session.TabKey(t.Active) == key {
@@ -177,9 +179,7 @@ func (t *Tabs) Discard(path string) {
 	if !ok {
 		return
 	}
-	if n.saveTimer != nil {
-		n.saveTimer.Stop()
-	}
+	n.saveAt = time.Time{}
 	delete(t.Notes, key)
 	t.Order = withoutPath(t.Order, key)
 	if session.TabKey(t.Active) == key {
@@ -261,21 +261,46 @@ func (t *Tabs) Edited(n *OpenNote) bool {
 	return true
 }
 
-// scheduleSave writes the note after the user has stopped typing. A new
-// change puts off the writing, so that typing saves once and not once a
-// letter.
+// scheduleSave says when the note is to be written: after the user has
+// stopped typing. A new change puts the writing off, so that typing saves
+// once and not once a letter.
+//
+// It says when, and does not write: a timer of its own would write from
+// another thread, and the note is the view's.
 func (t *Tabs) scheduleSave(n *OpenNote) {
 	if !t.AutoSave {
 		return
-	}
-	if n.saveTimer != nil {
-		n.saveTimer.Stop()
 	}
 	delay := t.AutoSaveDelay
 	if delay <= 0 {
 		delay = 300 * time.Millisecond
 	}
-	n.saveTimer = time.AfterFunc(delay, func() { t.Save(n) })
+	n.saveAt = time.Now().Add(delay)
+}
+
+// SaveDue writes the notes whose time has come. The frame calls it, for
+// only the main thread may write: a save that ran beside the typing it is
+// saving would write half of what the user has written. It says what
+// went wrong with the first note that could not be written, if any could
+// not.
+func (t *Tabs) SaveDue() error {
+	now := time.Now()
+	due := make([]*OpenNote, 0, len(t.Notes))
+	t.mu.Lock()
+	for _, n := range t.Notes {
+		if !n.saveAt.IsZero() && !now.Before(n.saveAt) {
+			n.saveAt = time.Time{}
+			due = append(due, n)
+		}
+	}
+	t.mu.Unlock()
+	var failed error
+	for _, n := range due {
+		if err := t.Save(n); err != nil && failed == nil {
+			failed = err
+		}
+	}
+	return failed
 }
 
 // Save writes the note to its file now, as Cmd+S does. It writes, and

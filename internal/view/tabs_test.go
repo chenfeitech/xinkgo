@@ -180,8 +180,23 @@ func TestTabs_autoSaveWritesAfterThePause(t *testing.T) {
 	tabs.Edited(n)
 	n.Editor.Buffer.Set("one two")
 	tabs.Edited(n)
-	time.Sleep(150 * time.Millisecond)
+	// Too soon: the pause is not over, and nothing is written yet. It is
+	// the frame that writes, as only the main thread may.
+	if err := tabs.SaveDue(); err != nil {
+		t.Fatal(err)
+	}
 	data, err := os.ReadFile(a)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(data) == "one two" {
+		t.Error("the note was written before the pause was over")
+	}
+	time.Sleep(40 * time.Millisecond)
+	if err := tabs.SaveDue(); err != nil {
+		t.Fatal(err)
+	}
+	data, err = os.ReadFile(a)
 	if err != nil {
 		t.Fatal(err)
 	}

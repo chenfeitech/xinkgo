@@ -125,6 +125,7 @@ Everything passed.
 | T-34 | ✅ | `internal/ai`：流式事件解析（Delta/Thinking/ToolCall/Usage/Truncated/Done/Failed） |
 | T-35 | ✅ | AI 对话条 UI（`internal/view/ai_bar.go` + `markdown.Stream`）+ app 侧提问接线 |
 | T-36 | ✅ | 会话持久化（`internal/state/ai_sessions.go`，30 会话 / 200 块裁剪） |
+| T-37 | ✅ | AI 修订评审：`editor.DiffView` 逐块 Take/Revert + 整篇写入 |
 
 人工验收登记在 [../ACCEPTANCE.md](../ACCEPTANCE.md)：D1 ~ D7。
 
@@ -160,6 +161,10 @@ Everything passed.
   另一条 goroutine 碰它就是数据竞争；`aiHear` 只置 `dirty`，由 `aiBar` 写。
 - **裁到 30 个会话时按路径排序取稳定子集**（与 xink 一致）：会话没有时间戳，
   "哪 30 个"不重要，"每次都是同一 30 个"才重要。
+- **自动保存改为"记下时间、由画帧去写"**，不再用 `time.AfterFunc` 直接写。
+  `Note` 与 `OpenNote` 都没有锁，定时器那条 goroutine 与主线程（Cmd+S）同时
+  写就是数据竞争——`-race` 已实测复现（`n.saving` 与 `Note.Text`）。写盘只
+  在主线程做，是这项目从一开始就立的规矩。
 
 ## 决策记录（实施中补写）
 

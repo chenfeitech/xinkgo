@@ -122,6 +122,10 @@ type Workspace struct {
 	// It is kept here, and not in the note: a note is what stands on
 	// the disk, and this is what was said about it.
 	ai map[string]*aiSession
+	// review is a revision of a note being looked over, one change at a
+	// time. There is one at a time, as there is one note being looked
+	// at.
+	review reviewState
 }
 
 // codeTheme is the colors code is painted in: one theme for the editor
@@ -159,6 +163,11 @@ func milliseconds(ms uint64) time.Duration {
 
 // View draws the window.
 func (w *Workspace) View(c *ui.Context) {
+	// What the user stopped typing is written now, and not by a timer of
+	// its own: only this thread may touch a note.
+	if err := w.Tabs.SaveDue(); err != nil {
+		w.Say("the note could not be saved")
+	}
 	ui.Column(c).Fill().Children(func() {
 		ui.Row(c).Fill().Children(func() {
 			// A panel of no width is one the user closed: it is drawn
@@ -256,9 +265,33 @@ func (w *Workspace) center(c *ui.Context) {
 	ui.Column(c).Grow(1).FillHeight().Children(func() {
 		w.tabBar(c)
 		w.toolbar(c)
-		w.editor(c)
+		w.centerBody(c)
 		w.aiBar(c)
 	})
+}
+
+// centerBody is what stands between the toolbar and the conversation: the
+// note itself, or the revision of it being looked over.
+func (w *Workspace) centerBody(c *ui.Context) {
+	if w.reviewStale() {
+		w.review.open = false
+	}
+	if w.review.open {
+		w.reviewPane(c)
+		return
+	}
+	w.editor(c)
+}
+
+// reviewStale is whether the revision on show is of another note than the
+// one being looked at. A diff of one note over the text of another is
+// worse than no diff at all, so it is put away.
+func (w *Workspace) reviewStale() bool {
+	if !w.review.open {
+		return false
+	}
+	n := w.Tabs.ActiveNote()
+	return n == nil || n.Path != w.review.path
 }
 
 // tabBar is one button per open note, and the way to close them.
