@@ -27,6 +27,11 @@ const (
 	MaxPanelWidth    float32 = 900
 	dividerGrip      float32 = 5
 	dividerThickness float32 = 1
+	// previewPad is how far the preview's text stands from the edges of
+	// its panel: the note is read from the top of it, and not from
+	// against the window's frame.
+	previewPadX float32 = 16
+	previewPadY float32 = 12
 	// layoutSettle is how long the panels stay as they were dragged
 	// before what the user chose is written down.
 	layoutSettle = 400 * time.Millisecond
@@ -317,7 +322,9 @@ func (w *Workspace) dragPanel(width *float32, v float32) {
 // sidebar is the file tree, and the way to open a vault when there is
 // none.
 func (w *Workspace) sidebar(c *ui.Context) {
-	ui.Column(c).Width(w.Layout.Left).Children(func() {
+	// A row centers what has no height of its own: the panel takes the
+	// window's height, so that the tree stands at the top of it.
+	ui.Column(c).Width(w.Layout.Left).FillHeight().Children(func() {
 		if w.Tree.Root == nil {
 			ui.Column(c).Fill().Center().Gap(8).Padding(16).Children(func() {
 				ui.Text(c, "No vault yet").
@@ -573,7 +580,9 @@ func (w *Workspace) editor(c *ui.Context) {
 
 // previewPanel is what the note looks like, on the right.
 func (w *Workspace) previewPanel(c *ui.Context) {
-	ui.Column(c).Width(w.Layout.Right).Children(func() {
+	// As the tree's panel: a note is read from its first line, and not
+	// from the middle of the window.
+	ui.Column(c).Width(w.Layout.Right).FillHeight().Children(func() {
 		n := w.Tabs.ActiveNote()
 		if n == nil {
 			return
@@ -581,7 +590,8 @@ func (w *Workspace) previewPanel(c *ui.Context) {
 		opts := w.markdownOptions(c, n.Path)
 		ui.Scroll(c).TrackScroll(&w.previewScroll).Fill().Children(func() {
 			width, _ := c.Size()
-			ui.Box(c).MaxWidth(w.previewWidth(width)).Children(func() {
+			ui.Box(c).MaxWidth(w.previewWidth(width)).
+				Padding(previewPadY, previewPadX).Children(func() {
 				markdown.View(c, w.previewText(n), opts)
 			})
 		})

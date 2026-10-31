@@ -3,6 +3,7 @@ package view
 import (
 	"testing"
 
+	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/config"
 	"github.com/helightxu/xinkgo/internal/state"
 )
@@ -101,5 +102,75 @@ func TestLayout_aPanelOfNoWidthIsOneThatWasShut(t *testing.T) {
 	shut := state.Layout{Version: state.LayoutVersion, Left: 0, Right: 0}
 	if shut.TreeShown() || shut.PreviewShown() {
 		t.Fatal("a panel of no width was said to stand")
+	}
+}
+
+// windowDrawn is the window with its two panels open and a note in them,
+// drawn in a window of the height given.
+func windowDrawn(t *testing.T, height int) (*Workspace, *ui.Tester) {
+	t.Helper()
+	_, a, _ := vaultWithNotes(t)
+	w := NewWorkspace(config.Default())
+	w.Tree.SetRoot(treeRoot())
+	n, err := w.Tabs.Open(a)
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	n.Editor.Buffer.Set("# head\n\nsome words\n")
+	w.SetTreeShown(true)
+	w.SetPreviewShown(true)
+	te := ui.NewTester(w.View, 1100, height)
+	te.Frame()
+	return w, te
+}
+
+// TestPanels_theTreeAndThePreviewStartAtTheTop checks where the two
+// panels put what they show: at the top of the window, and not in the
+// middle of it, which is where a row leaves a panel of no height.
+func TestPanels_theTreeAndThePreviewStartAtTheTop(t *testing.T) {
+	// What stands in the tree's head, and no more: a row is under it.
+	// The preview's first line is a padding below the top of the panel.
+	const underHead, underTop = 80, 24
+	for _, height := range []int{400, 900} {
+		_, te := windowDrawn(t, height)
+		for _, want := range []struct {
+			text string
+			top  float32
+		}{
+			{"a.md", underHead},       // the tree's first file
+			{"head", underTop},        // the preview's first line
+			{"some words", underHead}, // the line under it
+		} {
+			r, ok := te.Find(want.text)
+			if !ok {
+				t.Fatalf("%q is not drawn", want.text)
+			}
+			if r.Y > want.top {
+				t.Errorf("h=%d: %q is at y=%v, want it at the top",
+					height, want.text, r.Y)
+			}
+		}
+	}
+}
+
+// TestPanels_theSamePlaceInAWindowOfAnyHeight checks that making the
+// window taller does not move what the panels show downwards, as it
+// would were what they show put in the middle of it.
+func TestPanels_theSamePlaceInAWindowOfAnyHeight(t *testing.T) {
+	_, short := windowDrawn(t, 500)
+	_, tall := windowDrawn(t, 1000)
+	for _, text := range []string{"a.md", "head"} {
+		a, ok := short.Find(text)
+		if !ok {
+			t.Fatalf("%q is not drawn", text)
+		}
+		b, ok := tall.Find(text)
+		if !ok {
+			t.Fatalf("%q is not drawn", text)
+		}
+		if a.Y != b.Y {
+			t.Errorf("%q is at y=%v in a short window and %v in a tall one,"+
+				" want it in the same place in both", text, a.Y, b.Y)
+		}
 	}
 }
