@@ -7,15 +7,16 @@ import (
 	xmd "github.com/helightxu/xinkgo/internal/markdown"
 )
 
-// How wide the drawer is, how deep it may grow, and how far a heading
-// stands in for each level of it.
+// How wide the drawer is, where it hangs, and how far a heading stands
+// in for each level of it. Its height is not one of them: it is as tall
+// as the panels it stands over.
 const (
-	drawerWidth  float32 = 300
-	drawerHeight float32 = 420
-	drawerTop    float32 = 72
-	railWidth    float32 = 34
-	railGap      float32 = 6
-	indentStep   float32 = 12
+	drawerWidth float32 = 300
+	drawerTop   float32 = 72
+	drawerFoot  float32 = 6
+	railWidth   float32 = 34
+	railGap     float32 = 6
+	indentStep  float32 = 12
 )
 
 // Drawers are the panels the buttons on the rail open: the outline of
@@ -27,7 +28,7 @@ const (
 )
 
 // rail is the strip of buttons down the right of the window, and the
-// drawer they open beside them. It floats over the window rather than
+// drawer they open beside them. It floats over the panels rather than
 // taking a place in the layout: a panel that is open for a moment
 // should not move the note the user is reading.
 func (w *Workspace) rail(c *ui.Context) {
@@ -36,17 +37,18 @@ func (w *Workspace) rail(c *ui.Context) {
 	}
 	// The rail belongs to the window, and not to the note: it stands at
 	// the window right edge, over whatever panel is there, and so keeps
-	// its place when the panels are dragged wider or shut.
-	ui.Overlay(c, func() {
-		ui.Row(c).Absolute().Right(railGap).Top(drawerTop).Children(func() {
-			if w.drawer != "" {
-				w.drawerPanel(c)
-			}
-			ui.Column(c).Width(railWidth).Children(func() {
-				w.railButton(c, drawerOutline, "◫", "大纲")
-				w.railButton(c, drawerLinks, "⇄", "反向链接")
-				w.railButton(c, drawerTags, "＃", "标签")
-			})
+	// its place when the panels are dragged wider or shut. Its buttons
+	// keep to the top of it: a drawer as tall as the window is must not
+	// push them down the note.
+	ui.Row(c).Absolute().Right(railGap).Top(drawerTop).Bottom(drawerFoot).
+		AlignItems(ui.Start).Children(func() {
+		if w.drawer != "" {
+			w.drawerPanel(c)
+		}
+		ui.Column(c).Width(railWidth).Children(func() {
+			w.railButton(c, drawerOutline, "◫", "大纲")
+			w.railButton(c, drawerLinks, "⇄", "反向链接")
+			w.railButton(c, drawerTags, "＃", "标签")
 		})
 	})
 }
@@ -72,22 +74,28 @@ func (w *Workspace) railButton(
 }
 
 // drawerPanel is what the open drawer holds: a panel of the theme's own
-// look, so that what it says is read over the note and not mixed into
-// the note it is over.
+// look, as tall as the panels it stands over, so that what it says is
+// read over the note and not mixed into the note it is over. What it
+// says is read from its first line down, and scrolled when it says more
+// than there is room for, as the note beside it is.
 func (w *Workspace) drawerPanel(c *ui.Context) {
 	th := c.Theme()
-	ui.Column(c).Width(drawerWidth).ClipY().MaxHeight(
-		drawerHeight).Padding(th.Space(2)).Background(th.Background).
+	ui.Column(c).Width(drawerWidth).FillHeight().ClipY().
+		Padding(th.Space(2)).Background(th.Background).
 		Border(1, th.Border).Radius(th.Radius+2).
 		Shadow(0, 6, 20, 0, ui.RGBA(0, 0, 0, 0.18)).Children(func() {
-		switch w.drawer {
-		case drawerOutline:
-			w.outline(c)
-		case drawerLinks:
-			w.backlinks(c)
-		case drawerTags:
-			w.tags(c)
-		}
+		ui.Scroll(c).Fill().Children(func() {
+			ui.Column(c).FillWidth().Children(func() {
+				switch w.drawer {
+				case drawerOutline:
+					w.outline(c)
+				case drawerLinks:
+					w.backlinks(c)
+				case drawerTags:
+					w.tags(c)
+				}
+			})
+		})
 	})
 }
 

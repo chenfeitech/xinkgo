@@ -8,11 +8,13 @@ import (
 )
 
 // railOf is where the rail's buttons stand in a window of the width given,
-// with the preview as wide as the preview says.
-func railOf(t *testing.T, width, preview float32) ui.Rect {
+// with the preview as wide as the preview says, and the drawer named open,
+// or none of them when it is named "".
+func railOf(t *testing.T, width, preview float32, drawer string) ui.Rect {
 	t.Helper()
 	w, _ := workspaceShown(t)
 	w.Layout.Right = preview
+	w.drawer = drawer
 	tt := ui.NewTester(w.View, int(width), 600)
 	r, ok := tt.Find("大纲")
 	if !ok {
@@ -26,7 +28,7 @@ func railOf(t *testing.T, width, preview float32) ui.Rect {
 // which is where the preview begins.
 func TestRailView_theRailStandsAtTheWindowEdge(t *testing.T) {
 	const width, preview = float32(1000), float32(320)
-	r := railOf(t, width, preview)
+	r := railOf(t, width, preview, "")
 	// The buttons are the window's, so they stand at its edge however
 	// wide the panels are: 320 in from it is where the note ends.
 	if end := r.X + r.W; end < width-40 || end > width {
@@ -40,8 +42,8 @@ func TestRailView_theRailStandsAtTheWindowEdge(t *testing.T) {
 // the note's to move.
 func TestRailView_theRailStaysPutWhenThePreviewIsShut(t *testing.T) {
 	const width = float32(1000)
-	open := railOf(t, width, 320)
-	shut := railOf(t, width, 0)
+	open := railOf(t, width, 320, "")
+	shut := railOf(t, width, 0, "")
 	if open.X != shut.X {
 		t.Fatalf("the rail moved from %v to %v when the preview was shut",
 			shut.X, open.X)
@@ -97,5 +99,88 @@ func TestDrawerPanel_theDrawerStandsOnItsOwnFace(t *testing.T) {
 	if over := drawerStrip(t, true); over != 0 {
 		t.Errorf("%d of the drawer's pixels are the note behind it, "+
 			"want none of them", over)
+	}
+}
+
+// TestRailView_theButtonsKeepToTheTop checks that a drawer as tall as the
+// window does not take the buttons down with it: they hang from the top
+// of the rail, and stand there whether a drawer is open or not.
+func TestRailView_theButtonsKeepToTheTop(t *testing.T) {
+	const width, preview = float32(1000), float32(320)
+	shut := railOf(t, width, preview, "")
+	open := railOf(t, width, preview, drawerOutline)
+	if shut.Y != open.Y {
+		t.Errorf("the buttons stand at %v with the drawer shut and %v "+
+			"with it open, want them not to move", shut.Y, open.Y)
+	}
+	if shut.Y != drawerTop {
+		t.Errorf("the buttons stand at %v, want them at the top of the "+
+			"rail, %v", shut.Y, drawerTop)
+	}
+}
+
+// drawerEdge is the top and the bottom line of the window that the
+// drawer's own edge is drawn over, in a window of the height given: the
+// note beside it says nothing, so that nothing but the drawer paints
+// there.
+func drawerEdge(t *testing.T, height int) (top, bottom int) {
+	t.Helper()
+	const width = 1000
+	w, _ := workspaceShown(t)
+	w.Layout.Right = 320
+	w.Tabs.ActiveNote().Editor.Buffer.Set("")
+	w.drawer = drawerOutline
+	tt := ui.NewTester(w.View, width, height)
+	tt.Frame()
+	tt.Frame()
+	img := tt.Image()
+	border := ui.LightTheme().Border
+	// The drawer stands its own width and the rail's in from the right
+	// edge, as the rail stands railGap in from it.
+	x := width - int(railWidth) - int(drawerWidth) - int(railGap)
+	top, bottom = -1, -1
+	for y := 0; y < height; y++ {
+		r, g, b, _ := img.At(x, y).RGBA()
+		if near(int(r>>8), int(border.R)) && near(int(g>>8), int(border.G)) &&
+			near(int(b>>8), int(border.B)) {
+			if top < 0 {
+				top = y
+			}
+			bottom = y
+		}
+	}
+	if top < 0 {
+		t.Fatalf("no drawer was drawn in the window")
+	}
+	return top, bottom
+}
+
+// near is whether a channel of the pixel read is the channel of the
+// color, as near as a line drawn over the window's own face is.
+func near(pixel, color int) bool {
+	d := pixel - color
+	return d < 12 && d > -12
+}
+
+// TestDrawerPanel_theDrawerIsAsTallAsThePanels checks what the drawer
+// was opened for: it is not a card of a height of its own, but a panel
+// as tall as the note and the preview it stands over, and it grows and
+// shrinks with the window.
+func TestDrawerPanel_theDrawerIsAsTallAsThePanels(t *testing.T) {
+	short, shortFoot := drawerEdge(t, 600)
+	tall, tallFoot := drawerEdge(t, 900)
+	if short < int(drawerTop) || short > int(drawerTop)+12 {
+		t.Errorf("the drawer starts at %d, want it at the top of the "+
+			"rail, %v", short, drawerTop)
+	}
+	if tall != short {
+		t.Errorf("the drawer starts at %d in a tall window and %d in a "+
+			"short one, want it to start at the same place", tall, short)
+	}
+	// A window 300 deeper gives the drawer 300 more: a drawer of a
+	// height of its own would give it none.
+	if grew := tallFoot - shortFoot; grew < 250 {
+		t.Errorf("the drawer ends %d lower in a window 300 deeper, want "+
+			"it to end about 300 lower", grew)
 	}
 }

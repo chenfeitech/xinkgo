@@ -220,13 +220,17 @@ func (w *Workspace) View(c *ui.Context) {
 				w.divider(c, "divider-preview", &w.Layout.Right, -1)
 				w.previewPanel(c)
 			}
+			// The rail and its drawer hang over the panels, within the
+			// row that holds them: the bottom of the row is where they
+			// end, whatever the window's height is and whatever the
+			// line at the bottom of it says.
+			w.rail(c)
 		})
 		w.followScroll(c)
 		w.statusBar(c)
 	})
 	w.palette(c)
 	w.searchPanel(c)
-	w.rail(c)
 }
 
 // TreeShown is whether the file tree stands: a panel of no width is one
