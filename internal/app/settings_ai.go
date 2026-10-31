@@ -43,7 +43,56 @@ func (s *appState) ai(c *ui.Context) {
 		}
 		s.aiServer(c)
 		s.aiModels(c)
+		s.aiSkills(c)
 	})
+}
+
+// aiSkills is the skills found in the vault and in the application's own
+// folder: each may be turned off, and one that was found but cannot be
+// used is said so rather than left out.
+func (s *appState) aiSkills(c *ui.Context) {
+	ui.Column(c).Gap(4).Children(func() {
+		ui.Text(c, "Skills").Bold()
+		if len(s.skills) == 0 && len(s.skillIssues) == 0 {
+			ui.Text(c, "No skills yet：write one at <vault>/.xink/"+
+				"skills/<name>/SKILL.md").TextColor(
+				c.Theme().TextMuted).FontSize(11)
+		}
+		for _, one := range s.skills {
+			one := one
+			off := holds(s.draft.cfg.Ai.DisabledSkills, one.Name)
+			use := !off
+			ui.Row(c).Children(func() {
+				ui.Checkbox(c, &use, one.Name).Label(one.Description)
+				ui.Text(c, one.From.Label()).TextColor(
+					c.Theme().TextMuted).FontSize(11)
+			})
+			if use == off {
+				// It was turned, one way or the other.
+				s.draft.cfg.Ai.DisabledSkills =
+					without(s.draft.cfg.Ai.DisabledSkills, one.Name)
+				if !use {
+					s.draft.cfg.Ai.DisabledSkills = append(
+						s.draft.cfg.Ai.DisabledSkills, one.Name)
+				}
+			}
+		}
+		for _, issue := range s.skillIssues {
+			ui.Text(c, issue.Path+"："+issue.Reason).TextColor(
+				c.Theme().Danger).FontSize(11)
+		}
+	})
+}
+
+// without is the list with that name taken out of it.
+func without(list []string, name string) []string {
+	kept := make([]string, 0, len(list))
+	for _, one := range list {
+		if one != name {
+			kept = append(kept, one)
+		}
+	}
+	return kept
 }
 
 // aiServer is where a local Ollama is, and which model is asked when

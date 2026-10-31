@@ -15,6 +15,7 @@ import (
 	"github.com/helightxu/xinkgo/internal/highlight"
 	"github.com/helightxu/xinkgo/internal/index"
 	xmd "github.com/helightxu/xinkgo/internal/markdown"
+	"github.com/helightxu/xinkgo/internal/skill"
 	"github.com/helightxu/xinkgo/internal/state"
 	"github.com/helightxu/xinkgo/internal/sync"
 )
@@ -45,6 +46,10 @@ type Workspace struct {
 	// Index is what is known of the whole vault: who points at whom,
 	// and what is tagged how. The palette and the panels ask it.
 	Index *index.Index
+	// Skills are the skills a model may be told to use, found in the
+	// vault and in the application's own folder. Those turned off are
+	// not here at all: the app is the one that says which they are.
+	Skills []skill.Skill
 
 	// OnOpenVault opens the dialog that chooses a folder, when there is
 	// no vault yet.

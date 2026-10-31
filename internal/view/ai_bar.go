@@ -10,6 +10,7 @@ import (
 	"github.com/egoist/mygo/ui/markdown"
 	"github.com/helightxu/xinkgo/internal/ai"
 	"github.com/helightxu/xinkgo/internal/config"
+	"github.com/helightxu/xinkgo/internal/skill"
 	"github.com/helightxu/xinkgo/internal/state"
 )
 
@@ -55,6 +56,11 @@ type aiSession struct {
 	// dirty is whether what was said has changed since it was last
 	// written down.
 	dirty bool
+	// Skill is the skill the model is being told to use, when one has
+	// been taken up. It is told with every question until it is put
+	// down, and it is not written down: it is a thing of the moment,
+	// and the skill itself is on the disk.
+	Skill *skill.Skill
 }
 
 // blocks is what has been said, as it stands now.
@@ -127,6 +133,14 @@ func (w *Workspace) aiBar(c *ui.Context) {
 func (w *Workspace) aiHead(c *ui.Context, s *aiSession) {
 	ui.Row(c).Gap(8).Children(func() {
 		ui.Text(c, "AI").Bold()
+		if s.Skill != nil {
+			ui.Text(c, "using "+s.Skill.Name).FontSize(11).
+				TextColor(c.Theme().TextMuted)
+			if ui.Button(c.Key("ai-skill-away"), "Put it down").
+				Label("Stop using this skill").Clicked() {
+				s.Skill = nil
+			}
+		}
 		if s.isBusy() {
 			ui.Text(c, "answering…").FontSize(12).
 				TextColor(c.Theme().TextMuted)
@@ -412,6 +426,17 @@ func (w *Workspace) aiTold(s *aiSession, n *OpenNote) []ai.Message {
 	out := []ai.Message{{
 		Role: ai.System, Content: w.aiBrief(n),
 	}}
+	// What a model is told of the skills there are; and, when one has
+	// been taken up, what that one says, whole.
+	if s.Skill != nil {
+		out = append(out, ai.Message{
+			Role: ai.System,
+			Content: "Using the skill " + s.Skill.Name + ":\n\n" +
+				s.Skill.Body,
+		})
+	} else if catalog := skill.Catalog(w.Skills); catalog != "" {
+		out = append(out, ai.Message{Role: ai.System, Content: catalog})
+	}
 	for _, b := range s.blocks() {
 		// What went wrong is not a thing that was said, and is not
 		// sent back.

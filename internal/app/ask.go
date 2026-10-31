@@ -6,6 +6,7 @@ import (
 
 	"github.com/helightxu/xinkgo/internal/ai"
 	"github.com/helightxu/xinkgo/internal/config"
+	"github.com/helightxu/xinkgo/internal/skill"
 	"github.com/helightxu/xinkgo/internal/state"
 )
 
@@ -41,6 +42,26 @@ func (s *appState) ask(
 		return nil, err
 	}
 	return ai.Events(endpoint, pieces), nil
+}
+
+// discoverSkills looks for skills in the vault and in the application's
+// own folder, and gives the window the ones that may be used.
+func (s *appState) discoverSkills() {
+	s.skills, s.skillIssues = skill.Discover(s.root, skill.UserDir(s.dir))
+	s.publishSkills()
+}
+
+// publishSkills is what the window is given: the skills that have not
+// been turned off, and none at all when skills are turned off whole.
+func (s *appState) publishSkills() {
+	if s.ws == nil {
+		return
+	}
+	if !s.config.Ai.SkillsEnabled {
+		s.ws.Skills = nil
+		return
+	}
+	s.ws.Skills = skill.Enabled(s.skills, s.config.Ai.DisabledSkills)
 }
 
 // aiLoad is what was said about a note before, read back when the bar is

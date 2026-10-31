@@ -23,6 +23,7 @@ import (
 	"github.com/helightxu/xinkgo/internal/logging"
 	"github.com/helightxu/xinkgo/internal/media"
 	"github.com/helightxu/xinkgo/internal/session"
+	"github.com/helightxu/xinkgo/internal/skill"
 	"github.com/helightxu/xinkgo/internal/state"
 	"github.com/helightxu/xinkgo/internal/sysinfo"
 	"github.com/helightxu/xinkgo/internal/vault"
@@ -81,6 +82,11 @@ type appState struct {
 	// note. It is read the first time it is asked for, and written when
 	// a conversation changes.
 	aiTalks state.AiSessions
+	// skills are the skills a model may be told to use, and skillIssues
+	// the ones found but that cannot be used. Both are read off the
+	// disk, and are never written down.
+	skills      []skill.Skill
+	skillIssues []skill.Issue
 }
 
 // Run starts the application and does not return until it quits.
@@ -265,6 +271,9 @@ func (s *appState) openVault(path string) error {
 	s.ws.Tree.SetRoot(root)
 	s.rememberVault(path)
 	s.rebuildIndex(root)
+	// The skills of a vault are the vault's own: another vault, other
+	// skills.
+	s.discoverSkills()
 	slog.Info("vault open", "path", path)
 	return nil
 }
@@ -358,6 +367,8 @@ func (s *appState) applyConfig() {
 	s.ws.Tabs.AutoSaveDelay = time.Duration(
 		s.config.Editor.AutoSaveDelayMs) * time.Millisecond
 	s.ws.Tree.FontSize = s.config.Basic.TreeFont.Size
+	// Which skills may be used is a choice as well.
+	s.publishSkills()
 	// Which files the tree shows is a choice too: one that changed is
 	// read again.
 	if s.shownAll != s.config.Basic.ShowAllFiles {

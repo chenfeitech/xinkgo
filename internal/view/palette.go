@@ -6,12 +6,19 @@ import (
 
 	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/fuzzy"
+	"github.com/helightxu/xinkgo/internal/skill"
 )
 
 // How many notes the palette shows, and how wide it is.
 const (
 	paletteLimit = 50
 	paletteWidth = 560
+	// skillPrefix is what a skill is called in the palette, so that a
+	// skill is not taken for a note.
+	skillPrefix = "Skill · "
+	// skillPaletteLimit is how many skills the palette shows: there
+	// are not many of them, and the notes are what it is for.
+	skillPaletteLimit = 10
 )
 
 // OpenPalette is the palette opened: what was typed last time is
@@ -55,7 +62,7 @@ func (w *Workspace) palette(c *ui.Context) {
 			}
 			items := w.paletteItems()
 			if len(items) == 0 {
-				ui.Text(c, "no note of that name").TextColor(
+				ui.Text(c, "nothing of that name").TextColor(
 					c.Theme().TextMuted)
 				return
 			}
@@ -110,7 +117,25 @@ func (w *Workspace) choose(i int) {
 		return
 	}
 	w.paletteOpen = false
+	if items[i].Skill != nil {
+		w.useSkill(*items[i].Skill)
+		return
+	}
 	w.openNote(items[i].Path)
+}
+
+// useSkill is a skill taken up for the note being looked at: what it
+// says is told to the model with the next question, and stays told until
+// it is put down.
+func (w *Workspace) useSkill(s skill.Skill) {
+	n := w.Tabs.ActiveNote()
+	if n == nil {
+		return
+	}
+	session := w.aiOf(n.Path)
+	session.Open = true
+	session.Skill = &s
+	w.status = "using " + s.Name
 }
 
 // openNote is the one way a note is opened from the window: its tab, and
@@ -130,11 +155,59 @@ type paletteItem struct {
 	Name      string
 	Title     string
 	Positions []int
+	// Skill is the skill this answer is, when it is not a note.
+	Skill *skill.Skill
 }
 
-// paletteItems is what the palette asks of the index: every note of the
-// vault, written as it stands from the root, and the best answers first.
+// paletteItems is what the palette answers with: the notes of the vault,
+// and with them the skills a model may be told to use.
 func (w *Workspace) paletteItems() []paletteItem {
+	items := w.noteItems()
+	return append(items, w.skillItems()...)
+}
+
+// skillItems is the skills, found by their names, each shown as what it
+// is for.
+func (w *Workspace) skillItems() []paletteItem {
+	if len(w.Skills) == 0 {
+		return nil
+	}
+	names := make([]string, 0, len(w.Skills))
+	for _, one := range w.Skills {
+		names = append(names, one.Name)
+	}
+	found := fuzzy.Search(names, w.paletteQuery, skillPaletteLimit)
+	items := make([]paletteItem, 0, len(found))
+	for _, r := range found {
+		one := skill.Find(w.Skills, r.Text)
+		if one == nil {
+			continue
+		}
+		items = append(items, paletteItem{
+			// The prefix is part of what is shown, so the letters
+			// that were typed are lit up where they stand.
+			Name:      skillPrefix + r.Text,
+			Title:     one.Description,
+			Positions: shifted(r.Positions, len(skillPrefix)),
+			Skill:     one,
+		})
+	}
+	return items
+}
+
+// shifted is the same places, count further along: the name a skill was
+// found by is shown after a prefix.
+func shifted(positions []int, count int) []int {
+	out := make([]int, 0, len(positions))
+	for _, at := range positions {
+		out = append(out, at+count)
+	}
+	return out
+}
+
+// noteItems is what the palette asks of the index: every note of the
+// vault, written as it stands from the root, and the best answers first.
+func (w *Workspace) noteItems() []paletteItem {
 	if w.Index == nil {
 		return nil
 	}

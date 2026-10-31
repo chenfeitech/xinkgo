@@ -75,6 +75,9 @@
 | D9 | AI 修订评审 | 对话里让模型重写笔记，答完后点回答下方的 Look it over | 编辑区换成 diff 视图（原文 vs 模型稿）；悬停改动处有 Take/Revert；Take all / Send all back / Write it in / Away 四个按钮可用；Write it in 后回到编辑区且内容是剩下的那份 |
 | D10 | 自动保存改动后仍稳 | 打字后立刻按 Cmd+S（与自动保存撞在一起） | 不崩、不写半截；`-race` 下不再报竞争 |
 | D11 | 模型设置 | 设置 ▸ Settings ▸ AI：勾「Ask a model at all」，Add a model，Open 填 Address / Name / Speaks | 列表可增删；能力勾选后即"手动指定"（猜测不再覆盖）；点 Try it 出一行「It answers（xx ms），and it calls tools / but it calls no tools」；连不上时给一句能行动的话 |
+| D12 | Skills | 在库里建 `.xink/skills/demo/SKILL.md`（`---` + `name:` + `description:` + `---` + 正文），再打开设置 | 设置 ▸ AI ▸ Skills 列出 demo（标「库内」），可勾选停用；库外 `~/Library/Application Support/Xinkgo/skills/<name>/` 的标「用户级」；同名时**库内优先** |
+| D13 | Skills 入口 | Cmd+P 打 skill 名字 | 出现 `Skill · demo — <description>`；回车后对话条打开并显示 using demo，下一次提问会把 skill 正文一起发给模型；点 Put it down 后不再带 |
+| D14 | Skills 坏文件 | 写一个缺 `description` 的 SKILL.md | 设置里列出路径 + 原因（「缺少 description」等），**不**静默消失 |
 
 ## 已自动化、不必人验的
 
