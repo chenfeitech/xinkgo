@@ -121,7 +121,8 @@ Everything passed.
 
 | ID | 状态 | 说明 |
 |---|---|---|
-| T-33 | ✅ | `internal/ai`：Provider 抽象 + 分帧 + 重试与备用模型（提交见下） |
+| T-33 | ✅ | `internal/ai`：Provider 抽象 + 分帧 + 重试与备用模型 |
+| T-34 | ✅ | `internal/ai`：流式事件解析（Delta/Thinking/ToolCall/Usage/Truncated/Done/Failed） |
 
 最后一次 `scripts/check.sh`：
 
@@ -144,6 +145,11 @@ Everything passed.
 - **超时用 `http.Client{Timeout}` 而不是 `context.WithTimeout`**：前者把读
   body 的时间也算进去，正好是"整个回答"的超时；首字节超时另用一层
   `RoundTripper`，两者互不干扰。
+- **事件用 `Kind` 标签的结构体，不用接口**：Rust 的 `StreamEvent` 枚举到 Go
+  没有对等物；七个 kind 共用一个 `Event`，字段由 `Kind` 说明哪个有效，
+  比七种实现同一接口的类型好写也好读。
+- **`Truncated`（预算耗尽）与 `ErrTruncated`（连接中断）分开**，前者在
+  `Done` 之前发出且不是错误——重试一遍只是再烧一次 token。
 
 ## 决策记录（实施中补写）
 

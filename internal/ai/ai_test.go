@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -52,6 +53,16 @@ func errOf(pieces []Piece) error {
 		}
 	}
 	return nil
+}
+
+// quietServer is a server that keeps what it thinks to itself: one of the
+// tests breaks an answer off on purpose, and the stack it prints is not
+// part of what is being tested.
+func quietServer(handler http.HandlerFunc) *httptest.Server {
+	server := httptest.NewUnstartedServer(handler)
+	server.Config.ErrorLog = log.New(io.Discard, "", 0)
+	server.Start()
+	return server
 }
 
 // endpoint is an endpoint that asks the server at url.
@@ -292,7 +303,7 @@ func TestAsk_theFallbackIsAskedWhenTheFirstCannotAnswer(t *testing.T) {
 
 func TestAsk_anAnswerBrokenOffIsNotAskedTwice(t *testing.T) {
 	var tried int32
-	server := httptest.NewServer(http.HandlerFunc(
+	server := quietServer(http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			atomic.AddInt32(&tried, 1)
 			_, _ = io.WriteString(w, `{"message":{"content":"hel"}}`+"\n")

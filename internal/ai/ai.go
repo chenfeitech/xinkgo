@@ -17,7 +17,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -259,8 +258,7 @@ func (e Endpoint) post(
 	if response.StatusCode >= 400 {
 		message := readUpTo(response.Body, 512)
 		response.Body.Close()
-		return nil, fmt.Errorf("the model answered %d: %s",
-			response.StatusCode, message)
+		return nil, Status{Code: response.StatusCode, Body: message}
 	}
 	return response, nil
 }
@@ -321,7 +319,7 @@ func (t firstByteWithin) RoundTrip(r *http.Request) (*http.Response, error) {
 	case out := <-done:
 		return out.res, out.err
 	case <-time.After(t.first):
-		return nil, errors.New("the model said nothing")
+		return nil, ErrSilent
 	}
 }
 
