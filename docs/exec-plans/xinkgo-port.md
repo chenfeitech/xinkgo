@@ -127,6 +127,7 @@ Everything passed.
 | T-36 | ✅ | 会话持久化（`internal/state/ai_sessions.go`，30 会话 / 200 块裁剪） |
 | T-37 | ✅ | AI 修订评审：`editor.DiffView` 逐块 Take/Revert + 整篇写入 |
 | T-42 | ✅ | `.xink` 恒跳过：随 T-7 一起做完（`vault.Scan` 的 `ignored` 用 `media.AIDirName`，树/索引/命令面板都不出现），`vault_test.go` 有断言 |
+| T-40a | ✅ | 库级批量任务领域层 `internal/task`：改/加/删标签的纯文本改写（整 token 才命中、代码块与 front-matter 分别处理、跳过必带原因）+ `Plan`（只读）+ `Run`（分批、可续跑、失败不重跑）。**尚未接线**：设置里发起任务的面板是 T-40b |
 | T-38 | ✅ | 只读工具集 `internal/ai/tool.go`（7 个工具 + schema + `Execute`）→ `agent.go` 的 `ai.Loop`（要工具→执行→回灌→再问，走满步数报 `ErrSteps`）→ `app/host.go` 的 `ai.Host` 实现（工具只能读**库内**，路径越界一律拒绝）→ 对话条显示 `tool → 结果` 小字 |
 | T-39 | ✅ | Skills：`internal/skill` 发现与解析（库内 `.xink/skills` + 用户级、同名库内优先、坏文件进 issues）、命令面板入口、AI 条里「using X」可放下、设置里启停 |
 | T-41 | ✅ | 能力清单：领域层 `internal/ai/capability.go`（字典 + 推断 + 生效优先级）+ `probe.go`（`ai.Try` 探针）；设置窗口 `internal/app/settings_ai.go`（模型增删、地址/密钥/协议、能力勾选即 pin、Try it 把实测 `tools_enabled` 写回） |
@@ -165,6 +166,8 @@ Everything passed.
   另一条 goroutine 碰它就是数据竞争；`aiHear` 只置 `dirty`，由 `aiBar` 写。
 - **裁到 30 个会话时按路径排序取稳定子集**（与 xink 一致）：会话没有时间戳，
   "哪 30 个"不重要，"每次都是同一 30 个"才重要。
+- **批量标签动作不经模型**：规则可判定（整 token 命中），所以是纯函数 + 一次读盘，
+  能单测；`Plan` 只读盘算预览，`Run` 才写，且**执行时重新读盘**（计划可能已经过期）。
 - **工具一律只读，且只能读库内**：`vaultHost.within()` 把路径钉在 vault root 下，
   `../` 与库外绝对路径一律拒绝。模型是**不可信输入源**，它给的 path 不能直接喂给
   `os.ReadFile`；skill 资源同理（`skill.Resource` 钉在技能目录内）。
