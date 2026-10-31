@@ -62,6 +62,12 @@ type Workspace struct {
 	OnAsk func(
 		ctx context.Context, messages []ai.Message,
 	) (<-chan ai.Event, error)
+	// OnAiLoad is asked for what was said about a note, the first time
+	// the bar is opened for it.
+	OnAiLoad func(path string) []state.AiBlock
+	// OnAiSave is told what has been said about a note, so that it can
+	// be kept between two runs.
+	OnAiSave func(path string, blocks []state.AiBlock)
 
 	status      string
 	layoutTimer *time.Timer

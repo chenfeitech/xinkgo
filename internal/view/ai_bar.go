@@ -9,6 +9,7 @@ import (
 	"github.com/egoist/mygo/ui/markdown"
 	"github.com/helightxu/xinkgo/internal/ai"
 	"github.com/helightxu/xinkgo/internal/config"
+	"github.com/helightxu/xinkgo/internal/state"
 )
 
 // How much room the conversation takes at the bottom of the note: the
@@ -50,6 +51,9 @@ type aiSession struct {
 	Blocks []aiBlock
 	busy   bool
 	cancel context.CancelFunc
+	// dirty is whether what was said has changed since it was last
+	// written down.
+	dirty bool
 }
 
 // blocks is what has been said, as it stands now.
@@ -80,7 +84,8 @@ func (w *Workspace) ToggleAI() {
 	}
 }
 
-// aiOf is the note's conversation, made the first time it is asked for.
+// aiOf is the note's conversation, made the first time it is asked for:
+// what was said about it before is read back then, and not every frame.
 func (w *Workspace) aiOf(path string) *aiSession {
 	if w.ai == nil {
 		w.ai = map[string]*aiSession{}
@@ -88,7 +93,11 @@ func (w *Workspace) aiOf(path string) *aiSession {
 	if _, ok := w.ai[path]; !ok {
 		// Whether the bar is open is kept as the user left it: a note
 		// they were asking about is one they ask about again.
-		w.ai[path] = &aiSession{}
+		s := &aiSession{}
+		if w.OnAiLoad != nil {
+			s.Blocks = w.aiRestored(w.OnAiLoad(path))
+		}
+		w.ai[path] = s
 	}
 	return w.ai[path]
 }
@@ -109,6 +118,7 @@ func (w *Workspace) aiBar(c *ui.Context) {
 		w.aiTalk(c, s, n)
 		w.aiCompose(c, s, n)
 	})
+	w.aiSave(n.Path, s)
 }
 
 // aiHead is the bar's own line: what it is, and the way to forget or to
@@ -225,6 +235,7 @@ func (w *Workspace) aiAsk(n *OpenNote, s *aiSession) {
 	)
 	at := len(s.Blocks) - 1
 	s.busy = true
+	s.dirty = true
 	s.mu.Unlock()
 
 	if w.OnAsk == nil {
@@ -279,6 +290,7 @@ func (w *Workspace) aiHear(
 	}
 	s.busy = false
 	s.cancel = nil
+	s.dirty = true
 	s.mu.Unlock()
 }
 
@@ -292,6 +304,7 @@ func (w *Workspace) aiDone(s *aiSession, at int, err error) {
 	}
 	s.busy = false
 	s.cancel = nil
+	s.dirty = true
 }
 
 // aiStop is the answer stopped: the model is let go, and what it had said
@@ -312,8 +325,73 @@ func (w *Workspace) aiForget(s *aiSession) {
 	s.Blocks = nil
 	s.busy = false
 	s.cancel = nil
+	// Nothing left to keep is the same as never having kept it: the
+	// note's conversation is taken out of the book.
+	s.dirty = true
 	s.mu.Unlock()
 	s.Input = ""
+}
+
+// aiSave is the conversation written down, when it has changed since it
+// last was.
+//
+// It is the frame that writes, and not the goroutine that hears the
+// answer: the book the conversation goes into is the app's own, and is
+// not to be touched from another goroutine.
+func (w *Workspace) aiSave(path string, s *aiSession) {
+	if w.OnAiSave == nil {
+		return
+	}
+	s.mu.Lock()
+	if !s.dirty {
+		s.mu.Unlock()
+		return
+	}
+	s.dirty = false
+	blocks := append([]aiBlock{}, s.Blocks...)
+	s.mu.Unlock()
+	w.OnAiSave(path, w.aiStored(blocks))
+}
+
+// aiStored is what is kept of a conversation: what was said, and none of
+// what is still being said, or of what went wrong instead of it.
+func (w *Workspace) aiStored(blocks []aiBlock) []state.AiBlock {
+	out := make([]state.AiBlock, 0, len(blocks))
+	for _, b := range blocks {
+		if b.Text == "" || b.Failed != "" {
+			continue
+		}
+		if b.Role != ai.User && b.Role != ai.Assistant {
+			continue
+		}
+		out = append(out, state.AiBlock{
+			Role:     string(b.Role),
+			Text:     b.Text,
+			Thinking: b.Thinking,
+			Cut:      b.Cut,
+		})
+	}
+	return out
+}
+
+// aiRestored is a conversation read back: everything in it was said, and
+// is over.
+func (w *Workspace) aiRestored(blocks []state.AiBlock) []aiBlock {
+	out := make([]aiBlock, 0, len(blocks))
+	for _, b := range blocks {
+		role := ai.Role(b.Role)
+		if role != ai.User && role != ai.Assistant {
+			continue
+		}
+		out = append(out, aiBlock{
+			Role:     role,
+			Text:     b.Text,
+			Thinking: b.Thinking,
+			Cut:      b.Cut,
+			Over:     true,
+		})
+	}
+	return out
 }
 
 // aiTold is what the model is told: what the note is, and all that has

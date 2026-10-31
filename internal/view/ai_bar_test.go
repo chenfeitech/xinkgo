@@ -10,6 +10,7 @@ import (
 
 	"github.com/helightxu/xinkgo/internal/ai"
 	"github.com/helightxu/xinkgo/internal/config"
+	"github.com/helightxu/xinkgo/internal/state"
 )
 
 // workspaceWith is a window with one note open in it, whose conversation
@@ -314,6 +315,98 @@ func TestAiForget_theConversationBeginsAgain(t *testing.T) {
 	}
 	if s.Input != "" {
 		t.Fatalf("input = %q, want it cleared", s.Input)
+	}
+}
+
+// TestAiOf_whatWasSaidComesBackWithTheNote checks that a conversation
+// kept from a run before is there when the note is opened again, and that
+// it is read once and not every frame.
+func TestAiOf_whatWasSaidComesBackWithTheNote(t *testing.T) {
+	_, a, _ := vaultWithNotes(t)
+	w := NewWorkspace(config.Default())
+	if _, err := w.Tabs.Open(a); err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	read := 0
+	w.OnAiLoad = func(string) []state.AiBlock {
+		read++
+		return []state.AiBlock{
+			{Role: "user", Text: "asked before"},
+			{Role: "assistant", Text: "answered before",
+				Thinking: "hmm"},
+		}
+	}
+	s := w.aiOf(a)
+	_ = w.aiOf(a)
+	if read != 1 {
+		t.Fatalf("the conversation was read %d times, want once", read)
+	}
+	blocks := s.blocks()
+	if len(blocks) != 2 {
+		t.Fatalf("blocks = %v, want what was said", blocks)
+	}
+	if blocks[0].Text != "asked before" || !blocks[0].Over {
+		t.Fatalf("block = %+v, want what was asked, over", blocks[0])
+	}
+	if blocks[1].Thinking != "hmm" {
+		t.Fatalf("thinking = %q, want it kept too", blocks[1].Thinking)
+	}
+}
+
+// TestAiSave_whatIsWrittenIsWhatWasSaid checks that only what was said is
+// kept: not what went wrong instead of it, and not what is still coming.
+func TestAiSave_whatIsWrittenIsWhatWasSaid(t *testing.T) {
+	events := make(chan ai.Event)
+	defer close(events)
+	w, s := workspaceWith(t, func([]ai.Message) <-chan ai.Event {
+		return events
+	})
+	s.mu.Lock()
+	s.Blocks = []aiBlock{
+		{Role: ai.User, Text: "kept", Over: true},
+		{Role: ai.Assistant, Text: "no", Failed: "it broke", Over: true},
+		{Role: ai.Assistant, Text: "", Over: false},
+	}
+	s.dirty = true
+	s.mu.Unlock()
+
+	var written []state.AiBlock
+	var of string
+	w.OnAiSave = func(path string, blocks []state.AiBlock) {
+		of, written = path, blocks
+	}
+	w.aiSave("a.md", s)
+	if len(written) != 1 || written[0].Text != "kept" {
+		t.Fatalf("written = %v, want only what was said", written)
+	}
+	if of != "a.md" {
+		t.Fatalf("saved for %q", of)
+	}
+	// What has been written down is not written again until it changes.
+	written = nil
+	w.aiSave("a.md", s)
+	if written != nil {
+		t.Fatalf("written = %v, want nothing again", written)
+	}
+}
+
+// TestAiForget_theNoteIsTakenOutOfTheBook checks that forgetting a
+// conversation writes nothing for that note, which is how it is taken out
+// of the book.
+func TestAiForget_theNoteIsTakenOutOfTheBook(t *testing.T) {
+	events := make(chan ai.Event)
+	defer close(events)
+	w, s := workspaceWith(t, func([]ai.Message) <-chan ai.Event {
+		return events
+	})
+	var written []state.AiBlock
+	w.OnAiSave = func(_ string, blocks []state.AiBlock) {
+		written = blocks
+	}
+	w.aiForget(s)
+	w.aiSave("a.md", s)
+	if len(written) != 0 {
+		t.Fatalf("written = %v, want nothing", written)
 	}
 }
 

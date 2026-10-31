@@ -29,6 +29,9 @@ const (
 	LegacyVaultFile = "vault.json"
 	// LayoutFile is how the window was laid out.
 	LayoutFile = "layout.json"
+	// AiSessionsFile is what was said to a model, one conversation to a
+	// note.
+	AiSessionsFile = "ai_sessions.json"
 	// LayoutVersion is the layout this version writes. A file written by
 	// another version, with another number, is thrown away and the
 	// default layout built, as xink does.

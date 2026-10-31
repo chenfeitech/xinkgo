@@ -76,6 +76,11 @@ type appState struct {
 
 	watch  *mygo.FileWatcher
 	cancel context.CancelFunc
+
+	// aiTalks is what has been said to a model, one conversation to a
+	// note. It is read the first time it is asked for, and written when
+	// a conversation changes.
+	aiTalks state.AiSessions
 }
 
 // Run starts the application and does not return until it quits.
@@ -206,6 +211,9 @@ func boot(app *mygo.Application) (*appState, error) {
 	// What the window asks of a model goes through the app: it is the
 	// app that knows which model the settings name.
 	ws.OnAsk = st.ask
+	// What was said about a note is kept between two runs.
+	ws.OnAiLoad = st.aiLoad
+	ws.OnAiSave = st.aiSave
 	ws.Tabs.OnSave = func(path string) {
 		slog.Debug("saved", "path", path)
 	}

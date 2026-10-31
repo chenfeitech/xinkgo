@@ -124,6 +124,7 @@ Everything passed.
 | T-33 | ✅ | `internal/ai`：Provider 抽象 + 分帧 + 重试与备用模型 |
 | T-34 | ✅ | `internal/ai`：流式事件解析（Delta/Thinking/ToolCall/Usage/Truncated/Done/Failed） |
 | T-35 | ✅ | AI 对话条 UI（`internal/view/ai_bar.go` + `markdown.Stream`）+ app 侧提问接线 |
+| T-36 | ✅ | 会话持久化（`internal/state/ai_sessions.go`，30 会话 / 200 块裁剪） |
 
 人工验收登记在 [../ACCEPTANCE.md](../ACCEPTANCE.md)：D1 ~ D7。
 
@@ -155,6 +156,10 @@ Everything passed.
   比七种实现同一接口的类型好写也好读。
 - **`Truncated`（预算耗尽）与 `ErrTruncated`（连接中断）分开**，前者在
   `Done` 之前发出且不是错误——重试一遍只是再烧一次 token。
+- **写盘只在画帧时做，不在听答案的 goroutine 里做**：会话表是 app 自己的，
+  另一条 goroutine 碰它就是数据竞争；`aiHear` 只置 `dirty`，由 `aiBar` 写。
+- **裁到 30 个会话时按路径排序取稳定子集**（与 xink 一致）：会话没有时间戳，
+  "哪 30 个"不重要，"每次都是同一 30 个"才重要。
 
 ## 决策记录（实施中补写）
 
