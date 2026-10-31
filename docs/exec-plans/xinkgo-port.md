@@ -119,6 +119,7 @@ Everything passed.
 | T-43 | 快照取回：历史窗口 + 取回（取回前先把当前存一份） | T-38 | R-10.6 |
 | T-44 | 模型列表的克隆与排序（副本深拷贝、上下移动一位） | T-41 | R-10.9 |
 | T-45 | 设置里补上只在 `config.json` 里能改的 AI 旋钮，并给 Ollama 常驻时间一个输入框 | T-41 | R-10.9 |
+| T-46 | AI 动作：命令面板入口（Cmd+P）、整篇 + 选区、结果一律走评审 diff | T-37、T-41 | R-10.7 |
 
 ## M3 进度
 
@@ -138,7 +139,9 @@ Everything passed.
 | T-44 | ✅ | 模型克隆与排序：`config.ModelEntry.Clone` 深拷贝（能力切片与三个指针都不共享）并给副本 `<原名>-copy`（重名加数字）；每行 Clone / ↑ / ↓，三种改动与 Forget 一样**画完这一帧再做**，免得从后面几行的脚下抽走它们要画的东西 |
 | T-45 | ✅ | AI 旋钮：设置 ▸ AI 加 Asking 一组（输出语言 / 两个超时 / 重试次数与间隔 / 步数 / 笔记与工具能看见多少字），加 Ollama 常驻时间输入框。两端与 `AiConfig.Sanitize` 的夹取**完全一致**；整数用 `NumberInput`（说得出当前值、一次走一格）而非 `Slider`，写回按四舍五入取整 |
 
-人工验收登记在 [../ACCEPTANCE.md](../ACCEPTANCE.md)：D1 ~ D19 与 E1 ~ E5。
+| T-46 | ✅ | AI 动作：命令面板 `Action · <名字>`（`internal/view/palette.go` 与 skill 并列，共用一个面板）→ `runAction`（`internal/view/ai_bar.go`：`pieceOf` 定范围、`askingOf` 组话）→ 答完由**画帧** `aiReviewDone` 开评审（整篇走 `StartReview`，选区走新的 `StartPieceReview`，`writeReview` 只把那一段放回去） |
+
+人工验收登记在 [../ACCEPTANCE.md](../ACCEPTANCE.md)：D1 ~ D19 与 E1 ~ E6。
 
 冒烟：`vault open` + `index built`，窗口 ALIVE。
 
@@ -187,6 +190,19 @@ Everything passed.
   比不放回更糟**。
 - **取回要碰到编辑区，不能只写盘**：`Tabs.PutText` 让开着的标签页重新读盘并更新
   buffer；否则自动保存会把编辑区里的旧文字又盖回去。
+- **动作的三个取舍由用户拍板（2026-10-31）**：入口走**命令面板**（与 `Skill · xxx`
+  并列，复用已有面板，改动最小）；作用域**整篇 + 选区**（有选区就只做选区，`Scope = whole`
+  的动作则永远做整篇）；结果**一律走评审 diff**（`replace` / `insert` 都不自动写——
+  写进笔记前的最后一眼是用户自己的）。
+- **评审由画帧发起，不听答案的 goroutine 发起**：`StartReview` / `StartPieceReview` 要
+  造 `editor.DiffState`、动 `w.review`，那都是视图自己的东西。所以会话上挂一个
+  `waiting`（"这个答案完事了要评审、是哪一段"），由 `Workspace.View` 每帧看一眼——
+  与"写盘只在画帧做"是同一条规矩。
+- **选区评审的快照存整篇**：`reviewState.before` 在选区评审里只是那一段，照它存快照会
+  让"取回"把整篇笔记换成那一段。`writeReview` 因此改成存**当时整篇**的文字。
+- **面板里两行不能共用一个键**：`paletteList` 原先拿 `item.Path` 当 widget key，而
+  skill / action 的 Path 都是空——两行会撞成一个。改成 `item.key()`：笔记用路径，
+  skill / action 用名字。
 - **只给"真有人读"的字段做界面**：把 AI 配置全查了一遍，`Ollama.NumCtx`（全局那个，
   只有模型自己没设时才该起作用，而它从没被进请求体）、`ApiKeySource`、`ContextLimit`、
   `LastCheckedMs`、`MemoryEnabled`、`AutoApply` 六个**运行期无人读取**或一个也不发，

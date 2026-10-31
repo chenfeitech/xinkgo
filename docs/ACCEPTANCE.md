@@ -93,6 +93,7 @@
 | E3 | 模型克隆与排序 | 设置 ▸ AI：给某行改个 Address / 勾个能力，点 Clone，再点 ↑ / ↓ | 多出一行 `<原名>-copy`，**排在被复制那行的后面**，地址与能力都一样；改副本的 Address / 能力 / 上下文**不会**动到原行；↑ / ↓ 让它前后挪一位，第一行 ↑ 与最后一行 ↓ 是灰的；再 Clone 一次叫 `-copy2` |
 | E4 | 模型的 Key 真的发出去 | 加一个 OpenAI 兼容模型（Speaks = open_ai_compatible），填 Address 与 Key，提问 | 请求带上 `Authorization: Bearer <key>`（配错的 key 得到的是 401，而不是"连不上/没鉴权"的含糊提示）；留空仍是匿名请求 |
 | E5 | AI 旋钮 | 设置 ▸ AI ▸ Asking：改「How long an answer may take」「How often it is tried again」等，关掉设置再打开；再看 `config.json` | 数字**带得回来**（不是默认值）；`config.json` 里同步；`Answer in` 选 zh / en 后提问，模型的回答跟着换语言 |
+| E6 | AI 动作 | 打开一篇笔记，Cmd+P 打 `Polish` 回车；再选中一段（只选中两三个词）打 `Condense` 回车 | 对话条自己打开并问出这句话；答完后**自动进入评审 diff**（不是直接写进笔记）；整篇时 diff 是整篇，有选区时 diff **只是那一段**，Write it in 后也只有那一段被改、前后文字不动 |
 
 ## 已自动化、不必人验的
 
@@ -115,3 +116,5 @@
 | ~~AI 改完的校验与快照轮转~~ | 已补：`internal/ai/verify.go` 校验 + `internal/snapshot` 快照（见 D18 / D19） |
 | ~~模型列表不能克隆 / 排序~~ | 已补：每行 Clone / ↑ / ↓（见 E3） |
 | 快照按文件名认笔记 | 快照只记文件名（不记它属于哪个库），取回时按名字在当前库里找：同名有两篇就**报「more than one」不猜**，库里没有就报「not in this vault」 |
+| 动作没有增删界面 | `Ai.Actions` 现在能被**用**（命令面板，见 E6），但还不能在设置里增删或改名：只能动 `config.json`（`Enable` 关掉就不再出现） |
+| `Ai.Route` 与 `AiAction.Model` 仍未接线 | 选路只看 `DefaultModel` → 首个开启的 → `FallbackModel`；动作里指定的模型与 Chat/Action/Skill/Agent 四条路由都不参与 |
