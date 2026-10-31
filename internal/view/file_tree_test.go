@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/egoist/mygo/ui"
+	"github.com/helightxu/xinkgo/internal/config"
 	"github.com/helightxu/xinkgo/internal/vault"
 )
 
@@ -180,5 +181,57 @@ func TestTreeCounts_whatTheHeaderSays(t *testing.T) {
 	tr.SetRoot(treeRoot())
 	if got := tr.counts(); got != "3 notes · 1 folder" {
 		t.Errorf("the header says %q, want 3 notes and 1 folder", got)
+	}
+}
+
+// TestTreeView_theSettingsStandAtTheFoot checks the way to the settings
+// the tree gives: it is at the foot of it, below the files, whether the
+// vault holds anything or not, and a click on it opens them.
+func TestTreeView_theSettingsStandAtTheFoot(t *testing.T) {
+	for _, root := range []*vault.Entry{nil, treeRoot()} {
+		tr := NewTree()
+		tr.SetRoot(root)
+		opened := 0
+		tr.OnOpenSettings = func() { opened++ }
+		tt := treeTester(t, tr)
+		if !tt.HasText("Settings") {
+			t.Fatal("the tree says nothing of the settings")
+		}
+		if err := tt.Click("Settings"); err != nil {
+			t.Fatal(err)
+		}
+		if opened != 1 {
+			t.Errorf("opened %d times, want once", opened)
+		}
+	}
+}
+
+// TestTreeView_withNoWayToTheSettingsThereIsNoFoot checks a tree that was
+// given nowhere to open the settings: it says nothing of them, rather
+// than offering a way that goes nowhere.
+func TestTreeView_withNoWayToTheSettingsThereIsNoFoot(t *testing.T) {
+	tr := NewTree()
+	tr.SetRoot(treeRoot())
+	if tt := treeTester(t, tr); tt.HasText("Settings") {
+		t.Error("the tree offers settings it cannot open")
+	}
+}
+
+// TestSidebar_theSettingsStandAtTheFootOfThePanel checks the panel the
+// tree is in: the way to the settings is at its foot even before a vault
+// has been opened, which is when a user is most likely to look for it.
+func TestSidebar_theSettingsStandAtTheFootOfThePanel(t *testing.T) {
+	w := NewWorkspace(config.Default())
+	opened := 0
+	w.Tree.OnOpenSettings = func() { opened++ }
+	tt := ui.NewTester(w.sidebar, 260, 600)
+	if !tt.HasText("Settings") {
+		t.Fatal("the panel says nothing of the settings")
+	}
+	if err := tt.Click("Settings"); err != nil {
+		t.Fatal(err)
+	}
+	if opened != 1 {
+		t.Errorf("opened %d times, want once", opened)
 	}
 }

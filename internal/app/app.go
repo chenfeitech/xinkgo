@@ -227,6 +227,9 @@ func boot(app *mygo.Application) (*appState, error) {
 	ws.Tree.OnMove = st.moveItem
 	ws.Tree.OnImport = st.importFiles
 	ws.Tree.OnRefresh = st.rescan
+	// The settings are asked for from the foot of the tree as well: it
+	// is the app that knows the window they are opened in.
+	ws.Tree.OnOpenSettings = st.openSettings
 	// What is open is written down every time it changes, so that a
 	// crash loses the words of a note and not which notes were open.
 	ws.Tabs.OnChange = st.saveOpenNotes

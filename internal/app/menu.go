@@ -21,6 +21,24 @@ func mainMenu(bound []keymap.Resolved, vaults vault.Registry) *mygo.Menu {
 		}
 		return ""
 	}
+	// What the settings are opened by: the key the user gave them, or
+	// the one a first start has.
+	settingsKey := key("OpenSettings")
+	if settingsKey == "" {
+		settingsKey = "CmdOrCtrl+,"
+	}
+	openSettings := func(*mygo.MenuItem, *mygo.Window) {
+		if current != nil {
+			current.openSettings()
+		}
+	}
+	// On macOS the settings belong to the application's own menu, and
+	// the File menu's stand without the key: one key bound to two
+	// items is a key that may not come through at all.
+	fileSettingsKey := settingsKey
+	if isMacOS() {
+		fileSettingsKey = ""
+	}
 	// The vaults the user can open, each saying what is wrong with it
 	// when it cannot be opened.
 	vaultItems := func() []*mygo.MenuItem {
@@ -48,7 +66,23 @@ func mainMenu(bound []keymap.Resolved, vaults vault.Registry) *mygo.Menu {
 		return items
 	}
 	return mygo.NewMenu([]*mygo.MenuItem{
-		{Role: mygo.RoleAppMenu},
+		// The application's own menu, where a Mac looks for the
+		// settings. Off macOS this menu is not shown at all, and the
+		// File menu's item is the one that stands.
+		{Role: mygo.RoleAppMenu, Submenu: []*mygo.MenuItem{
+			{Role: mygo.RoleAbout},
+			mygo.Separator(),
+			{Label: "Settings…", Accelerator: settingsKey,
+				Click: openSettings},
+			mygo.Separator(),
+			{Role: mygo.RoleServices},
+			mygo.Separator(),
+			{Role: mygo.RoleHide},
+			{Role: mygo.RoleHideOthers},
+			{Role: mygo.RoleUnhide},
+			mygo.Separator(),
+			{Role: mygo.RoleQuit},
+		}},
 		{Label: "File", Submenu: []*mygo.MenuItem{
 			{Label: "Open Vault…", Accelerator: key("OpenFolder"),
 				Click: func(*mygo.MenuItem, *mygo.Window) {
@@ -93,12 +127,8 @@ func mainMenu(bound []keymap.Resolved, vaults vault.Registry) *mygo.Menu {
 						current.ws.ToggleAI()
 					}
 				}},
-			{Label: "Settings…", Accelerator: "CmdOrCtrl+,",
-				Click: func(*mygo.MenuItem, *mygo.Window) {
-					if current != nil {
-						current.openSettings()
-					}
-				}},
+			{Label: "Settings…", Accelerator: fileSettingsKey,
+				Click: openSettings},
 			{Label: "Library tasks…",
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current != nil {
