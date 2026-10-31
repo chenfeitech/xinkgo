@@ -378,28 +378,114 @@ func (w *Workspace) reviewStale() bool {
 	return n == nil || n.Path != w.review.path
 }
 
-// tabBar is one button per open note, and the way to close them.
+// iconClose is the × a tab is closed by: two strokes of a 24 by 24 box,
+// drawn in the color of the text beside it.
+var iconClose = svgIcon(`<path d="M18 6 6 18"/><path d="m6 6 12 12"/>`)
+
+// How a tab is put together: its height, the room its name and its close
+// button keep inside it, and how wide or narrow it may be.
+const (
+	tabHeight   float32 = 26
+	tabPad      float32 = 8
+	tabGap      float32 = 6
+	tabGlyph    float32 = 12
+	tabClose    float32 = 16
+	tabMaxWidth float32 = 180
+	// tabNameMax is how wide a tab's name may be: what is left of a tab
+	// of tabMaxWidth once its padding, its close button and the room
+	// between the two are taken out.
+	tabNameMax float32 = 142
+)
+
+// tabBar is one tab per open note, and the way to make a new one: the
+// tabs are read from left to right, and the strip is scrolled sideways
+// when there are more of them than there is room for, as the tabs of the
+// editors the reader knows are. The button that makes a note stands
+// outside what is scrolled, so that it is always there.
 func (w *Workspace) tabBar(c *ui.Context) {
 	paths := w.Tabs.Paths()
-	ui.Row(c).Gap(4).Padding(4).Children(func() {
-		for _, path := range paths {
-			path := path
-			title := Title(path, w.Tabs.Dirty(path))
-			if ui.Button(c.Key(path), title).Label(title).Clicked() {
-				w.Tabs.Activate(path)
-			}
-			if ui.Button(c.Key(path+"#close"), "×").
-				Label("close " + PathOf(path)).Clicked() {
-				w.Tabs.Close(path)
-				w.status = ""
-			}
-		}
+	ui.Row(c).AlignItems(ui.Center).Children(func() {
+		ui.ScrollHorizontal(c).Grow(1).Height(tabHeight + 8).
+			Children(func() {
+				ui.Row(c).Gap(2).Padding(4).AlignItems(ui.Center).
+					Children(func() {
+						for _, path := range paths {
+							path := path
+							w.tab(c, path)
+						}
+					})
+			})
 		if w.OnNewNote != nil && w.Tree.Root != nil {
 			if ui.Button(c.Key("new"), "+").Label("New note").Clicked() {
 				w.OnNewNote()
 			}
 		}
 	})
+}
+
+// tab is one open note: its name, marked when it has changes the disk
+// does not, and the button that closes it, both inside the one tab, as
+// the tabs of the editors the reader knows. The note on show is lit, and
+// so is the one under the pointer.
+func (w *Workspace) tab(c *ui.Context, path string) {
+	th := c.Theme()
+	on := w.Tabs.IsActive(path)
+	name := PathOf(path)
+	tab := ui.ButtonBase(c.Key("tab-"+path)).Label(name).Tooltip(path).
+		Height(tabHeight).Radius(th.Radius).Padding(0, tabPad).
+		Gap(tabGap).AlignItems(ui.Center).MaxWidth(tabMaxWidth)
+	tab.Draw(func(p *ui.Painter, box ui.Rect) {
+		switch {
+		case tab.Pressed():
+			p.Fill(box, th.SurfacePressed, th.Radius)
+		case on:
+			p.Fill(box, th.Surface, th.Radius)
+		case tab.Hovered():
+			p.Fill(box, th.SurfaceHover, th.Radius)
+		}
+	})
+	tab.Children(func() {
+		ui.Row(c).FillWidth().Gap(tabGap).AlignItems(ui.Center).
+			Children(func() {
+				title := ui.Text(c, Title(path, w.Tabs.Dirty(path))).
+					Grow(1).MaxWidth(tabNameMax).Ellipsis("…").NoWrap()
+				if !on {
+					title.TextColor(th.TextMuted)
+				}
+				w.tabClose(c, path, on)
+			})
+	})
+	if tab.Clicked() {
+		w.Tabs.Activate(path)
+	}
+}
+
+// tabClose is the × of a tab: it stands within the tab, and closes the
+// note without showing it first.
+func (w *Workspace) tabClose(c *ui.Context, path string, on bool) {
+	th := c.Theme()
+	name := PathOf(path)
+	b := ui.ButtonBase(c.Key(path+"#close")).Label("close "+name).
+		Tooltip("Close "+name).Size(tabClose, tabClose).
+		Radius(tabClose / 2).Justify(ui.Center).AlignItems(ui.Center)
+	b.Draw(func(p *ui.Painter, box ui.Rect) {
+		switch {
+		case b.Pressed():
+			p.Fill(box, th.SurfacePressed, tabClose/2)
+		case b.Hovered():
+			p.Fill(box, th.SurfaceHover, tabClose/2)
+		}
+	})
+	b.Children(func() {
+		glyph := ui.Icon(c, iconClose).Size(tabGlyph, tabGlyph)
+		if !on && !b.Hovered() {
+			glyph.TextColor(th.TextMuted)
+		}
+	})
+	if b.Clicked() {
+		w.Tabs.Close(path)
+		w.status = ""
+	}
 }
 
 // toolbar is the row of buttons that write Markdown for the user: one

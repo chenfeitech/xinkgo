@@ -344,6 +344,14 @@ func (t *Tabs) Dirty(path string) bool {
 	return ok && n.Note.Dirty
 }
 
+// IsActive reports whether the note at path is the one that is shown, as
+// a tab asks before it draws itself as the one on show.
+func (t *Tabs) IsActive(path string) bool {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	return session.TabKey(t.Active) == session.TabKey(path)
+}
+
 // Rename is a note whose file was renamed or moved: its tab keeps its
 // place among the others, and what is written down is written again.
 // A note that is not open is left alone.

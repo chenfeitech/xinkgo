@@ -5,6 +5,10 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/egoist/mygo/ui"
+	"github.com/helightxu/xinkgo/internal/config"
+	"github.com/helightxu/xinkgo/internal/session"
 )
 
 // vaultWithNotes is a folder with two notes in it.
@@ -462,5 +466,83 @@ func TestTabs_putTextIsWhatTheDiskSays(t *testing.T) {
 	// A note that is not open is not one that can be told.
 	if tabs.PutText(filepath.Join(filepath.Dir(a), "other.md")) {
 		t.Error("a note that is not open was said to be told")
+	}
+}
+
+// shownWorkspace is a window with two notes open in it, the second of
+// them the one on show, drawn without a vault around it.
+func shownWorkspace(t *testing.T) (*Workspace, string, string) {
+	t.Helper()
+	_, a, b := vaultWithNotes(t)
+	w := NewWorkspace(config.Default())
+	w.Layout.Left = 0
+	w.Layout.Right = 0
+	for _, path := range []string{a, b} {
+		if _, err := w.Tabs.Open(path); err != nil {
+			t.Fatalf("Open %s: %v", path, err)
+		}
+	}
+	return w, a, b
+}
+
+// TestTabs_oneTabIsANameAndACloseInOnePiece checks what the tab bar is
+// made of: the button that closes a note stands within its tab, and not
+// beside it as a button of its own.
+func TestTabs_oneTabIsANameAndACloseInOnePiece(t *testing.T) {
+	w, _, b := shownWorkspace(t)
+	tt := ui.NewTester(w.View, 620, 140)
+	tt.Frame()
+	tab, ok := tt.Find(PathOf(b))
+	if !ok {
+		t.Fatalf("no tab shows %q", PathOf(b))
+	}
+	close, ok := tt.Find("close " + PathOf(b))
+	if !ok {
+		t.Fatalf("no button closes %q", PathOf(b))
+	}
+	if close.W <= 0 {
+		t.Fatalf("the close button is %v wide, want it drawn", close.W)
+	}
+	if close.X < tab.X || close.X+close.W > tab.X+tab.W {
+		t.Errorf("the close button stands over %.1f+%.1f, outside its tab "+
+			"over %.1f+%.1f", close.X, close.W, tab.X, tab.W)
+	}
+}
+
+// TestTabs_theCloseClosesAndTheNameShows checks that one tab holds two:
+// the close button closes the note without showing it, and the name
+// shows it without closing it.
+func TestTabs_theCloseClosesAndTheNameShows(t *testing.T) {
+	w, a, b := shownWorkspace(t)
+	tt := ui.NewTester(w.View, 620, 140)
+	tt.Frame()
+	// A tab that is not the one on show is closed: what is on show is
+	// left as it is.
+	if err := tt.Click("close " + PathOf(a)); err != nil {
+		t.Fatalf("Click: %v", err)
+	}
+	tt.Frame()
+	if _, open := w.Tabs.Notes[session.TabKey(a)]; open {
+		t.Errorf("%s is still open", PathOf(a))
+	}
+	if !w.Tabs.IsActive(b) {
+		t.Errorf("closing another tab left %q, not %q, on show",
+			PathOf(w.Tabs.Active), PathOf(b))
+	}
+	if _, err := w.Tabs.Open(a); err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	tt.Frame()
+	// The name shows the note: the tab itself is not closed by it.
+	if err := tt.Click(PathOf(a)); err != nil {
+		t.Fatalf("Click: %v", err)
+	}
+	tt.Frame()
+	if !w.Tabs.IsActive(a) {
+		t.Errorf("clicking a tab's name left %q on show",
+			PathOf(w.Tabs.Active))
+	}
+	if len(w.Tabs.Paths()) != 2 {
+		t.Errorf("open = %v, want the two notes", w.Tabs.Paths())
 	}
 }
