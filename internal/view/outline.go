@@ -56,7 +56,8 @@ func (w *Workspace) rail(c *ui.Context) {
 func (w *Workspace) railButton(
 	c *ui.Context, drawer, mark, label string,
 ) {
-	button := ui.Button(c.Key("rail-"+drawer), mark).Label(label)
+	button := ui.Button(c.Key("rail-"+drawer), mark).
+		Label(label).Tooltip(label)
 	if w.drawer == drawer {
 		button.Selected(true)
 	}

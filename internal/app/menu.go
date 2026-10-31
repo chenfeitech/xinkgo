@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/egoist/mygo"
 	"github.com/helightxu/xinkgo/internal/keymap"
+	xmd "github.com/helightxu/xinkgo/internal/markdown"
 	"github.com/helightxu/xinkgo/internal/vault"
 )
 
@@ -112,10 +113,19 @@ func mainMenu(bound []keymap.Resolved, vaults vault.Registry) *mygo.Menu {
 				}},
 			{Label: "Save", Accelerator: key("Save"),
 				Click: func(*mygo.MenuItem, *mygo.Window) {
-					if current != nil {
-						if err := current.ws.Tabs.SaveActive(); err != nil {
-							current.ws.Say("the note could not be saved")
-						}
+					if current == nil {
+						return
+					}
+					// A revision standing before the user is not
+					// written over: it is theirs to take or to
+					// send back first.
+					if current.ws.RevisionOpen() {
+						current.ws.Say("put the revision away " +
+							"first")
+						return
+					}
+					if err := current.ws.Tabs.SaveActive(); err != nil {
+						current.ws.Say("the note could not be saved")
 					}
 				}},
 			{Label: "Close Tab", Accelerator: key("ClosePanel"),
@@ -137,8 +147,56 @@ func mainMenu(bound []keymap.Resolved, vaults vault.Registry) *mygo.Menu {
 					}
 				}},
 		)},
+		{Label: "Note", Submenu: []*mygo.MenuItem{
+			{Label: "Rename…", Accelerator: key("RenameItem"),
+				Click: func(*mygo.MenuItem, *mygo.Window) {
+					if current != nil {
+						current.renameChosen()
+					}
+				}},
+			{Label: "Delete", Accelerator: key("DeleteItem"),
+				Click: func(*mygo.MenuItem, *mygo.Window) {
+					if current != nil {
+						current.deleteChosen()
+					}
+				}},
+		}},
+		{Label: "Format", Submenu: []*mygo.MenuItem{
+			{Label: "Bold", Accelerator: key("FormatBold"),
+				Click: format(xmd.Bold)},
+			{Label: "Italic", Accelerator: key("FormatItalic"),
+				Click: format(xmd.Italic)},
+			{Label: "Strikethrough",
+				Accelerator: key("FormatStrikethrough"),
+				Click:       format(xmd.Strikethrough)},
+			{Label: "Inline code", Accelerator: key("FormatInlineCode"),
+				Click: format(xmd.InlineCode)},
+			{Label: "Link", Accelerator: key("FormatLink"),
+				Click: format(xmd.FormatLink)},
+		}},
+		{
+			Label: "View", Submenu: []*mygo.MenuItem{
+				{Label: "Turn the light the other way",
+					Accelerator: key("ToggleTheme"),
+					Click: func(*mygo.MenuItem, *mygo.Window) {
+						if current != nil {
+							current.toggleTheme()
+						}
+					}},
+			},
+		},
 		{Role: mygo.RoleEditMenu},
 		{Role: mygo.RoleViewMenu},
 		{Role: mygo.RoleWindowMenu},
 	})
+}
+
+// format is what one of the Format items does: the marks go around what is
+// selected in the note that is open.
+func format(f xmd.Format) func(*mygo.MenuItem, *mygo.Window) {
+	return func(*mygo.MenuItem, *mygo.Window) {
+		if current != nil {
+			current.ws.Format(f)
+		}
+	}
 }

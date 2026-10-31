@@ -28,11 +28,25 @@ const (
 	HorizontalRule
 )
 
+// Groups are the buttons as they stand in the toolbar: what goes around
+// what is selected, what a line begins with, and what is put in whole.
+var Groups = [][]Format{
+	{Bold, Italic, Strikethrough, InlineCode},
+	{FormatHeading, BulletList, NumberedList, TaskList, Quote, CodeBlock},
+	{FormatLink, Image, Table, HorizontalRule},
+}
+
 // Formats are the buttons, in the order they are shown.
-var Formats = []Format{
-	Bold, Italic, Strikethrough, InlineCode, FormatHeading, BulletList,
-	NumberedList, TaskList, Quote, CodeBlock, FormatLink, Image, Table,
-	HorizontalRule,
+var Formats = everyFormat()
+
+// everyFormat is every button of every group, in the order they are
+// shown.
+func everyFormat() []Format {
+	var all []Format
+	for _, group := range Groups {
+		all = append(all, group...)
+	}
+	return all
 }
 
 // Label is what the button says.

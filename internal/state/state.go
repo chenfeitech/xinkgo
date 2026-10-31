@@ -64,10 +64,12 @@ func LoadOpenNotes(dir string) (OpenNotes, error) {
 	return NormalizeOpenNotes(on), nil
 }
 
-// SaveOpenNotes writes which notes are open.
+// SaveOpenNotes writes which notes are open, whole or not at all: the app
+// is killed by a crash or by the machine going off often enough that a
+// half-written list of open notes is a real thing to guard against.
 func SaveOpenNotes(dir string, on OpenNotes) error {
 	return writeJSON(filepath.Join(dir, OpenNotesFile),
-		NormalizeOpenNotes(on), false)
+		NormalizeOpenNotes(on), true)
 }
 
 // NormalizeOpenNotes puts the notes in a shape the app can use: no note
@@ -209,10 +211,12 @@ func LoadLayout(dir string) (Layout, error) {
 	return l, nil
 }
 
-// SaveLayout writes the layout.
+// SaveLayout writes the layout, whole or not at all, as the open notes
+// are written: a half-written file is no layout at all, and the window
+// would come up with panels of no width.
 func SaveLayout(dir string, l Layout) error {
 	l.Version = LayoutVersion
-	return writeJSON(filepath.Join(dir, LayoutFile), l, false)
+	return writeJSON(filepath.Join(dir, LayoutFile), l, true)
 }
 
 // writeJSON writes v as indented JSON. With atomic, the old file is

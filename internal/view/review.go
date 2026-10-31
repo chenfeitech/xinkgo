@@ -49,6 +49,10 @@ func (w *Workspace) StartReview(text string) {
 	}
 }
 
+// RevisionOpen is whether a revision stands before the user, waiting to be
+// taken or sent back.
+func (w *Workspace) RevisionOpen() bool { return w.review.open }
+
 // StartPieceReview puts a revision of one piece of a note before the
 // user: what the piece says on one side, and what the model made of it
 // on the other. The rest of the note is left as it stands, and what is

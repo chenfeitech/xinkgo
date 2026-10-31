@@ -185,9 +185,13 @@ func milliseconds(ms uint64) time.Duration {
 // View draws the window.
 func (w *Workspace) View(c *ui.Context) {
 	// What the user stopped typing is written now, and not by a timer of
-	// its own: only this thread may touch a note.
-	if err := w.Tabs.SaveDue(); err != nil {
-		w.Say("the note could not be saved")
+	// its own: only this thread may touch a note. A revision standing
+	// before the user is not written over the top of: what stands in
+	// the note is what they have yet to take or send back.
+	if !w.review.open {
+		if err := w.Tabs.SaveDue(); err != nil {
+			w.Say("the note could not be saved")
+		}
 	}
 	// What an action's answer came to is put before the user as a
 	// revision, now that it is over: a revision is made out of the
@@ -393,7 +397,10 @@ func (w *Workspace) tabBar(c *ui.Context) {
 
 // toolbar is the row of buttons that write Markdown for the user: one
 // button wraps what is selected, and stands for a pair of marks when
-// nothing is.
+// nothing is. A button is a picture, and what it does is said in words
+// only when the pointer rests on it, as in a text editor's toolbar; what
+// there is no room for goes into a menu at its end, so that the row never
+// runs wider than the note it writes in.
 func (w *Workspace) toolbar(c *ui.Context) {
 	n := w.Tabs.ActiveNote()
 	if n == nil {
@@ -405,15 +412,41 @@ func (w *Workspace) toolbar(c *ui.Context) {
 		w.dataBar(c, n, kind)
 		return
 	}
-	ui.Row(c).Gap(2).Padding(4).Children(func() {
-		for _, f := range xmd.Formats {
-			f := f
-			if ui.Button(c.Key("fmt-"+f.Label()), f.Label()).
-				Label(f.Desc()).FontSize(12).Clicked() {
-				w.format(f)
+	// The buttons are as close together as an editor's are, so that
+	// all of them are seen side by side rather than in the menu.
+	ui.Toolbar(c, func() {
+		for i, group := range xmd.Groups {
+			if i > 0 {
+				w.toolbarDivider(c)
+			}
+			for _, f := range group {
+				f := f
+				if ui.Button(c.Key("fmt-"+f.Label()), "").
+					Label(f.Label()).Tooltip(f.Desc()).
+					Padding(4, 5).
+					Children(func() {
+						ui.Icon(c, formatIcon(f)).
+							Size(iconSize, iconSize)
+					}).Clicked() {
+					w.Format(f)
+				}
 			}
 		}
-	})
+	}).Gap(2).Padding(3, 4).MaxWidth(w.editorWidth(c)).
+		Label("Markdown")
+}
+
+// toolbarDivider is the line that sets two groups of the toolbar apart.
+func (w *Workspace) toolbarDivider(c *ui.Context) {
+	ui.Box(c).Width(1).Height(iconDivider).
+		Background(c.Theme().Border)
+}
+
+// editorWidth is how wide the note is, which is how wide its toolbar may
+// be: what the panels on either side leave of the window.
+func (w *Workspace) editorWidth(c *ui.Context) float32 {
+	width, _ := c.Size()
+	return max(width-w.Layout.Left-w.Layout.Right-railWidth, 0)
 }
 
 // dataBar is what the toolbar says of a file of data: which of the three
@@ -491,10 +524,10 @@ func (w *Workspace) dataDiagnostics(n *OpenNote) {
 	}})
 }
 
-// format is what a toolbar button does: the marks go around what is
-// selected, or around the caret, and the change is taken in as typing
+// Format is what a toolbar button or a key does: the marks go around what
+// is selected, or around the caret, and the change is taken in as typing
 // would be.
-func (w *Workspace) format(f xmd.Format) {
+func (w *Workspace) Format(f xmd.Format) {
 	n := w.Tabs.ActiveNote()
 	if n == nil {
 		return

@@ -409,6 +409,22 @@ func (s *appState) applyConfig() {
 	s.refreshMenu()
 }
 
+// toggleTheme is the appearance turned the other way: light into dark and
+// dark into light. Following the machine is a light appearance until the
+// user says otherwise, so that turning once is a thing that shows.
+func (s *appState) toggleTheme() {
+	next := config.ThemeDark
+	if s.config.Basic.Theme == config.ThemeDark {
+		next = config.ThemeLight
+	}
+	s.config.Basic.Theme = next
+	s.ws.Config = s.config
+	mygo.Theme.SetSource(mygo.ThemeSource(next))
+	if err := s.config.Save(s.dir); err != nil {
+		slog.Warn("the choice could not be written", "err", err)
+	}
+}
+
 // refreshMenu builds the menu again: what it lists of the vaults changes
 // when one is added, or another one is opened.
 func (s *appState) refreshMenu() {

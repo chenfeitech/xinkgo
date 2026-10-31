@@ -115,6 +115,44 @@ func (s *appState) deleteItem(path string) {
 	}()
 }
 
+// chosen is the file the user has their eye on: the one the tree shows as
+// chosen, and, when nothing is chosen there, the note that is open.
+func (s *appState) chosen() string {
+	if s.ws == nil {
+		return ""
+	}
+	if s.ws.Tree.Selected != "" {
+		return s.ws.Tree.Selected
+	}
+	if s.ws.Tabs != nil {
+		return s.ws.Tabs.Active
+	}
+	return ""
+}
+
+// renameChosen asks for the name of the file the user has their eye on.
+// The asking is the tree's: it is there that a file stands, and there
+// that a name is given.
+func (s *appState) renameChosen() {
+	path := s.chosen()
+	if path == "" {
+		s.ws.Say("no file is chosen")
+		return
+	}
+	s.ws.Tree.Renaming = path
+	s.ws.Tree.Name = view.PathOf(path)
+}
+
+// deleteChosen takes the file the user has their eye on away.
+func (s *appState) deleteChosen() {
+	path := s.chosen()
+	if path == "" {
+		s.ws.Say("no file is chosen")
+		return
+	}
+	s.deleteItem(path)
+}
+
 // removeItem is the removal itself, once the user has said yes.
 func (s *appState) removeItem(path string) {
 	// Forget the note before its file goes: a tab writing it back would
