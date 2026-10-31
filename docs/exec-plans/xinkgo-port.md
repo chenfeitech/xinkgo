@@ -116,6 +116,7 @@ Everything passed.
 | T-40 | 库级批量任务（加/改/删标签）：只读计划 + 批量原子写 + 中断恢复 | T-24、T-33 | R-10.8 |
 | T-41 | 模型能力清单（静态推断 + 手动改 + 探针） | T-33 | R-10.9 |
 | T-42 | `.xink` 目录恒跳过（树/索引/命令面板） | T-7 | R-10.10 |
+| T-43 | 快照取回：历史窗口 + 取回（取回前先把当前存一份） | T-38 | R-10.6 |
 
 ## M3 进度
 
@@ -131,15 +132,16 @@ Everything passed.
 | T-38 | ✅ | 只读工具集 `internal/ai/tool.go`（7 个工具 + schema + `Execute`）→ `agent.go` 的 `ai.Loop`（要工具→执行→回灌→再问，走满步数报 `ErrSteps`）→ `app/host.go` 的 `ai.Host` 实现（工具只能读**库内**，路径越界一律拒绝）→ 对话条显示 `tool → 结果` 小字 |
 | T-39 | ✅ | Skills：`internal/skill` 发现与解析（库内 `.xink/skills` + 用户级、同名库内优先、坏文件进 issues）、命令面板入口、AI 条里「using X」可放下、设置里启停 |
 | T-41 | ✅ | 能力清单：领域层 `internal/ai/capability.go`（字典 + 推断 + 生效优先级）+ `probe.go`（`ai.Try` 探针）；设置窗口 `internal/app/settings_ai.go`（模型增删、地址/密钥/协议、能力勾选即 pin、Try it 把实测 `tools_enabled` 写回） |
+| T-43 | ✅ | 快照取回：`internal/snapshot` 补 `List`（新的在前）与 `Taken`（从名字读回时间）；`internal/app/history_window.go` 列快照（文件名 + 时间 + 开头一行），Put it back **先把当前内容存成一份新快照**再写回（还是 `note.Save` 原子写），写完回灌索引并让开着的标签页重新读盘（`Tabs.PutText`） |
 
-人工验收登记在 [../ACCEPTANCE.md](../ACCEPTANCE.md)：D1 ~ D19 与 E1。
+人工验收登记在 [../ACCEPTANCE.md](../ACCEPTANCE.md)：D1 ~ D19 与 E1、E2。
 
 冒烟：`vault open` + `index built`，窗口 ALIVE。
 
 最后一次 `scripts/check.sh`：
 
 ```
-== go test ./... ==       20 个包全 ok（新增 internal/ai）
+== go test ./... ==       22 个包全 ok
 == 全平台编译 ==          ok darwin/arm64 · darwin/amd64 · windows/amd64
                           ok windows/arm64 · linux/amd64
 == versions agree ==      ok 0.1.0
@@ -173,6 +175,14 @@ Everything passed.
   `os.ReadFile`；skill 资源同理（`skill.Resource` 钉在技能目录内）。
 - **工具失败不返回 error，而是返回"说给人/模型听的话"**：工具名不存在、参数缺失、
   笔记读不到，都是要回灌给模型让它改正的信息，不是 app 的失败。
+- **取回之前先把当前存成一份新快照**：写进去却取不回来的快照等于没有，而"取回"
+  本身就是一次改笔记——它同样要留一条退路，否则取回旧稿就是丢掉新稿。
+- **快照按文件名认笔记，不猜**：快照名里只有文件名，没有它属于哪个库。取回时在
+  当前库里按名字找：开着的优先，其次库里唯一的那篇；同名两篇报「more than one
+  note is called X」，库里没有报「X is not in this vault」——**把话放回错误的笔记
+  比不放回更糟**。
+- **取回要碰到编辑区，不能只写盘**：`Tabs.PutText` 让开着的标签页重新读盘并更新
+  buffer；否则自动保存会把编辑区里的旧文字又盖回去。
 - **自动保存改为"记下时间、由画帧去写"**，不再用 `time.AfterFunc` 直接写。
   `Note` 与 `OpenNote` 都没有锁，定时器那条 goroutine 与主线程（Cmd+S）同时
   写就是数据竞争——`-race` 已实测复现（`n.saving` 与 `Note.Text`）。写盘只
