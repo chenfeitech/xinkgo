@@ -84,6 +84,12 @@
 | D18 | 改前快照 | 让模型改一篇笔记，Write it in 之后看 `~/Library/Application Support/Xinkgo/ai-history/` | 出现 `2026-…-<文件名>` 的旧版本；保留最近 200 份，多了删最旧 |
 | D19 | 改后校验 | 让模型写一段带 `[[不存在的笔记]]` 的稿子，Write it in | 底部提示「written, but N 处要再看一眼：[双链] 第 N 行：…」，但**稿子照样写进去了**（校验只提示、不阻断） |
 
+## 收尾（P1/P2 遗留）
+
+| # | 项 | 怎么验 | 期望 |
+|---|---|---|---|
+| E1 | 面板显隐 | 设置 ▸ Window：勾掉 Show the file tree / Show the preview，再勾回来 | 面板消失；勾回来时**宽度跟关掉之前一样**（不是默认值）；重启后保持 |
+
 ## 已自动化、不必人验的
 
 库扫描与忽略规则、`fs` 的重名与跨设备移动、`note` 的原子写与外部变更取回、
@@ -95,7 +101,7 @@
 
 | 项 | 说明 |
 |---|---|
-| 面板隐藏 | 三栏目前始终显示；`layout.json` 写 0 才隐藏，且拖不回来。设置窗口里补开关 |
+| ~~面板隐藏~~ | 已补：设置 ▸ Window 里两个开关（见 E1） |
 | 编辑区 Markdown 装饰 | 行首标记淡化等待自研 tokenizer（R-4.10） |
 | 图片宽度百分比 | `preview.image_width_percent` 目前只存不生效（MyGo 的 Markdown 视图没有图片宽度选项） |
 | YAML / TOML 只认不校验 | `internal/datafile` 能识别 `.yaml` / `.toml` 并渲染，但**不做语法校验**：网络取不到 `gopkg.in/yaml.v3`，不引入手写解析器（见 C9） |

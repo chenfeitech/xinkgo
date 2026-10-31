@@ -202,6 +202,54 @@ func (w *Workspace) View(c *ui.Context) {
 	w.rail(c)
 }
 
+// TreeShown is whether the file tree stands: a panel of no width is one
+// that was shut.
+func (w *Workspace) TreeShown() bool { return w.Layout.TreeShown() }
+
+// PreviewShown is whether the preview stands.
+func (w *Workspace) PreviewShown() bool { return w.Layout.PreviewShown() }
+
+// SetTreeShown opens the file tree, or shuts it. Opening it gives back
+// the width it had when it was shut.
+func (w *Workspace) SetTreeShown(shown bool) {
+	w.setShown(shown, &w.Layout.Left, &w.Layout.LastLeft)
+}
+
+// SetPreviewShown opens the preview, or shuts it.
+func (w *Workspace) SetPreviewShown(shown bool) {
+	w.setShown(shown, &w.Layout.Right, &w.Layout.LastRight)
+}
+
+// setShown is one panel opened or shut. What it was is kept when it is
+// shut, so that it comes back the same; and a panel that was never
+// given a width is given the one a first start gives.
+func (w *Workspace) setShown(shown bool, width, kept *float32) {
+	if shown == (*width > 0) {
+		return
+	}
+	if shown {
+		*width = *kept
+		if *width <= 0 {
+			*width = w.defaultWidth(width)
+		}
+	} else {
+		*kept = *width
+		*width = 0
+	}
+	if w.OnLayoutChanged != nil {
+		w.OnLayoutChanged()
+	}
+}
+
+// defaultWidth is the width a panel of that kind is given on a first
+// start.
+func (w *Workspace) defaultWidth(width *float32) float32 {
+	if width == &w.Layout.Left {
+		return state.DefaultLayout().Left
+	}
+	return state.DefaultLayout().Right
+}
+
 // divider is the line between two panels, that the pointer drags to give
 // one of them more room and the other less. dir is 1 when dragging to the
 // right widens the panel before the line, and -1 when it narrows it.

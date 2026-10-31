@@ -163,7 +163,19 @@ type Layout struct {
 	// so that making the window wider gives the text more room.
 	Left  float32 `json:"left"`
 	Right float32 `json:"right"`
+	// LastLeft and LastRight are the widths the panels had before they
+	// were shut, so that opening one again gives back what it was and
+	// not a width thought up on the spot.
+	LastLeft  float32 `json:"last_left,omitempty"`
+	LastRight float32 `json:"last_right,omitempty"`
 }
+
+// TreeShown is whether the file tree stands. A panel of no width is one
+// that was shut.
+func (l Layout) TreeShown() bool { return l.Left > 0 }
+
+// PreviewShown is whether the preview stands.
+func (l Layout) PreviewShown() bool { return l.Right > 0 }
 
 // DefaultLayout is the layout of a first start.
 func DefaultLayout() Layout {

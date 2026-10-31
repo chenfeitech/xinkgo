@@ -76,6 +76,7 @@ func (s *appState) openSettings() {
 func (s *appState) settingsView(c *ui.Context) {
 	ui.Scroll(c).TrackScroll(&s.draft.scroll).Fill().Children(func() {
 		ui.Column(c).Fill().Children(func() {
+			s.window(c)
 			s.appearance(c)
 			s.editorSettings(c)
 			s.previewSettings(c)
@@ -256,6 +257,26 @@ func (st *settings) write(c *config.AppConfig) {
 	c.Preview.MaxWidth = uint32(st.width)
 	c.Editor.AutoSaveDelayMs = uint64(st.delay)
 	c.Editor.Indent.TabSize = uint32(st.indent)
+}
+
+// window is which of the panels stand: a panel shut is given no width,
+// and opening it again gives back the width it had.
+func (s *appState) window(c *ui.Context) {
+	if s.ws == nil {
+		return
+	}
+	group(c, "Window", func() {
+		tree := s.ws.TreeShown()
+		ui.Checkbox(c, &tree, "Show the file tree")
+		if tree != s.ws.TreeShown() {
+			s.ws.SetTreeShown(tree)
+		}
+		preview := s.ws.PreviewShown()
+		ui.Checkbox(c, &preview, "Show the preview")
+		if preview != s.ws.PreviewShown() {
+			s.ws.SetPreviewShown(preview)
+		}
+	})
 }
 
 // group is one group of settings, with its name above them.

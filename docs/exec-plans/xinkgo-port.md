@@ -132,7 +132,7 @@ Everything passed.
 | T-39 | ✅ | Skills：`internal/skill` 发现与解析（库内 `.xink/skills` + 用户级、同名库内优先、坏文件进 issues）、命令面板入口、AI 条里「using X」可放下、设置里启停 |
 | T-41 | ✅ | 能力清单：领域层 `internal/ai/capability.go`（字典 + 推断 + 生效优先级）+ `probe.go`（`ai.Try` 探针）；设置窗口 `internal/app/settings_ai.go`（模型增删、地址/密钥/协议、能力勾选即 pin、Try it 把实测 `tools_enabled` 写回） |
 
-人工验收登记在 [../ACCEPTANCE.md](../ACCEPTANCE.md)：D1 ~ D7。
+人工验收登记在 [../ACCEPTANCE.md](../ACCEPTANCE.md)：D1 ~ D19 与 E1。
 
 冒烟：`vault open` + `index built`，窗口 ALIVE。
 
