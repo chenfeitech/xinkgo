@@ -245,6 +245,9 @@ func boot(app *mygo.Application) (*appState, error) {
 	// still holds together after.
 	ws.OnSnapshot = st.snapshotNote
 	ws.OnVerify = st.verifyNote
+	// A link that is not a note is opened by the app: it is the app
+	// that knows where the user wants such links to go.
+	ws.OnOpenOutside = st.openOutside
 	ws.Tabs.OnSave = func(path string) {
 		slog.Debug("saved", "path", path)
 	}

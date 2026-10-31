@@ -85,6 +85,10 @@ type Workspace struct {
 	// OnVerify is asked whether a note still holds together after it
 	// has been changed.
 	OnVerify func(text string) []ai.Issue
+	// OnOpenOutside is asked to open a link that is not a note: a page
+	// on the web, in the user's browser or in a window of this app's
+	// own, as the settings say.
+	OnOpenOutside func(url string)
 
 	status      string
 	layoutTimer *time.Timer
@@ -428,12 +432,13 @@ func (w *Workspace) dataBar(
 	})
 }
 
-// previewText is what the preview is given: a note as it is, and a file
-// of data as a block of code, written out evenly when it can be.
+// previewText is what the preview is given: a note as it is, its links
+// in double brackets made into ones that can be clicked, and a file of
+// data as a block of code, written out evenly when it can be.
 func (w *Workspace) previewText(n *OpenNote) string {
 	kind := datafile.KindOf(n.Path)
 	if kind == datafile.None {
-		return n.Note.Text
+		return xmd.Links(n.Note.Text, w.resolveLink)
 	}
 	text := n.Note.Text
 	// A file of megabytes is shown as it stands.
@@ -445,6 +450,15 @@ func (w *Workspace) previewText(n *OpenNote) string {
 		}
 	}
 	return "```" + strings.ToLower(kind.Name()) + "\n" + text + "\n```"
+}
+
+// resolveLink is what a link in double brackets names: the note of the
+// vault, when there is one and only one.
+func (w *Workspace) resolveLink(target string) (string, bool) {
+	if w.Index == nil {
+		return "", false
+	}
+	return w.Index.ResolveOnly(target)
 }
 
 // dataDiagnostics is what the app says of a file of data that is not well
@@ -558,13 +572,21 @@ func (w *Workspace) markdownOptions(
 	return opts
 }
 
-// openLink is what a click in the preview does: another note of the vault
-// is opened here, everything else goes to the browser.
+// openLink is what a click in the preview does: a link in double brackets
+// opens the note it names, a page on the web goes where the user said
+// links should go, and anything else is a file beside the note.
 func (w *Workspace) openLink(url, from string) {
-	if strings.HasPrefix(url, "http://") ||
-		strings.HasPrefix(url, "https://") ||
-		strings.HasPrefix(url, "mailto:") {
-		return // the view opens these itself
+	if target, ok := xmd.WikiTarget(url); ok {
+		w.openWikiLink(target)
+		return
+	}
+	// A page on the web is not opened by the view when the window says
+	// what a click does: it is for the app to open, or for nobody.
+	if outsideLink(url) {
+		if w.OnOpenOutside != nil {
+			w.OnOpenOutside(url)
+		}
+		return
 	}
 	if strings.HasPrefix(url, "#") {
 		return
@@ -576,6 +598,28 @@ func (w *Workspace) openLink(url, from string) {
 	if _, err := w.Tabs.Open(target); err != nil {
 		w.status = "no note at " + PathOf(target)
 	}
+}
+
+// openWikiLink is a click on a link in double brackets: the note it names
+// is opened. It is looked up again now, and not when the note was
+// shown: the vault may have gained the note since.
+func (w *Workspace) openWikiLink(target string) {
+	path, ok := w.resolveLink(target)
+	if !ok {
+		w.status = "no note called " + target
+		return
+	}
+	if _, err := w.Tabs.Open(path); err != nil {
+		w.status = "could not open " + PathOf(path)
+	}
+}
+
+// outsideLink is whether a link is a page on the web or a letter, and so
+// not a file of the vault.
+func outsideLink(url string) bool {
+	return strings.HasPrefix(url, "http://") ||
+		strings.HasPrefix(url, "https://") ||
+		strings.HasPrefix(url, "mailto:")
 }
 
 // statusBar is what the window says about what happened.
