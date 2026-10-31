@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"log/slog"
+	"math"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -30,6 +31,9 @@ var (
 	densities  = []string{
 		config.DensityCompact, config.DensityNormal, config.DensityRelaxed,
 	}
+	outputLanguages = []string{
+		config.OutputAuto, config.OutputZh, config.OutputEn,
+	}
 )
 
 // settings is the window of the settings: a copy of what the user chose,
@@ -41,6 +45,13 @@ type settings struct {
 	size, lineHeight, treeSize float64
 	imageWidth, width, delay   float64
 	indent                     float64
+	// The knobs of asking a model: how long it may take, how often it
+	// is tried again, how much of a note it is shown, and how much a
+	// tool may answer.
+	timeout, firstByte  float64
+	tries, backoff      float64
+	steps               float64
+	ctxChars, toolChars float64
 	// scroll is where the window is scrolled to: there is more in it
 	// than fits.
 	scroll ui.ScrollState
@@ -253,6 +264,13 @@ func (st *settings) read(c *config.AppConfig) {
 	st.width = float64(c.Preview.MaxWidth)
 	st.delay = float64(c.Editor.AutoSaveDelayMs)
 	st.indent = float64(c.Editor.Indent.TabSize)
+	st.timeout = float64(c.Ai.TimeoutSecs)
+	st.firstByte = float64(c.Ai.FirstByteTimeoutSecs)
+	st.tries = float64(c.Ai.Retry.MaxAttempts)
+	st.backoff = float64(c.Ai.Retry.BackoffMs)
+	st.steps = float64(c.Ai.MaxSteps)
+	st.ctxChars = float64(c.Ai.MaxContextChars)
+	st.toolChars = float64(c.Ai.MaxToolChars)
 }
 
 func (st *settings) write(c *config.AppConfig) {
@@ -263,6 +281,19 @@ func (st *settings) write(c *config.AppConfig) {
 	c.Preview.MaxWidth = uint32(st.width)
 	c.Editor.AutoSaveDelayMs = uint64(st.delay)
 	c.Editor.Indent.TabSize = uint32(st.indent)
+	c.Ai.TimeoutSecs = whole(st.timeout)
+	c.Ai.FirstByteTimeoutSecs = whole(st.firstByte)
+	c.Ai.Retry.MaxAttempts = uint8(whole(st.tries))
+	c.Ai.Retry.BackoffMs = whole(st.backoff)
+	c.Ai.MaxSteps = whole(st.steps)
+	c.Ai.MaxContextChars = whole(st.ctxChars)
+	c.Ai.MaxToolChars = whole(st.toolChars)
+}
+
+// whole is a number as a whole one: these settings count in whole
+// seconds, tries and letters, and the nearest one is the one meant.
+func whole(v float64) uint64 {
+	return uint64(math.Round(v))
 }
 
 // window is which of the panels stand: a panel shut is given no width,
@@ -306,5 +337,15 @@ func slider(c *ui.Context, label string, value *float64, lo, hi float64) {
 	ui.Row(c).Children(func() {
 		ui.Text(c, label).Grow(1)
 		ui.Slider(c, value, lo, hi)
+	})
+}
+
+// number is a setting that is a whole number between two of them: it
+// says which it is, and goes up and down one at a time, which a slider
+// does neither of.
+func number(c *ui.Context, label string, value *float64, lo, hi float64) {
+	ui.Row(c).Children(func() {
+		ui.Text(c, label).Grow(1)
+		ui.NumberInput(c, value, lo, hi, 1)
 	})
 }

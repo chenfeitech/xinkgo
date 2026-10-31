@@ -43,6 +43,7 @@ func (s *appState) ai(c *ui.Context) {
 		}
 		s.aiServer(c)
 		s.aiModels(c)
+		s.aiAsking(c)
 		s.aiSkills(c)
 	})
 }
@@ -110,6 +111,11 @@ func (s *appState) aiServer(c *ui.Context) {
 			ui.TextInput(c, &s.draft.cfg.Ai.Ollama.BaseURL).
 				Placeholder("http://localhost:11434")
 		})
+		ui.Row(c).Children(func() {
+			ui.Text(c, "Keep it loaded for").Grow(1)
+			ui.TextInput(c, &s.draft.cfg.Ai.Ollama.KeepAlive).
+				Placeholder("5m")
+		})
 		choice(c, "Ask this one", &s.draft.cfg.Ai.DefaultModel, names)
 		choice(c, "And if it cannot answer",
 			&s.draft.cfg.Ai.FallbackModel, names)
@@ -117,6 +123,39 @@ func (s *appState) aiServer(c *ui.Context) {
 			"Let it look through the vault before it answers")
 		ui.Checkbox(c, &s.draft.cfg.Ai.SkillsEnabled,
 			"Let it use the skills written in the vault")
+	})
+}
+
+// aiAsking is how a question is asked: which tongue the answer comes
+// in, how long it may take, how often it is tried again when it fails,
+// how far the model may go looking through the vault, and how much of a
+// note and of a tool's answer it is shown.
+//
+// Every one of these takes effect when a model is asked, and until now
+// none of them could be reached from this window at all: they lived in
+// `config.json` and nowhere else, which is another way of saying the
+// app had settings the user was not given.
+//
+// The two ends of each are the two ends the settings themselves hold
+// (`AiConfig.Sanitize` clamps to these): a window that offers a number
+// the settings then refuse is a window that lies.
+func (s *appState) aiAsking(c *ui.Context) {
+	group(c, "Asking", func() {
+		choice(c, "Answer in", &s.draft.cfg.Ai.OutputLanguage,
+			outputLanguages)
+		number(c, "How long an answer may take (s)", &s.draft.timeout,
+			5, 600)
+		number(c, "How long before the first of it (s)",
+			&s.draft.firstByte, 5, 600)
+		number(c, "How often it is tried again", &s.draft.tries, 1, 5)
+		number(c, "How long between two tries (ms)", &s.draft.backoff,
+			100, 10_000)
+		number(c, "How far it may go through the vault", &s.draft.steps,
+			1, 64)
+		number(c, "How much of a note it is shown (letters)",
+			&s.draft.ctxChars, 1_000, 200_000)
+		number(c, "How much a tool may answer (letters)",
+			&s.draft.toolChars, 500, 20_000)
 	})
 }
 

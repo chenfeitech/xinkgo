@@ -260,3 +260,56 @@ func idsOf(s *appState) string {
 	}
 	return strings.Join(ids, ",")
 }
+
+// TestSettings_whatTheWindowShowsIsWhatTakesEffect checks the round trip
+// of the knobs of asking: a window that shows one number and sets
+// another is worse than a window with no knob at all.
+func TestSettings_whatTheWindowShowsIsWhatTakesEffect(t *testing.T) {
+	st := &settings{cfg: config.Default()}
+	st.read(&st.cfg)
+	if st.timeout != 60 || st.firstByte != 30 || st.tries != 3 ||
+		st.backoff != 500 || st.steps != 8 || st.ctxChars != 12_000 ||
+		st.toolChars != 4_000 {
+		t.Fatalf("read = %v %v %v %v %v %v %v, want the defaults",
+			st.timeout, st.firstByte, st.tries, st.backoff, st.steps,
+			st.ctxChars, st.toolChars)
+	}
+	// They count in whole numbers: the nearest one is the one meant.
+	st.timeout = 89.6
+	st.tries = 2
+	st.ctxChars = 20_000
+	st.write(&st.cfg)
+	if st.cfg.Ai.TimeoutSecs != 90 {
+		t.Fatalf("timeout = %d, want 90", st.cfg.Ai.TimeoutSecs)
+	}
+	if st.cfg.Ai.Retry.MaxAttempts != 2 {
+		t.Fatalf("tries = %d, want 2", st.cfg.Ai.Retry.MaxAttempts)
+	}
+	if st.cfg.Ai.MaxContextChars != 20_000 {
+		t.Fatalf("context = %d, want 20000", st.cfg.Ai.MaxContextChars)
+	}
+	// What the window offers is what the settings keep: nothing here
+	// is clamped away behind the user's back.
+	st.cfg.Sanitize()
+	if st.cfg.Ai.TimeoutSecs != 90 || st.cfg.Ai.MaxContextChars !=
+		20_000 {
+		t.Fatalf("sanitized = %d %d, want them kept",
+			st.cfg.Ai.TimeoutSecs, st.cfg.Ai.MaxContextChars)
+	}
+}
+
+// TestWhole_theNearestOneIsMeant checks that a number between two whole
+// ones is not quietly brought down to the one below it.
+func TestWhole_theNearestOneIsMeant(t *testing.T) {
+	cases := map[float64]uint64{
+		89.6: 90,
+		89.4: 89,
+		0.4:  0,
+		2.5:  3,
+	}
+	for in, want := range cases {
+		if got := whole(in); got != want {
+			t.Errorf("whole(%v) = %d, want %d", in, got, want)
+		}
+	}
+}
