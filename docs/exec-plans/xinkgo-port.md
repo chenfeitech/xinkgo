@@ -123,6 +123,11 @@ Everything passed.
 |---|---|---|
 | T-33 | ✅ | `internal/ai`：Provider 抽象 + 分帧 + 重试与备用模型 |
 | T-34 | ✅ | `internal/ai`：流式事件解析（Delta/Thinking/ToolCall/Usage/Truncated/Done/Failed） |
+| T-35 | ✅ | AI 对话条 UI（`internal/view/ai_bar.go` + `markdown.Stream`）+ app 侧提问接线 |
+
+人工验收登记在 [../ACCEPTANCE.md](../ACCEPTANCE.md)：D1 ~ D7。
+
+冒烟：`vault open` + `index built`，窗口 ALIVE。
 
 最后一次 `scripts/check.sh`：
 

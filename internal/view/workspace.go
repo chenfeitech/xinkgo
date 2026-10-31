@@ -1,6 +1,7 @@
 package view
 
 import (
+	"context"
 	"path/filepath"
 	"strings"
 	"time"
@@ -8,6 +9,7 @@ import (
 	"github.com/egoist/mygo/ui"
 	"github.com/egoist/mygo/ui/editor"
 	"github.com/egoist/mygo/ui/markdown"
+	"github.com/helightxu/xinkgo/internal/ai"
 	"github.com/helightxu/xinkgo/internal/config"
 	"github.com/helightxu/xinkgo/internal/datafile"
 	"github.com/helightxu/xinkgo/internal/highlight"
@@ -55,6 +57,11 @@ type Workspace struct {
 	// OnLayoutChanged is called when the panels have been dragged to
 	// another width, so that the app can write it down.
 	OnLayoutChanged func()
+	// OnAsk is the app asking a model: it is given all that has been
+	// said, and gives back what the model answers, a piece at a time.
+	OnAsk func(
+		ctx context.Context, messages []ai.Message,
+	) (<-chan ai.Event, error)
 
 	status      string
 	layoutTimer *time.Timer
@@ -104,6 +111,11 @@ type Workspace struct {
 	completeOpen   bool
 	completeStart  int
 	completeChosen int
+
+	// ai is what has been said to a model, one conversation to a note.
+	// It is kept here, and not in the note: a note is what stands on
+	// the disk, and this is what was said about it.
+	ai map[string]*aiSession
 }
 
 // codeTheme is the colors code is painted in: one theme for the editor
@@ -239,6 +251,7 @@ func (w *Workspace) center(c *ui.Context) {
 		w.tabBar(c)
 		w.toolbar(c)
 		w.editor(c)
+		w.aiBar(c)
 	})
 }
 

@@ -86,6 +86,12 @@ func mainMenu(bound []keymap.Resolved, vaults vault.Registry) *mygo.Menu {
 						current.ws.OpenSearch()
 					}
 				}},
+			{Label: "Ask AI", Accelerator: key("ToggleAiChat"),
+				Click: func(*mygo.MenuItem, *mygo.Window) {
+					if current != nil {
+						current.ws.ToggleAI()
+					}
+				}},
 			{Label: "Settings…", Accelerator: "CmdOrCtrl+,",
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current != nil {

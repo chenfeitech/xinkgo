@@ -203,6 +203,9 @@ func boot(app *mygo.Application) (*appState, error) {
 	// The widths of the panels are written once a drag has settled, and
 	// not once a frame while it goes on.
 	ws.OnLayoutChanged = st.saveLayout
+	// What the window asks of a model goes through the app: it is the
+	// app that knows which model the settings name.
+	ws.OnAsk = st.ask
 	ws.Tabs.OnSave = func(path string) {
 		slog.Debug("saved", "path", path)
 	}
