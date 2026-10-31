@@ -83,11 +83,16 @@ type Endpoint struct {
 }
 
 // NewEndpoint is the endpoint of a model the settings hold.
+//
+// The key the user wrote is one of them: an endpoint that asks for one
+// is asked as them, or not at all. It is trimmed, for a newline pasted
+// with a key is no part of any key.
 func NewEndpoint(m config.ModelEntry, cfg config.AiConfig) Endpoint {
 	e := Endpoint{
 		Kind:    m.Kind,
 		BaseURL: strings.TrimRight(m.BaseURL, "/"),
 		Model:   m.ID,
+		APIKey:  strings.TrimSpace(m.PlainKey),
 		Params: Params{
 			Temperature: m.Params.Temperature,
 			NumPredict:  m.Params.NumPredict,

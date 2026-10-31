@@ -119,6 +119,56 @@ func TestNewEndpoint_theModelsOwnIsKept(t *testing.T) {
 	}
 }
 
+// TestNewEndpoint_theKeyTheUserWroteIsSent checks the one thing a key is
+// for: it goes out with the asking. A key that is written in the settings
+// and then left behind is no key at all — the endpoint answers as nobody.
+func TestNewEndpoint_theKeyTheUserWroteIsSent(t *testing.T) {
+	cfg := config.DefaultAi()
+	e := NewEndpoint(config.ModelEntry{
+		ID: "gpt", Kind: config.ModelOpenAICompatible, Enabled: true,
+		BaseURL:  "https://api.example.com/v1",
+		PlainKey: " sk-one\n",
+	}, cfg)
+	if e.APIKey != "sk-one" {
+		t.Fatalf("key = %q, want what was written and no more", e.APIKey)
+	}
+	// One that has no key asks as nobody, and no header is made of it.
+	bare := NewEndpoint(config.ModelEntry{
+		ID: "local", Kind: config.ModelOllama, Enabled: true,
+	}, cfg)
+	if bare.APIKey != "" {
+		t.Fatalf("key = %q, want none", bare.APIKey)
+	}
+}
+
+// TestOpenAIStream_theKeyGoesOutWithTheAsking checks that what the
+// endpoint was given is what goes on the wire: without it a cloud answers
+// 401, or as somebody else.
+func TestOpenAIStream_theKeyGoesOutWithTheAsking(t *testing.T) {
+	var got string
+	server := httptest.NewServer(http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			got = r.Header.Get("Authorization")
+			w.Header().Set("Content-Type", "text/event-stream")
+			_, _ = w.Write([]byte("data: {\"choices\":[]}\n\n"))
+			_, _ = w.Write([]byte("data: [DONE]\n\n"))
+		}))
+	defer server.Close()
+	p := openAI{Endpoint{
+		Kind:    config.ModelOpenAICompatible,
+		BaseURL: server.URL, Model: "gpt", APIKey: "sk-one",
+	}}
+	pieces, err := p.Stream(context.Background(), Request{})
+	if err != nil {
+		t.Fatalf("stream: %v", err)
+	}
+	for range pieces {
+	}
+	if got != "Bearer sk-one" {
+		t.Fatalf("authorization = %q, want the key sent", got)
+	}
+}
+
 func TestOllamaStream_eachLineComesOnItsOwn(t *testing.T) {
 	ctx := uint32(8192)
 	var got map[string]any
