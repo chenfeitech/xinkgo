@@ -34,6 +34,10 @@ type aiBlock struct {
 	Cut bool
 	// Failed is what went wrong, when something did.
 	Failed string
+	// Tool is what the tools came back with on the way to this answer:
+	// the same words the model was given, so that what it read before
+	// answering can be seen.
+	Tool []ai.Result
 }
 
 // aiSession is one note's conversation with a model. It belongs to the
@@ -189,6 +193,13 @@ func (w *Workspace) aiSaid(
 			ui.Text(c, b.Thinking).FontSize(12).
 				TextColor(c.Theme().TextMuted)
 		}
+		// What the tools came back with on the way to this answer:
+		// the same words the model was given, so that what it read
+		// before answering can be seen.
+		for _, got := range b.Tool {
+			ui.Text(c, got.Name+" → "+oneLine(got.Output)).
+				FontSize(11).TextColor(c.Theme().TextMuted)
+		}
 		if b.Text != "" {
 			if coming || !b.Over {
 				markdown.Stream(c, b.Text, opts)
@@ -215,6 +226,17 @@ func (w *Workspace) aiSaid(
 			}
 		}
 	})
+}
+
+// oneLine is a tool's answer on one line: what a tool finds may be many
+// lines long, and it is only being pointed at here, not read.
+func oneLine(text string) string {
+	flat := strings.TrimSpace(strings.Join(strings.Fields(text), " "))
+	runes := []rune(flat)
+	if len(runes) > 120 {
+		return string(runes[:120]) + "…"
+	}
+	return flat
 }
 
 // aiCompose is the place to ask: the words to be asked, and the way to
@@ -299,6 +321,8 @@ func (w *Workspace) aiHear(
 				b.Thinking += event.Text
 			case ai.EventTruncated:
 				b.Cut = true
+			case ai.EventToolResult:
+				b.Tool = append(b.Tool, event.Result)
 			case ai.EventFailed:
 				b.Failed = event.Err.Error()
 				b.Over = true

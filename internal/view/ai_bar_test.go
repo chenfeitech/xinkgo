@@ -410,6 +410,51 @@ func TestAiForget_theNoteIsTakenOutOfTheBook(t *testing.T) {
 	}
 }
 
+// TestAiHear_whatTheToolsFoundIsKeptOnTheBlock checks that what a tool
+// came back with on the way to the answer is kept with it, so that what
+// the model read before answering can be seen.
+func TestAiHear_whatTheToolsFoundIsKeptOnTheBlock(t *testing.T) {
+	w, s, events := answered(t)
+	s.Input = "what does a.md say"
+	w.aiAsk(w.Tabs.ActiveNote(), s)
+	events <- ai.Found(ai.Result{
+		Name: "read_note", Output: "the note says: hello\nand more",
+	})
+	events <- ai.Delta("it says hello")
+	events <- ai.Done()
+	close(events)
+	settle(t, s)
+
+	blocks := s.blocks()
+	if len(blocks) != 2 {
+		t.Fatalf("blocks = %v", len(blocks))
+	}
+	if len(blocks[1].Tool) != 1 {
+		t.Fatalf("tool = %v, want the one thing found", blocks[1].Tool)
+	}
+	if blocks[1].Tool[0].Name != "read_note" {
+		t.Fatalf("name = %q", blocks[1].Tool[0].Name)
+	}
+	// What a tool found is not what was said, and is not kept as an
+	// answer would be.
+	if blocks[1].Text != "it says hello" {
+		t.Fatalf("text = %q, want only the answer", blocks[1].Text)
+	}
+}
+
+// TestOneLine_aToolAnswerIsPointedAtAndNotRead checks that many lines
+// come out as one short one.
+func TestOneLine_aToolAnswerIsPointedAtAndNotRead(t *testing.T) {
+	got := oneLine("one\ntwo   three\n\nfour")
+	if got != "one two three four" {
+		t.Fatalf("oneLine = %q", got)
+	}
+	if got := oneLine(strings.Repeat("字", 200)); len([]rune(got)) > 121 {
+		t.Fatalf("oneLine is %d characters, want it cut short",
+			len([]rune(got)))
+	}
+}
+
 // TestAiStop_theAnswerIsLetGo checks that stopping cancels the asking,
 // and keeps what had been said by then.
 func TestAiStop_theAnswerIsLetGo(t *testing.T) {

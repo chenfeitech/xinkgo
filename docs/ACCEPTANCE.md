@@ -78,6 +78,8 @@
 | D12 | Skills | 在库里建 `.xink/skills/demo/SKILL.md`（`---` + `name:` + `description:` + `---` + 正文），再打开设置 | 设置 ▸ AI ▸ Skills 列出 demo（标「库内」），可勾选停用；库外 `~/Library/Application Support/Xinkgo/skills/<name>/` 的标「用户级」；同名时**库内优先** |
 | D13 | Skills 入口 | Cmd+P 打 skill 名字 | 出现 `Skill · demo — <description>`；回车后对话条打开并显示 using demo，下一次提问会把 skill 正文一起发给模型；点 Put it down 后不再带 |
 | D14 | Skills 坏文件 | 写一个缺 `description` 的 SKILL.md | 设置里列出路径 + 原因（「缺少 description」等），**不**静默消失 |
+| D15 | 让它先查库 | 设置 ▸ AI 勾「Let it look through the vault」，先给模型点 Try it（把 `tools_enabled` 勾上），再问"库里有什么" | 对话里出现 `read_note → …` / `search_notes → …` 之类的小字，然后才是答案；走满步数时提示「走了太多步…」 |
+| D16 | 工具只读 | 让模型去读 `../../` 外面的文件 | 回灌「不允许…」/「读不到…」，**不会**把库外文件内容发给模型 |
 
 ## 已自动化、不必人验的
 

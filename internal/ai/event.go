@@ -12,6 +12,9 @@ const (
 	EventThinking
 	// EventToolCall is the model asking for a tool to be run.
 	EventToolCall
+	// EventToolResult is what a tool came back with, after the model
+	// asked for it: the same words that are handed back to the model.
+	EventToolResult
 	// EventUsage is what the answer cost.
 	EventUsage
 	// EventTruncated is a model that ran out of budget and stopped: it
@@ -34,6 +37,8 @@ func (k EventKind) String() string {
 		return "thinking"
 	case EventToolCall:
 		return "tool call"
+	case EventToolResult:
+		return "tool result"
 	case EventUsage:
 		return "usage"
 	case EventTruncated:
@@ -54,6 +59,8 @@ type Event struct {
 	Text string
 	// Call is the tool the model asks for.
 	Call ToolCall
+	// Result is what a tool came back with.
+	Result Result
 	// Used is what the answer cost.
 	Used Usage
 	// Err is what went wrong.
@@ -73,6 +80,11 @@ func Thinking(text string) Event {
 // Called is the model asking for a tool.
 func Called(call ToolCall) Event {
 	return Event{Kind: EventToolCall, Call: call}
+}
+
+// Found is what a tool came back with.
+func Found(result Result) Event {
+	return Event{Kind: EventToolResult, Result: result}
 }
 
 // Used is what the answer cost.

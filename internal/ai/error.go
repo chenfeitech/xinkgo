@@ -22,6 +22,10 @@ var (
 	ErrEmptyResult = errors.New("模型没有返回正文（可能是思考占用了全部预算）" +
 		"：请重试或关闭「思考」")
 	ErrCanceled = errors.New("已取消")
+	// ErrSteps is a model that kept reaching for tools and never came
+	// to an answer.
+	ErrSteps = errors.New("走了太多步还没有给出答案：可以在设置里调大步数" +
+		"上限，或关掉「让它先查库」")
 	// ErrSilent is a model that was asked and said nothing at all, not
 	// even a first word, before it was given up on.
 	ErrSilent = errors.New("the model said nothing")

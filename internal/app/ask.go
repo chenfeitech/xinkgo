@@ -28,7 +28,7 @@ func (s *appState) ask(
 		return nil, ai.ErrNoModel
 	}
 	endpoint := ai.NewEndpoint(model, cfg)
-	pieces, err := ai.Ask(ctx, cfg, endpoint, ai.Request{
+	req := ai.Request{
 		Model:    model.ID,
 		Messages: messages,
 		Params: ai.Params{
@@ -37,7 +37,22 @@ func (s *appState) ask(
 			NumCtx:      model.Params.NumCtx,
 			Think:       model.Params.Think,
 		},
-	})
+	}
+	// Tools, when the model is one that has been found to call them,
+	// and the user has said it may look through the vault first.
+	if cfg.Agentic && model.ToolsEnabled {
+		req.Tools = ai.Specs(cfg.SkillsEnabled)
+	}
+	if len(req.Tools) > 0 {
+		// With tools it may reach for, one asking is not the whole of
+		// it: what it finds is given back, and it is asked again.
+		steps := int(cfg.MaxSteps)
+		if steps <= 0 {
+			steps = 1
+		}
+		return ai.Loop(ctx, cfg, endpoint, s.host(), req, steps), nil
+	}
+	pieces, err := ai.Ask(ctx, cfg, endpoint, req)
 	if err != nil {
 		return nil, err
 	}
