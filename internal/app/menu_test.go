@@ -27,15 +27,22 @@ func itemIn(m *mygo.Menu, menu, label string) (*mygo.MenuItem, bool) {
 	return nil, false
 }
 
-// TestMainMenu_theSettingsAreInTheMenu checks the way to the settings a
-// user is given: in the application's own menu, as on macOS, and in the
-// File menu, which is the one that stands elsewhere.
-func TestMainMenu_theSettingsAreInTheMenu(t *testing.T) {
+// TestMainMenu_theSettingsStandInOneMenu checks the way to the settings a
+// user is given: one menu carries them, and not two — the
+// application's own menu, as on macOS, or the File menu's item, which is
+// the one that stands where that menu is not shown.
+func TestMainMenu_theSettingsStandInOneMenu(t *testing.T) {
 	m := mainMenu(keymap.Resolve(nil), vault.Registry{})
+	shown := 0
 	for _, menu := range []string{"app", "File"} {
-		if _, ok := itemIn(m, menu, "Settings…"); !ok {
-			t.Errorf("the %s menu has no way to the settings", menu)
+		it, ok := itemIn(m, menu, "Settings…")
+		if !ok || it.Hidden {
+			continue
 		}
+		shown++
+	}
+	if shown != 1 {
+		t.Errorf("the settings stand in %d menus, want one", shown)
 	}
 }
 

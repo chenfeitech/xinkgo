@@ -392,7 +392,7 @@ func (s *appState) switchVault(path string) {
 // and the appearance is set as it was chosen.
 func (s *appState) applyConfig() {
 	s.ws.Config = s.config
-	mygo.Theme.SetSource(mygo.ThemeSource(s.config.Basic.Theme))
+	s.setAppearance()
 	// Saving as the user types, after the pause they chose.
 	s.ws.Tabs.AutoSave = s.config.Editor.AutoSave
 	s.ws.Tabs.AutoSaveDelay = time.Duration(
@@ -412,6 +412,17 @@ func (s *appState) applyConfig() {
 	s.refreshMenu()
 }
 
+// setAppearance is the app told how things are to look, as the user
+// chose or as the desktop has it. It is the app's to tell while it runs:
+// a test, or anything else that asks before the loop is up, would wait
+// for a loop that is not there.
+func (s *appState) setAppearance() {
+	if !mygo.App.IsReady() {
+		return
+	}
+	mygo.Theme.SetSource(mygo.ThemeSource(s.config.Basic.Theme))
+}
+
 // toggleTheme is the appearance turned the other way: light into dark and
 // dark into light. Following the machine is a light appearance until the
 // user says otherwise, so that turning once is a thing that shows.
@@ -422,7 +433,7 @@ func (s *appState) toggleTheme() {
 	}
 	s.config.Basic.Theme = next
 	s.ws.Config = s.config
-	mygo.Theme.SetSource(mygo.ThemeSource(next))
+	s.setAppearance()
 	if err := s.config.Save(s.dir); err != nil {
 		slog.Warn("the choice could not be written", "err", err)
 	}

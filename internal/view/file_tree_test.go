@@ -235,3 +235,33 @@ func TestSidebar_theSettingsStandAtTheFootOfThePanel(t *testing.T) {
 		t.Errorf("opened %d times, want once", opened)
 	}
 }
+
+// TestSidebar_theFootStandsOnce checks that the way to the settings is
+// drawn once and not twice, which it would be if the tree drew its foot
+// and the panel drew one of its own under it.
+func TestSidebar_theFootStandsOnce(t *testing.T) {
+	w := NewWorkspace(config.Default())
+	w.Tree.SetRoot(treeRoot())
+	w.Tree.OnOpenSettings = func() {}
+	tt := ui.NewTester(func(c *ui.Context) {
+		ui.Column(c).Fill().Children(func() {
+			ui.Row(c).Fill().Children(func() { w.sidebar(c) })
+		})
+	}, 260, 600)
+	// One foot says the word twice: once as the button's own label,
+	// once as the words beside the gear.
+	if n := countOf(tt.Texts(), "Settings"); n != 2 {
+		t.Errorf("the foot stands %d times, want once", n/2)
+	}
+}
+
+// countOf is how many times the list says this.
+func countOf(list []string, want string) int {
+	n := 0
+	for _, one := range list {
+		if one == want {
+			n++
+		}
+	}
+	return n
+}

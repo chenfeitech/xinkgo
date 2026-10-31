@@ -337,12 +337,13 @@ func (w *Workspace) sidebar(c *ui.Context) {
 					}
 				}
 			})
-		} else {
-			w.Tree.View(c)
+			// A tree that is not drawn draws no foot of its own: the
+			// panel's foot is the one that stands, so that the way to
+			// the settings is there before a vault is opened too.
+			w.Tree.footer(c)
+			return
 		}
-		// The way to the settings stands at the foot of the panel: a
-		// vault that has not been opened yet is no reason to hide it.
-		w.Tree.footer(c)
+		w.Tree.View(c)
 	})
 }
 

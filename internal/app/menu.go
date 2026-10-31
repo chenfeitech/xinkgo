@@ -32,9 +32,10 @@ func mainMenu(bound []keymap.Resolved, vaults vault.Registry) *mygo.Menu {
 			current.openSettings()
 		}
 	}
-	// On macOS the settings belong to the application's own menu, and
-	// the File menu's stand without the key: one key bound to two
-	// items is a key that may not come through at all.
+	// One menu carries the settings, and not two: on macOS that is the
+	// application's own menu, where a Mac looks for them, and elsewhere
+	// the File menu's item is the one that stands, for the
+	// application's menu is not shown there at all.
 	fileSettingsKey := settingsKey
 	if isMacOS() {
 		fileSettingsKey = ""
@@ -128,7 +129,7 @@ func mainMenu(bound []keymap.Resolved, vaults vault.Registry) *mygo.Menu {
 					}
 				}},
 			{Label: "Settings…", Accelerator: fileSettingsKey,
-				Click: openSettings},
+				Hidden: isMacOS(), Click: openSettings},
 			{Label: "Library tasks…",
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current != nil {
