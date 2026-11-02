@@ -275,29 +275,50 @@ func oneLine(text string) string {
 
 // aiCompose is the place to ask: which model is asked, the words to be
 // asked, and the way to ask them — or to stop the answer that is coming.
+//
+// The quick words stand in a row of their own above it, one press away;
+// a slash typed into the place to ask picks among them as it is typed.
 func (w *Workspace) aiCompose(c *ui.Context, s *aiSession, n *OpenNote) {
-	ui.Row(c).Gap(6).Children(func() {
-		w.aiModelPick(c, s)
-		field := ui.TextInput(c.Key("ai-input"), &s.Input).Grow(1)
-		if s.focus {
-			field.Focus()
-			s.focus = false
-		}
-		if s.isBusy() {
-			if ui.Button(c.Key("ai-stop"), locale.AiStop()).
-				Label(locale.AiStopLabel()).Clicked() {
-				w.aiStop(s)
+	word, extra, typing := wordBeingTyped(s.Input)
+	items := w.quickWords(word)
+	// A word typed anew is a choice anew: what the keys were on is let
+	// go of as soon as the letters change.
+	if word != w.quickQuery {
+		w.quickQuery, w.quickChosen = word, 0
+	}
+	if w.quickChosen >= len(items) {
+		w.quickChosen = 0
+	}
+	ui.Column(c).Gap(6).Children(func() {
+		w.quickStrip(c, s, n, items, extra, typing)
+		ui.Row(c).Gap(6).Children(func() {
+			w.aiModelPick(c, s)
+			field := ui.TextInput(c.Key("ai-input"), &s.Input).Grow(1)
+			if s.focus {
+				field.Focus()
+				s.focus = false
 			}
-			return
-		}
-		if field.Submitted() {
-			w.aiAsk(n, s)
-			return
-		}
-		if ui.Button(c.Key("ai-send"), locale.AiAsk()).
-			Label(locale.AiAskLabel()).Clicked() {
-			w.aiAsk(n, s)
-		}
+			// A word being typed is a word, and not a question:
+			// Enter asks what that word asks, and not the letters.
+			if w.quickKeys(c, s, n, field, items, extra, typing) {
+				return
+			}
+			if s.isBusy() {
+				if ui.Button(c.Key("ai-stop"), locale.AiStop()).
+					Label(locale.AiStopLabel()).Clicked() {
+					w.aiStop(s)
+				}
+				return
+			}
+			if field.Submitted() {
+				w.aiAsk(n, s)
+				return
+			}
+			if ui.Button(c.Key("ai-send"), locale.AiAsk()).
+				Label(locale.AiAskLabel()).Clicked() {
+				w.aiAsk(n, s)
+			}
+		})
 	})
 }
 
@@ -395,6 +416,12 @@ func (w *Workspace) runAction(a config.AiAction) {
 	s := w.aiOf(n.Path)
 	if s.isBusy() {
 		w.status = locale.StatusStillAnswering()
+		return
+	}
+	// A word that was given nothing to ask asks nothing at all: the
+	// note is left as it is, and the user is told where to write it.
+	if strings.TrimSpace(a.Prompt) == "" {
+		w.status = locale.StatusQuickNoPrompt(a.Name)
 		return
 	}
 	piece, from, to, part := pieceOf(n, a)

@@ -1,6 +1,9 @@
 package config
 
-import "strings"
+import (
+	"strings"
+	"unicode"
+)
 
 // Model kinds, and where a model's key comes from.
 const (
@@ -23,6 +26,7 @@ const (
 	maxActions             = 32
 	maxActionNameLen       = 32
 	maxActionPromptLen     = 2000
+	maxTriggerLen          = 24
 	actionPolish           = "polish"
 	actionCondense         = "condense"
 	actionTranslate        = "translate"
@@ -167,15 +171,36 @@ func DefaultModelParams() AiModelParams {
 	}
 }
 
-// AiAction is a shortcut the user runs on a note or a selection.
+// AiAction is a shortcut the user runs on a note or a selection: a word
+// of its own, and what that word asks of the model at length.
+//
+// Trigger is the word it is run by, typed after a slash in the place to
+// ask; Name is what it is called where it is shown and set. They need
+// not be the same: a word is typed often and is short, and what a list
+// of them says may be longer and in the tongue the app shows. A trigger
+// the user gave none of falls back to the name, and one no name was
+// given to the ID, so that there is always a word to run it by.
 type AiAction struct {
-	ID     string  `json:"id"`
-	Name   string  `json:"name"`
-	Prompt string  `json:"prompt"`
-	Scope  string  `json:"scope"`
-	Apply  string  `json:"apply"`
-	Enable bool    `json:"enabled"`
-	Model  *string `json:"model,omitempty"`
+	ID      string  `json:"id"`
+	Name    string  `json:"name"`
+	Trigger string  `json:"trigger,omitempty"`
+	Prompt  string  `json:"prompt"`
+	Scope   string  `json:"scope"`
+	Apply   string  `json:"apply"`
+	Enable  bool    `json:"enabled"`
+	Model   *string `json:"model,omitempty"`
+}
+
+// Word is what the user types to run it: the trigger they gave it, and
+// its name or its ID when they gave it none.
+func (a AiAction) Word() string {
+	if strings.TrimSpace(a.Trigger) != "" {
+		return strings.TrimSpace(a.Trigger)
+	}
+	if strings.TrimSpace(a.Name) != "" {
+		return strings.TrimSpace(a.Name)
+	}
+	return a.ID
 }
 
 // DefaultAi returns the AI settings of a first start: disabled, with the
@@ -408,6 +433,11 @@ func (m *ModelEntry) sanitizeParams(ollamaCtx uint32) {
 func (a *AiConfig) sanitizeActions() {
 	actions := make([]AiAction, 0, len(a.Actions))
 	seen := map[string]bool{}
+	// Two words run by the same word is one of them that cannot be
+	// told from the other, so a trigger already taken is not taken
+	// again: the one after it falls back to the name it is called, and
+	// to its ID when that is taken too.
+	seenTriggers := map[string]bool{}
 	for i := range a.Actions {
 		act := a.Actions[i]
 		act.ID = strings.TrimSpace(act.ID)
@@ -419,6 +449,7 @@ func (a *AiConfig) sanitizeActions() {
 			act.Name = act.ID
 		}
 		act.Prompt = truncate(strings.TrimSpace(act.Prompt), maxActionPromptLen)
+		act.Trigger = triggerOf(act, seenTriggers)
 		if !oneOf(act.Scope, ActionScopeSelection, ActionScopeWhole) {
 			act.Scope = ActionScopeSelection
 		}
@@ -432,6 +463,44 @@ func (a *AiConfig) sanitizeActions() {
 		actions = actions[:maxActions]
 	}
 	a.Actions = actions
+}
+
+// triggerOf is the word an action is run by: the one the user gave it,
+// made into one word — no slash, no spaces, and in small letters, for
+// that is how it is typed — and the name it is called, or its ID, when
+// they gave it none or when the word is one another action already
+// answers to.
+func triggerOf(act AiAction, taken map[string]bool) string {
+	for _, word := range []string{
+		oneWord(act.Trigger), oneWord(act.Name), oneWord(act.ID),
+	} {
+		if word == "" || taken[word] {
+			continue
+		}
+		taken[word] = true
+		return word
+	}
+	return ""
+}
+
+// oneWord is a word made of what the user wrote: without the slash that
+// runs it, without spaces, and in small letters. It is what is kept, and
+// it is never empty unless what was written was nothing at all.
+func oneWord(s string) string {
+	s = strings.ToLower(strings.TrimSpace(s))
+	s = strings.Map(func(r rune) rune {
+		if r == '/' || unicode.IsSpace(r) {
+			return -1
+		}
+		return r
+	}, s)
+	// The cut is by letters and not by bytes: a letter of a tongue
+	// written in more than one byte is one letter.
+	runes := []rune(s)
+	if len(runes) > maxTriggerLen {
+		return string(runes[:maxTriggerLen])
+	}
+	return s
 }
 
 func truncate(s string, n int) string {

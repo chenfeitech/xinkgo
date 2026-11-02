@@ -191,6 +191,11 @@ type Workspace struct {
 	// followed, a note found in the palette, or the notes of the last
 	// run come back.
 	treeFollowed string
+	// The quick words of the place to ask: what was typed into it after
+	// a slash, as it was when the keys were last taken, and which of
+	// the words the keys are on.
+	quickQuery  string
+	quickChosen int
 
 	// The completion of a link: whether it is open, where the brackets
 	// stand, and which of the names offered is chosen.

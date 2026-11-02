@@ -73,6 +73,7 @@ func (s *appState) ai(c *ui.Context) {
 	s.aiOther(c)
 	s.aiWhich(c)
 	s.aiAsking(c)
+	s.aiQuickWords(c)
 	s.aiSkills(c)
 }
 
@@ -175,7 +176,7 @@ func (s *appState) aiOllamaModel(c *ui.Context, m ai.OllamaModel) {
 	on := was
 	st := s.draft.stateOf(m.Name)
 	asked := s.draft.cfg.Ai.DefaultModel == m.Name
-	modelRow(c, func() {
+	aiRow(c, func() {
 		ui.Row(c).FillWidth().Gap(th.Space(3)).AlignItems(ui.Center).
 			Children(func() {
 				ui.Checkbox(c, &on, m.Name).Grow(1)
@@ -267,7 +268,7 @@ func (s *appState) aiOtherModel(c *ui.Context, at int, first, last bool) {
 	th := c.Theme()
 	m := &s.draft.cfg.Ai.Models[at]
 	st := s.draft.stateOf(m.ID)
-	modelRow(c, func() {
+	aiRow(c, func() {
 		ui.Row(c).FillWidth().Gap(th.Space(3)).AlignItems(ui.Center).
 			Children(func() {
 				ui.Checkbox(c, &m.Enabled, locale.AiModelEnabled())
@@ -845,10 +846,10 @@ func (s *appState) listWhatItHolds(id string) {
 	}()
 }
 
-// modelRow is one model's row: what it is on the near side, what may be
-// done with it on the far side, and a line under it setting it apart from
-// the row below, as the other settings rows have.
-func modelRow(c *ui.Context, fn func()) {
+// aiRow is one row of the AI's settings: what it is on the near side,
+// what may be done with it on the far side, and a line under it setting
+// it apart from the row below, as the other settings rows have.
+func aiRow(c *ui.Context, fn func()) {
 	th := c.Theme()
 	ui.Column(c).FillWidth().Children(func() {
 		ui.Column(c).FillWidth().Gap(th.Space(1)).

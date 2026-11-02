@@ -3424,6 +3424,296 @@ func (msgs Messages) AiModelsAdd() string {
 	return Catalog.Format(msgs.locale, "aiModelsAdd", nil)
 }
 
+// AiQuickGroup says "Quick words"
+// in the language the app shows.
+func AiQuickGroup() string { return In(i18n.Locale()).AiQuickGroup() }
+
+// AiQuickGroup says "Quick words"
+// in the language of msgs.
+func (msgs Messages) AiQuickGroup() string {
+	return Catalog.Format(msgs.locale, "aiQuickGroup", nil)
+}
+
+// AiQuickGroupNote says "A word stands for something you ask a model to do to a note often. They stand in a row above the place to ask: press one, or type / and then the word."
+// in the language the app shows.
+func AiQuickGroupNote() string { return In(i18n.Locale()).AiQuickGroupNote() }
+
+// AiQuickGroupNote says "A word stands for something you ask a model to do to a note often. They stand in a row above the place to ask: press one, or type / and then the word."
+// in the language of msgs.
+func (msgs Messages) AiQuickGroupNote() string {
+	return Catalog.Format(msgs.locale, "aiQuickGroupNote", nil)
+}
+
+// AiQuick says "Quick words"
+// in the language the app shows.
+func AiQuick() string { return In(i18n.Locale()).AiQuick() }
+
+// AiQuick says "Quick words"
+// in the language of msgs.
+func (msgs Messages) AiQuick() string {
+	return Catalog.Format(msgs.locale, "aiQuick", nil)
+}
+
+// AiQuickWord says "Word"
+// in the language the app shows.
+func AiQuickWord() string { return In(i18n.Locale()).AiQuickWord() }
+
+// AiQuickWord says "Word"
+// in the language of msgs.
+func (msgs Messages) AiQuickWord() string {
+	return Catalog.Format(msgs.locale, "aiQuickWord", nil)
+}
+
+// AiQuickWordNote says "What it is called where the words are listed"
+// in the language the app shows.
+func AiQuickWordNote() string { return In(i18n.Locale()).AiQuickWordNote() }
+
+// AiQuickWordNote says "What it is called where the words are listed"
+// in the language of msgs.
+func (msgs Messages) AiQuickWordNote() string {
+	return Catalog.Format(msgs.locale, "aiQuickWordNote", nil)
+}
+
+// AiQuickTyped says "Typed as"
+// in the language the app shows.
+func AiQuickTyped() string { return In(i18n.Locale()).AiQuickTyped() }
+
+// AiQuickTyped says "Typed as"
+// in the language of msgs.
+func (msgs Messages) AiQuickTyped() string {
+	return Catalog.Format(msgs.locale, "aiQuickTyped", nil)
+}
+
+// AiQuickTypedNote says "What is typed after / to run it"
+// in the language the app shows.
+func AiQuickTypedNote() string { return In(i18n.Locale()).AiQuickTypedNote() }
+
+// AiQuickTypedNote says "What is typed after / to run it"
+// in the language of msgs.
+func (msgs Messages) AiQuickTypedNote() string {
+	return Catalog.Format(msgs.locale, "aiQuickTypedNote", nil)
+}
+
+// AiQuickPrompt says "What it asks"
+// in the language the app shows.
+func AiQuickPrompt() string { return In(i18n.Locale()).AiQuickPrompt() }
+
+// AiQuickPrompt says "What it asks"
+// in the language of msgs.
+func (msgs Messages) AiQuickPrompt() string {
+	return Catalog.Format(msgs.locale, "aiQuickPrompt", nil)
+}
+
+// AiQuickPromptNote says "Said to the model at length: the more it says, the more it does as you meant"
+// in the language the app shows.
+func AiQuickPromptNote() string { return In(i18n.Locale()).AiQuickPromptNote() }
+
+// AiQuickPromptNote says "Said to the model at length: the more it says, the more it does as you meant"
+// in the language of msgs.
+func (msgs Messages) AiQuickPromptNote() string {
+	return Catalog.Format(msgs.locale, "aiQuickPromptNote", nil)
+}
+
+// AiQuickScope says "What it is done to"
+// in the language the app shows.
+func AiQuickScope() string { return In(i18n.Locale()).AiQuickScope() }
+
+// AiQuickScope says "What it is done to"
+// in the language of msgs.
+func (msgs Messages) AiQuickScope() string {
+	return Catalog.Format(msgs.locale, "aiQuickScope", nil)
+}
+
+// AiQuickScopeNote says "The lines of the note it is given to work on"
+// in the language the app shows.
+func AiQuickScopeNote() string { return In(i18n.Locale()).AiQuickScopeNote() }
+
+// AiQuickScopeNote says "The lines of the note it is given to work on"
+// in the language of msgs.
+func (msgs Messages) AiQuickScopeNote() string {
+	return Catalog.Format(msgs.locale, "aiQuickScopeNote", nil)
+}
+
+// AiQuickScopeSelection says "The lines chosen, or the whole note"
+// in the language the app shows.
+func AiQuickScopeSelection() string { return In(i18n.Locale()).AiQuickScopeSelection() }
+
+// AiQuickScopeSelection says "The lines chosen, or the whole note"
+// in the language of msgs.
+func (msgs Messages) AiQuickScopeSelection() string {
+	return Catalog.Format(msgs.locale, "aiQuickScopeSelection", nil)
+}
+
+// AiQuickScopeWhole says "The whole note"
+// in the language the app shows.
+func AiQuickScopeWhole() string { return In(i18n.Locale()).AiQuickScopeWhole() }
+
+// AiQuickScopeWhole says "The whole note"
+// in the language of msgs.
+func (msgs Messages) AiQuickScopeWhole() string {
+	return Catalog.Format(msgs.locale, "aiQuickScopeWhole", nil)
+}
+
+// AiQuickApply says "What comes of it"
+// in the language the app shows.
+func AiQuickApply() string { return In(i18n.Locale()).AiQuickApply() }
+
+// AiQuickApply says "What comes of it"
+// in the language of msgs.
+func (msgs Messages) AiQuickApply() string {
+	return Catalog.Format(msgs.locale, "aiQuickApply", nil)
+}
+
+// AiQuickApplyNote says "What the answer is made to do to the note"
+// in the language the app shows.
+func AiQuickApplyNote() string { return In(i18n.Locale()).AiQuickApplyNote() }
+
+// AiQuickApplyNote says "What the answer is made to do to the note"
+// in the language of msgs.
+func (msgs Messages) AiQuickApplyNote() string {
+	return Catalog.Format(msgs.locale, "aiQuickApplyNote", nil)
+}
+
+// AiQuickApplyReplace says "Put it where the words were"
+// in the language the app shows.
+func AiQuickApplyReplace() string { return In(i18n.Locale()).AiQuickApplyReplace() }
+
+// AiQuickApplyReplace says "Put it where the words were"
+// in the language of msgs.
+func (msgs Messages) AiQuickApplyReplace() string {
+	return Catalog.Format(msgs.locale, "aiQuickApplyReplace", nil)
+}
+
+// AiQuickApplyInsert says "Add it after them"
+// in the language the app shows.
+func AiQuickApplyInsert() string { return In(i18n.Locale()).AiQuickApplyInsert() }
+
+// AiQuickApplyInsert says "Add it after them"
+// in the language of msgs.
+func (msgs Messages) AiQuickApplyInsert() string {
+	return Catalog.Format(msgs.locale, "aiQuickApplyInsert", nil)
+}
+
+// AiQuickModel says "Which model is asked"
+// in the language the app shows.
+func AiQuickModel() string { return In(i18n.Locale()).AiQuickModel() }
+
+// AiQuickModel says "Which model is asked"
+// in the language of msgs.
+func (msgs Messages) AiQuickModel() string {
+	return Catalog.Format(msgs.locale, "aiQuickModel", nil)
+}
+
+// AiQuickModelNote says "Left empty for the one the bar asks"
+// in the language the app shows.
+func AiQuickModelNote() string { return In(i18n.Locale()).AiQuickModelNote() }
+
+// AiQuickModelNote says "Left empty for the one the bar asks"
+// in the language of msgs.
+func (msgs Messages) AiQuickModelNote() string {
+	return Catalog.Format(msgs.locale, "aiQuickModelNote", nil)
+}
+
+// AiQuickModelDefault says "The one the bar asks"
+// in the language the app shows.
+func AiQuickModelDefault() string { return In(i18n.Locale()).AiQuickModelDefault() }
+
+// AiQuickModelDefault says "The one the bar asks"
+// in the language of msgs.
+func (msgs Messages) AiQuickModelDefault() string {
+	return Catalog.Format(msgs.locale, "aiQuickModelDefault", nil)
+}
+
+// AiQuickEnabled says "Turned on"
+// in the language the app shows.
+func AiQuickEnabled() string { return In(i18n.Locale()).AiQuickEnabled() }
+
+// AiQuickEnabled says "Turned on"
+// in the language of msgs.
+func (msgs Messages) AiQuickEnabled() string {
+	return Catalog.Format(msgs.locale, "aiQuickEnabled", nil)
+}
+
+// AiQuickOpen says "Open"
+// in the language the app shows.
+func AiQuickOpen() string { return In(i18n.Locale()).AiQuickOpen() }
+
+// AiQuickOpen says "Open"
+// in the language of msgs.
+func (msgs Messages) AiQuickOpen() string {
+	return Catalog.Format(msgs.locale, "aiQuickOpen", nil)
+}
+
+// AiQuickShut says "Shut"
+// in the language the app shows.
+func AiQuickShut() string { return In(i18n.Locale()).AiQuickShut() }
+
+// AiQuickShut says "Shut"
+// in the language of msgs.
+func (msgs Messages) AiQuickShut() string {
+	return Catalog.Format(msgs.locale, "aiQuickShut", nil)
+}
+
+// AiQuickForget says "Forget"
+// in the language the app shows.
+func AiQuickForget() string { return In(i18n.Locale()).AiQuickForget() }
+
+// AiQuickForget says "Forget"
+// in the language of msgs.
+func (msgs Messages) AiQuickForget() string {
+	return Catalog.Format(msgs.locale, "aiQuickForget", nil)
+}
+
+// AiQuickAdd says "Add a word"
+// in the language the app shows.
+func AiQuickAdd() string { return In(i18n.Locale()).AiQuickAdd() }
+
+// AiQuickAdd says "Add a word"
+// in the language of msgs.
+func (msgs Messages) AiQuickAdd() string {
+	return Catalog.Format(msgs.locale, "aiQuickAdd", nil)
+}
+
+// AiQuickBuiltins says "Put the built-in ones back"
+// in the language the app shows.
+func AiQuickBuiltins() string { return In(i18n.Locale()).AiQuickBuiltins() }
+
+// AiQuickBuiltins says "Put the built-in ones back"
+// in the language of msgs.
+func (msgs Messages) AiQuickBuiltins() string {
+	return Catalog.Format(msgs.locale, "aiQuickBuiltins", nil)
+}
+
+// AiQuickNone says "No quick word yet"
+// in the language the app shows.
+func AiQuickNone() string { return In(i18n.Locale()).AiQuickNone() }
+
+// AiQuickNone says "No quick word yet"
+// in the language of msgs.
+func (msgs Messages) AiQuickNone() string {
+	return Catalog.Format(msgs.locale, "aiQuickNone", nil)
+}
+
+// AiQuickNothing says "no word of that name"
+// in the language the app shows.
+func AiQuickNothing() string { return In(i18n.Locale()).AiQuickNothing() }
+
+// AiQuickNothing says "no word of that name"
+// in the language of msgs.
+func (msgs Messages) AiQuickNothing() string {
+	return Catalog.Format(msgs.locale, "aiQuickNothing", nil)
+}
+
+// StatusQuickNoPrompt says "{name} has nothing to ask yet: write it in Settings ▸ AI"
+// in the language the app shows.
+func StatusQuickNoPrompt(name string) string { return In(i18n.Locale()).StatusQuickNoPrompt(name) }
+
+// StatusQuickNoPrompt says "{name} has nothing to ask yet: write it in Settings ▸ AI"
+// in the language of msgs.
+func (msgs Messages) StatusQuickNoPrompt(name string) string {
+	return Catalog.Format(msgs.locale, "statusQuickNoPrompt", map[string]any{"name": name})
+}
+
 // AiModelEnabled says "Turned on"
 // in the language the app shows.
 func AiModelEnabled() string { return In(i18n.Locale()).AiModelEnabled() }

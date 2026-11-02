@@ -86,6 +86,15 @@ type settings struct {
 	clone  string
 	moveID string
 	moveBy int
+	// quickOpen is the quick word whose row is open to be changed,
+	// quickDrop the one to be forgotten, and quickMoveID with
+	// quickMoveBy the one to be moved earlier or later (-1 or 1). They
+	// are named by the row that was clicked and done after the rows are
+	// drawn, as with the models.
+	quickOpen   string
+	quickDrop   string
+	quickMoveID string
+	quickMoveBy int
 	// vaultRename is the vault whose name is being asked for,
 	// vaultName what the field holds, and vaultDrop the one to be
 	// forgotten. They are named by the row that was clicked, and the
