@@ -61,6 +61,24 @@ func TestSettingsView_choosingAGroupShowsOnlyItsRows(t *testing.T) {
 	}
 }
 
+// TestSettingsView_theExportStandsWithThePreview checks where the two
+// settings of an export are found: with the settings of the preview,
+// which is what an export writes out.
+func TestSettingsView_theExportStandsWithThePreview(t *testing.T) {
+	s := &appState{}
+	tt := settingsShown(t, s)
+	if err := tt.Click("Preview"); err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{
+		"Export", "Sheet of paper", "A4", "Pictures", "In the page",
+	} {
+		if !tt.HasText(want) {
+			t.Errorf("the preview's rows do not say %q", want)
+		}
+	}
+}
+
 // TestSettingsView_aThemeCardChoosesThatScheme checks that the window is
 // drawn in the scheme the user clicks, and not only in the one the
 // drop-down says.

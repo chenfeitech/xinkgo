@@ -258,6 +258,54 @@ func TestSaveLoad_theLanguageComesBack(t *testing.T) {
 	}
 }
 
+// TestLoad_aFirstStartWritesItsNotesOutOnA4 checks what a note is
+// written out as before the user has said otherwise: the sheet the
+// machine's own printer takes, and the pictures in the page itself, so
+// that it stands alone.
+func TestLoad_aFirstStartWritesItsNotesOutOnA4(t *testing.T) {
+	cfg := load(t, "")
+	if cfg.Export.PageSize != ExportPageA4 {
+		t.Errorf("page %q, want %q", cfg.Export.PageSize, ExportPageA4)
+	}
+	if cfg.Export.Images != ExportImagesEmbed {
+		t.Errorf("images %q, want %q", cfg.Export.Images,
+			ExportImagesEmbed)
+	}
+}
+
+// TestSanitize_anExportTheAppCannotMakeFallsBack checks a sheet or a way
+// with the pictures the app does not know, as a file written by hand may
+// have.
+func TestSanitize_anExportTheAppCannotMakeFallsBack(t *testing.T) {
+	cfg := load(t, `{"export":{"page_size":"a3","images":"burn"}}`)
+	if cfg.Export.PageSize != ExportPageA4 {
+		t.Errorf("page %q, want %q", cfg.Export.PageSize, ExportPageA4)
+	}
+	if cfg.Export.Images != ExportImagesEmbed {
+		t.Errorf("images %q, want %q", cfg.Export.Images,
+			ExportImagesEmbed)
+	}
+}
+
+// TestSaveLoad_theExportComesBack checks that the sheet and the way with
+// the pictures are kept, as the rest of the settings are.
+func TestSaveLoad_theExportComesBack(t *testing.T) {
+	dir := t.TempDir()
+	cfg := Default()
+	cfg.Export.PageSize = ExportPageLetter
+	cfg.Export.Images = ExportImagesCopy
+	if err := cfg.Save(dir); err != nil {
+		t.Fatal(err)
+	}
+	again, err := Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if again.Export != cfg.Export {
+		t.Errorf("export %+v, want %+v", again.Export, cfg.Export)
+	}
+}
+
 // TestMigrate_syncModeAlias checks the name SyncRatio used to have.
 func TestMigrate_syncModeAlias(t *testing.T) {
 	if got := load(t, `{"preview":{"sync_mode":"realtime"}}`).

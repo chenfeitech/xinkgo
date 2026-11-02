@@ -273,6 +273,9 @@ func boot(app *mygo.Application) (*appState, error) {
 	// has for it, as a PDF is previewed: the file itself, and not a
 	// window of this app's.
 	ws.OnOpenExternally = st.openExternally
+	// A note is written out by the app: it is the app that asks where
+	// the file is to go, and that puts it there.
+	ws.OnExport = st.exportNote
 	ws.Tabs.OnSave = func(path string) {
 		slog.Debug("saved", "path", path)
 	}

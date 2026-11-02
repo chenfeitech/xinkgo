@@ -14,6 +14,9 @@
   "menuSettings": "Settings…",
   "menuLibraryTasks": "Library tasks…",
   "menuSnapshots": "Snapshots…",
+  "menuExportAs": "Export as…",
+  "menuExportPage": "A page of HTML…",
+  "menuExportPdf": "A PDF…",
   "menuSave": "Save",
   "menuCloseTab": "Close Tab",
   "menuVault": "Vault",
@@ -39,6 +42,29 @@
   "settingsTabEditorNote": "How a note is written",
   "settingsTabPreview": "Preview",
   "settingsTabPreviewNote": "How a note reads beside what it says",
+  "groupExport": "Export",
+  "exportPageSize": "Sheet of paper",
+  "exportPageSizeNote": "What a note is written out on",
+  "exportPageA4": "A4",
+  "exportPageLetter": "Letter",
+  "exportImages": "Pictures",
+  "exportImagesNote": "Written into the page, put beside it, or left out",
+  "exportImagesEmbed": "In the page",
+  "exportImagesCopy": "Beside the page",
+  "exportImagesNone": "Left out",
+  "previewExport": "Export",
+  "previewExportLabel": "Write this note out as a page of HTML, or as a PDF",
+  "sayExportWritten": "written out to {name}",
+  "@sayExportWritten": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sayExportFailed": "it could not be written out",
+  "sayExportNoNote": "no note is open to write out",
+  "sayExportNoWebView": "a PDF needs the webview of this machine, which is not there",
   "settingsTabAi": "AI",
   "settingsTabAiNote": "Which model is asked, and how",
   "settingsTabVault": "Vault",
@@ -112,6 +138,8 @@
   "configImport": "Take one in…",
   "configReset": "Back to the defaults",
   "dialogOpenVault": "Open a folder as a vault",
+  "dialogSavePage": "Write the note out as a page",
+  "dialogSavePdf": "Write the note out as a PDF",
   "dialogSaveSettings": "Save the settings",
   "dialogImportSettings": "Take settings in",
   "sayVaultNotOpened": "that folder could not be opened",

@@ -37,6 +37,13 @@ var (
 	outputLanguages = []string{
 		config.OutputAuto, config.OutputZh, config.OutputEn,
 	}
+	// The sheets of paper a note may be written out on, and what an
+	// export does with the pictures it names.
+	pages        = []string{config.ExportPageA4, config.ExportPageLetter}
+	exportImages = []string{
+		config.ExportImagesEmbed, config.ExportImagesCopy,
+		config.ExportImagesNone,
+	}
 	// The languages the app speaks: the one the machine reads when the
 	// user leaves it to follow it, and those it is written in.
 	languages = []string{
@@ -370,6 +377,14 @@ func (s *appState) previewSettings(c *ui.Context) {
 		&s.draft.width, 400, 1400)
 	choiceNamed(c, locale.SettingDensity(), locale.SettingDensityNote(),
 		&s.draft.cfg.Preview.Density, densities, densityName)
+	group(c, locale.GroupExport(), func() {
+		choiceNamed(c, locale.ExportPageSize(),
+			locale.ExportPageSizeNote(), &s.draft.cfg.Export.PageSize,
+			pages, pageSizeName)
+		choiceNamed(c, locale.ExportImages(),
+			locale.ExportImagesNote(), &s.draft.cfg.Export.Images,
+			exportImages, exportImagesName)
+	})
 }
 
 // configFile is the settings themselves: kept as a file, given away and
@@ -639,6 +654,26 @@ func appearanceName(v string) string {
 		return locale.AppearanceDark()
 	default:
 		return locale.AppearanceSystem()
+	}
+}
+
+func pageSizeName(v string) string {
+	switch v {
+	case config.ExportPageLetter:
+		return locale.ExportPageLetter()
+	default:
+		return locale.ExportPageA4()
+	}
+}
+
+func exportImagesName(v string) string {
+	switch v {
+	case config.ExportImagesCopy:
+		return locale.ExportImagesCopy()
+	case config.ExportImagesNone:
+		return locale.ExportImagesNone()
+	default:
+		return locale.ExportImagesEmbed()
 	}
 }
 

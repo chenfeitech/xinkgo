@@ -29,6 +29,30 @@ func itemIn(m *mygo.Menu, menu, label string) (*mygo.MenuItem, bool) {
 	return nil, false
 }
 
+// TestMainMenu_theWayOutOfANoteIsInTheFileMenu checks the two ways a note
+// is written out: a page of HTML, and the PDF printed of it, both of them
+// in one menu.
+func TestMainMenu_theWayOutOfANoteIsInTheFileMenu(t *testing.T) {
+	m := mainMenu(keymap.Resolve(nil), vault.Registry{})
+	it, ok := itemIn(m, "File", locale.MenuExportAs())
+	if !ok {
+		t.Fatalf("the File menu has no %q", locale.MenuExportAs())
+	}
+	for _, want := range []string{
+		locale.MenuExportPage(), locale.MenuExportPdf(),
+	} {
+		found := false
+		for _, sub := range it.Submenu {
+			if sub.Label == want {
+				found = true
+			}
+		}
+		if !found {
+			t.Errorf("the menu does not offer %q", want)
+		}
+	}
+}
+
 // TestMainMenu_theSettingsStandInOneMenu checks the way to the settings a
 // user is given: one menu carries them, and not two — the
 // application's own menu, as on macOS, or the File menu's item, which is

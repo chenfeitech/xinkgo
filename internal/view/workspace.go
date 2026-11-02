@@ -77,6 +77,10 @@ type Workspace struct {
 	// for it, as a PDF is previewed: the window shows it, and does not
 	// pretend to be the editor of it.
 	OnOpenExternally func(path string)
+	// OnExport writes the note that is open out as a file another
+	// program reads: a page of HTML, or the PDF printed of it. It is the
+	// app that asks where it is to be put, and that writes it.
+	OnExport func(kind string)
 	// OnOpenVault opens the dialog that chooses a folder, when there is
 	// no vault yet.
 	OnOpenVault func()
@@ -246,6 +250,9 @@ func (w *Workspace) View(c *ui.Context) {
 			// end, whatever the window's height is and whatever the
 			// line at the bottom of it says.
 			w.rail(c)
+			// What is written out is what the preview reads, so the
+			// way out of it stands over the preview and nowhere else.
+			w.exportBar(c)
 		})
 		w.followScroll(c)
 		w.statusBar(c)
@@ -803,6 +810,61 @@ func (w *Workspace) previewPanel(c *ui.Context) {
 			})
 		})
 	})
+}
+
+// The kinds of file the note that is open may be written out as, as the
+// preview asks the app for them.
+const (
+	// ExportPage is a page of HTML that stands on its own.
+	ExportPage = "html"
+	// ExportPDF is that page printed onto paper by the machine's own
+	// webview: what to write on a sheet of paper, and where to break it,
+	// is a browser's business and not ours.
+	ExportPDF = "pdf"
+)
+
+// exportBar is the way out of the preview: the note on show, written out
+// as a page of HTML or as a PDF. It hangs over the preview's own top
+// corner, as the rail hangs over the panels, and takes no room from what
+// it writes out: the note is to begin at the top of the panel, as it does
+// in the tree's. A file the app only shows — a picture, a PDF — has
+// nothing in it to write out, and gets no button.
+func (w *Workspace) exportBar(c *ui.Context) {
+	n := w.Tabs.ActiveNote()
+	if n == nil || n.Preview || w.Layout.Right <= 0 {
+		return
+	}
+	// The corner it hangs in is the foot of the preview: the top of it
+	// belongs to the tab bar, whose button that makes a note stands at
+	// the end of the row the preview begins in.
+	ui.Row(c).Absolute().Right(w.railBand() + previewPadX/2).
+		Bottom(previewPadY / 2).AlignItems(ui.Center).
+		Children(func() {
+			ui.MenuButton(c, locale.PreviewExport(), func(m *ui.Menu) {
+				if m.Item(locale.MenuExportPage()).Chosen() {
+					if w.OnExport != nil {
+						w.OnExport(ExportPage)
+					}
+				}
+				if m.Item(locale.MenuExportPdf()).Chosen() {
+					if w.OnExport != nil {
+						w.OnExport(ExportPDF)
+					}
+				}
+			}).Tooltip(locale.PreviewExportLabel())
+		})
+}
+
+// ExportText is what an export is given: the very text the preview reads
+// of the note that is open, and where the note stands, which is where the
+// pictures it names are. A file the app only shows has nothing in it to
+// write out.
+func (w *Workspace) ExportText() (path, text string, ok bool) {
+	n := w.Tabs.ActiveNote()
+	if n == nil || n.Preview {
+		return "", "", false
+	}
+	return n.Path, w.previewText(n), true
 }
 
 // previewTextOfFile is what the preview is given of a file the app only
