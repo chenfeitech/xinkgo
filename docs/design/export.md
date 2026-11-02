@@ -32,8 +32,11 @@
      目录或上次导出目录）；
   2. goroutine 里生成 HTML（可能慢，不能卡视图）；
   3. HTML：直接写文件；PDF：回到主线程，建 `WindowOptions{Hidden: true}` 的窗口 →
-     `Page.LoadFile` / `LoadHTML` 临时文件 → 等加载完成 → `PrintToPDF` → 写文件 →
-     关窗口；
+     `Page.LoadFile` 临时文件 → 等加载完成 → `PrintToPDF` → 写文件 → 关窗口。临时
+     页面写在**目标 PDF 的同一目录**，且只在打印结束（或失败）后才删：`RunOnMain`
+     同步返回时窗口还没读到它，在 goroutine 里 `defer os.Remove` 会先把它删掉，
+     于是既没有 PDF 也没有报错；放在机器临时目录里还会让"图片放在旁边"的相对
+     路径落空（见 §8）；
   4. 成败用 `ws.Say(...)` 报一行；失败另外弹提示。
 - `mygo.WebViewAvailable()` 为假时，PDF 一项禁用并说明原因。
 
@@ -88,7 +91,8 @@
 2. `internal/highlight` 能否给出 token→颜色映射（待读源码）→ 决定代码块高亮是否
    进 v1。
 3. 打印通路依赖系统 WebView：隐藏窗口是否需要先显示才能打印（macOS 的 WebKit
-   print op 可能要求窗口存在）→ spike 里验证。
+   print op 可能要求窗口存在）→ 已在 macOS 验过：隐藏窗口不必显示，
+   `OnReadyToShow`（= 页面 load finished）之后 `PrintToPDF` 正常出 PDF。
 4. 三套引擎（WebKit / WebView2 / GTK）分页结果不同 → 逐端验收，样式保守一点。
 5. 单文件 HTML 内嵌大图会到几十 MB → 给上限或提示。
 6. 必须保持 `CGO_ENABLED=0`：本方案不引入新依赖（除后续真要做纯 Go PDF 时）。
@@ -116,6 +120,8 @@
   一个浮动的"导出"按钮（绝对定位，不占预览的版面）；对话框由 app 问，生成与写
   文件在 goroutine；PDF 走隐藏窗口 → `LoadFile` → `Page.PrintToPDF`（A4 或
   Letter，来自配置）→ 写文件。机器上没有 webview 时，PDF 一项直接说明原因。
+  打印用的临时页面（`.xinkgo-*.html`）与目标 PDF 同目录，打印结束或页面加载失败
+  时才删除；另接 `Page.OnDidFailLoad`，页面读不出来时报错而不是一直等。
 - **`internal/config`**：`export`（纸张、图片）+ 默认值 + 校验 + 测试；设置窗口
   的预览页多一组"导出"。
 - **PDF 用浅色**：纸是白的，而深色方案的正文是浅色的，印上去什么也看不清。
@@ -123,3 +129,7 @@
   器）、页眉页脚页码、整库导出。
 - **要人工验收**：PDF 打印通路（隐藏窗口在各端是否真能打印）、三端分页效果、
   中文与 emoji、大图与脚注。
+- **已验（macOS，darwin/arm64，macOS 26）**：隐藏窗口打印通、中文与 emoji、
+  代码块与表格、图片（内联 base64 与 `assets/` 相对路径两种）都进了 PDF；
+  `internal/app` 的 `TestWritePage_*` 钉住临时页面的位置与内容，PDF 打印本身
+  要真 webview，不进单测。

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/egoist/mygo"
 	"github.com/helightxu/xinkgo/internal/config"
@@ -117,19 +118,17 @@ func (s *appState) pageOf(text, path, dir string, paper bool) ([]byte, error) {
 // it out, breaks it into pages, and gives back the PDF — and it is the
 // webview that has the fonts for Chinese, and the rules that keep a table
 // from being cut in two. It prints from a window that is never shown.
+//
+// The page it prints is written beside the PDF it becomes, and it is taken
+// away when the printing is over, and not when this function returns: the
+// window reads the file in its own time, and a page that is gone by then
+// is a page that is never printed at all. Beside the PDF it is written,
+// and not into the machine's own folder of temporary files, because a note
+// whose pictures stand beside the page names them by a path relative to
+// it, and a webview reads them only from where the page is.
 func (s *appState) printPDF(page []byte, dest string) {
-	tmp, err := os.CreateTemp("", "xinkgo-*.html")
+	name, err := writePage(filepath.Dir(dest), page)
 	if err != nil {
-		s.exportFailed("the page could not be printed", err)
-		return
-	}
-	defer os.Remove(tmp.Name())
-	if _, err := tmp.Write(page); err != nil {
-		tmp.Close()
-		s.exportFailed("the page could not be printed", err)
-		return
-	}
-	if err := tmp.Close(); err != nil {
 		s.exportFailed("the page could not be printed", err)
 		return
 	}
@@ -144,14 +143,23 @@ func (s *appState) printPDF(page []byte, dest string) {
 		win := mygo.NewWindow(mygo.WindowOptions{
 			Hidden: true, Width: 794, Height: 1123,
 		})
-		var off func()
-		off = win.OnReadyToShow(func() {
-			off()
+		var once sync.Once
+		// The page is taken away and the window closed once, whichever
+		// of the two ends the printing comes by.
+		over := func() {
+			once.Do(func() {
+				os.Remove(name)
+				mygo.RunOnMain(func() { win.Close() })
+			})
+		}
+		var offShown, offFailed func()
+		offShown = win.OnReadyToShow(func() {
+			offShown()
 			go func() {
 				pdf, err := win.Page().PrintToPDF(mygo.PDFOptions{
 					PageSize: size,
 				})
-				mygo.RunOnMain(func() { win.Close() })
+				over()
 				if err != nil {
 					s.exportFailed("the page could not be printed", err)
 					return
@@ -163,12 +171,39 @@ func (s *appState) printPDF(page []byte, dest string) {
 				s.say(locale.SayExportWritten(filepath.Base(dest)))
 			}()
 		})
-		if err := win.Page().LoadFile(tmp.Name()); err != nil {
-			off()
-			mygo.RunOnMain(func() { win.Close() })
+		// A page the webview would not read is said, and the window let
+		// go of, rather than waited on for a printing that never comes.
+		offFailed = win.Page().OnDidFailLoad(func(e *mygo.LoadError) {
+			offFailed()
+			over()
+			s.exportFailed("the page could not be printed", e)
+		})
+		if err := win.Page().LoadFile(name); err != nil {
+			over()
 			s.exportFailed("the page could not be printed", err)
 		}
 	})
+}
+
+// writePage is the page to be printed, put down beside the PDF it becomes
+// under a name no one is meant to see. It is the caller's to take away
+// once the printing is over.
+func writePage(dir string, page []byte) (string, error) {
+	f, err := os.CreateTemp(dir, ".xinkgo-*.html")
+	if err != nil {
+		return "", err
+	}
+	name := f.Name()
+	if _, err := f.Write(page); err != nil {
+		f.Close()
+		os.Remove(name)
+		return "", err
+	}
+	if err := f.Close(); err != nil {
+		os.Remove(name)
+		return "", err
+	}
+	return name, nil
 }
 
 // exportFailed is a note that would not be written out: said in the
