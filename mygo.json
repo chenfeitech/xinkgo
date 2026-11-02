@@ -6,5 +6,9 @@
   "out": "build",
   "windows": {
     "installDirName": "Xinkgo"
+  },
+  "i18n": {
+    "dir": "internal/locale",
+    "source": "en"
   }
 }

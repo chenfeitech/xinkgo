@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/egoist/mygo/ui"
+	"github.com/helightxu/xinkgo/internal/locale"
 	"github.com/helightxu/xinkgo/internal/media"
 	"github.com/helightxu/xinkgo/internal/vault"
 )
@@ -95,19 +96,19 @@ func (w *Workspace) imagePane(c *ui.Context, n *OpenNote) {
 		e.mu.Unlock()
 		switch {
 		case src == nil && !done:
-			ui.Text(c, "the picture is coming").TextColor(th.TextMuted)
+			ui.Text(c, locale.PictureComing()).TextColor(th.TextMuted)
 			return
 		case src == nil:
 			// A picture the app was given but cannot make of
 			// what it read: it is said so, and the machine's
 			// own program is offered for it, rather than the
 			// window waiting for a picture that never comes.
-			ui.Text(c, "this picture cannot be shown here").
+			ui.Text(c, locale.PictureNotShown()).
 				TextColor(th.TextMuted)
 			w.openOutsideButton(c, n.Path)
 			return
 		}
-		img := ui.Image(c, src).Label("picture " + PathOf(n.Path)).
+		img := ui.Image(c, src).Label(locale.A11yPicture(PathOf(n.Path))).
 			Radius(th.Radius).MaxWidthPercent(100).MaxHeightPercent(100)
 		var iw, ih float32
 		switch s := src.(type) {
@@ -150,7 +151,7 @@ func (w *Workspace) openOutsideButton(c *ui.Context, path string) {
 		return
 	}
 	if ui.PrimaryButton(c, "open-outside").
-		Label("Open with another app").Clicked() {
+		Label(locale.OpenWithAnotherApp()).Clicked() {
 		w.OnOpenExternally(path)
 	}
 }
@@ -161,9 +162,9 @@ func (w *Workspace) openOutsideButton(c *ui.Context, path string) {
 func (w *Workspace) sayOfFile(n *OpenNote) string {
 	switch {
 	case media.IsPDF(n.Path):
-		return "a PDF is previewed by the program the machine has for it"
+		return locale.PdfPreviewed()
 	default:
-		return "this file can neither be edited nor shown here"
+		return locale.FileNotUsable()
 	}
 }
 
@@ -173,10 +174,11 @@ func (w *Workspace) sayOfFile(n *OpenNote) string {
 func (w *Workspace) fileBar(c *ui.Context, n *OpenNote) {
 	ui.Row(c).Gap(8).Padding(4).AlignItems(ui.Center).Children(func() {
 		ui.Text(c, media.KindOf(n.Path).String()).Bold()
-		ui.Text(c, "· shown, not edited").TextColor(
+		ui.Text(c, locale.ShownNotEdited()).TextColor(
 			c.Theme().TextMuted).Grow(1)
 		if w.OnOpenExternally != nil {
-			if ui.Button(c.Key("file-outside"), "Open with another app").
+			if ui.Button(c.Key("file-outside"),
+				locale.OpenWithAnotherApp()).
 				Clicked() {
 				w.OnOpenExternally(n.Path)
 			}

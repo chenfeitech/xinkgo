@@ -241,8 +241,8 @@ func TestTask_theCountAndTheTitle(t *testing.T) {
 	one := New("t", Retag, "AI", "人工智能")
 	one.Items = []TaskItem{
 		{State: ItemState{Kind: ItemDone}},
-		{State: ItemState{Kind: ItemSkipped, Reason: "已含"}},
-		{State: ItemState{Kind: ItemFailed, Reason: "写不了"}},
+		{State: ItemState{Kind: ItemSkipped, Reason: "already has it"}},
+		{State: ItemState{Kind: ItemFailed, Reason: "could not be written"}},
 		{State: ItemState{Kind: ItemPending}},
 	}
 	done, skipped, failed := one.Stats()
@@ -428,11 +428,11 @@ func TestItemState_aSkippedOneSaysWhy(t *testing.T) {
 	if pending.Finished() {
 		t.Fatal("a note not yet done was said to be finished")
 	}
-	skipped := ItemState{Kind: ItemSkipped, Reason: "已含 #x"}
+	skipped := ItemState{Kind: ItemSkipped, Reason: "already has #x"}
 	if !skipped.Finished() {
 		t.Fatal("a skipped note still has to be done")
 	}
-	if !strings.Contains(skipped.Label(), "已含 #x") {
+	if !strings.Contains(skipped.Label(), "already has #x") {
 		t.Fatalf("label = %q, want the reason in it", skipped.Label())
 	}
 }
@@ -443,11 +443,11 @@ func TestProgress_whatAPersonReads(t *testing.T) {
 		{Path: "a.md", State: ItemState{Kind: ItemDone},
 			Preview: []Edit{{Before: "", After: "#AI"}}},
 		{Path: "b.md", State: ItemState{Kind: ItemSkipped,
-			Reason: "已含 #AI"}},
+			Reason: "already has #AI"}},
 	}
 	got := Progress(one)
-	for _, want := range []string{"加标签", "a.md", "已改", "b.md",
-		"跳过", "已含 #AI", "#AI"} {
+	for _, want := range []string{"Add a tag", "a.md", "Changed", "b.md",
+		"Skipped", "already has #AI", "#AI"} {
 		if !strings.Contains(got, want) {
 			t.Errorf("progress = %q, want %q in it", got, want)
 		}

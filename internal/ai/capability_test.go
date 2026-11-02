@@ -21,7 +21,7 @@ func TestInfo_everyKnownCapabilityIsSaidPlainly(t *testing.T) {
 
 func TestInfo_aCapabilityTheAppHasNeverHeardOfIsKept(t *testing.T) {
 	info := Info("embedding")
-	if !strings.Contains(info.Label, "未知") {
+	if !strings.Contains(info.Label, "Unknown") {
 		t.Fatalf("label = %q, want it said to be unknown", info.Label)
 	}
 	// Unknown is not the same as one of the known ones.

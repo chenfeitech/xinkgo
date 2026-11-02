@@ -9,6 +9,7 @@ import (
 	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/ai"
 	"github.com/helightxu/xinkgo/internal/config"
+	"github.com/helightxu/xinkgo/internal/locale"
 )
 
 // modelState is what one model's row keeps between two frames: whether
@@ -34,8 +35,8 @@ func (st *settings) stateOf(id string) *modelState {
 // ai is the settings of the AI: whether it is used at all, and the models
 // it may be asked.
 func (s *appState) ai(c *ui.Context) {
-	toggle(c, "Ask a model at all", "Turning this on is what lets "+
-		"a note be asked about", &s.draft.cfg.Ai.Enabled)
+	toggle(c, locale.AiSettingAskAtAll(), locale.AiSettingAskAtAllNote(),
+		&s.draft.cfg.Ai.Enabled)
 	if !s.draft.cfg.Ai.Enabled {
 		return
 	}
@@ -49,10 +50,9 @@ func (s *appState) ai(c *ui.Context) {
 // folder: each may be turned off, and one that was found but cannot be
 // used is said so rather than left out.
 func (s *appState) aiSkills(c *ui.Context) {
-	group(c, "Skills", func() {
+	group(c, locale.AiGroupSkills(), func() {
 		if len(s.skills) == 0 && len(s.skillIssues) == 0 {
-			ui.Text(c, "No skills yet：write one at <vault>/.xink/"+
-				"skills/<name>/SKILL.md").TextColor(
+			ui.Text(c, locale.AiSkillsNone()).TextColor(
 				c.Theme().TextMuted).FontSize(11)
 		}
 		for _, one := range s.skills {
@@ -72,7 +72,8 @@ func (s *appState) aiSkills(c *ui.Context) {
 			}
 		}
 		for _, issue := range s.skillIssues {
-			ui.Text(c, issue.Path+"："+issue.Reason).TextColor(
+			ui.Text(c,
+				locale.AiSkillIssue(issue.Path, issue.Reason)).TextColor(
 				c.Theme().Danger).FontSize(11)
 		}
 	})
@@ -98,21 +99,22 @@ func (s *appState) aiServer(c *ui.Context) {
 	for i := range s.draft.cfg.Ai.Models {
 		names = append(names, s.draft.cfg.Ai.Models[i].ID)
 	}
-	group(c, "Where it is asked", func() {
-		text(c, "Local Ollama", "Where the model is served from",
+	group(c, locale.AiGroupWhere(), func() {
+		text(c, locale.AiSettingOllama(), locale.AiSettingOllamaNote(),
 			&s.draft.cfg.Ai.Ollama.BaseURL, "http://localhost:11434")
-		text(c, "Keep it loaded for", "How long a model is held in "+
-			"memory after it has answered",
+		text(c, locale.AiSettingKeepAlive(),
+			locale.AiSettingKeepAliveNote(),
 			&s.draft.cfg.Ai.Ollama.KeepAlive, "5m")
-		choice(c, "Ask this one", "The model asked when a note does "+
-			"not name one", &s.draft.cfg.Ai.DefaultModel, names)
-		choice(c, "And if it cannot answer", "The one asked when the "+
-			"first cannot be reached", &s.draft.cfg.Ai.FallbackModel,
-			names)
-		toggle(c, "Look through the vault first", "It may read the "+
-			"vault before it answers", &s.draft.cfg.Ai.Agentic)
-		toggle(c, "Use the skills", "The skills written in the vault "+
-			"and in the app's own folder", &s.draft.cfg.Ai.SkillsEnabled)
+		choice(c, locale.AiSettingDefaultModel(),
+			locale.AiSettingDefaultModelNote(),
+			&s.draft.cfg.Ai.DefaultModel, names)
+		choice(c, locale.AiSettingFallbackModel(),
+			locale.AiSettingFallbackModelNote(),
+			&s.draft.cfg.Ai.FallbackModel, names)
+		toggle(c, locale.AiSettingAgentic(),
+			locale.AiSettingAgenticNote(), &s.draft.cfg.Ai.Agentic)
+		toggle(c, locale.AiSettingSkills(), locale.AiSettingSkillsNote(),
+			&s.draft.cfg.Ai.SkillsEnabled)
 	})
 }
 
@@ -130,28 +132,27 @@ func (s *appState) aiServer(c *ui.Context) {
 // (`AiConfig.Sanitize` clamps to these): a window that offers a number
 // the settings then refuse is a window that lies.
 func (s *appState) aiAsking(c *ui.Context) {
-	group(c, "Asking", func() {
-		choice(c, "Answer in", "The tongue the answer comes back in",
-			&s.draft.cfg.Ai.OutputLanguage, outputLanguages)
-		number(c, "How long an answer may take (s)", "A question that "+
-			"takes longer is given up on", &s.draft.timeout, 5, 600)
-		number(c, "How long before the first of it (s)", "A model "+
-			"that says nothing by then is left", &s.draft.firstByte,
+	group(c, locale.AiGroupAsking(), func() {
+		choiceNamed(c, locale.AiSettingOutputLanguage(),
+			locale.AiSettingOutputLanguageNote(),
+			&s.draft.cfg.Ai.OutputLanguage, outputLanguages, outputName)
+		number(c, locale.AiSettingTimeout(), locale.AiSettingTimeoutNote(),
+			&s.draft.timeout, 5, 600)
+		number(c, locale.AiSettingFirstByte(),
+			locale.AiSettingFirstByteNote(), &s.draft.firstByte,
 			5, 600)
-		number(c, "How often it is tried again", "A question that "+
-			"failed is asked again this many times", &s.draft.tries,
-			1, 5)
-		number(c, "How long between two tries (ms)", "How long the "+
-			"app waits before it asks again", &s.draft.backoff,
+		number(c, locale.AiSettingTries(), locale.AiSettingTriesNote(),
+			&s.draft.tries, 1, 5)
+		number(c, locale.AiSettingBackoff(),
+			locale.AiSettingBackoffNote(), &s.draft.backoff,
 			100, 10_000)
-		number(c, "How far it may go through the vault", "How many "+
-			"times it may read the vault before it answers",
+		number(c, locale.AiSettingSteps(), locale.AiSettingStepsNote(),
 			&s.draft.steps, 1, 64)
-		number(c, "How much of a note it is shown (letters)", "The "+
-			"most of a note a model is given at once",
-			&s.draft.ctxChars, 1_000, 200_000)
-		number(c, "How much a tool may answer (letters)", "The most "+
-			"of a tool's answer it is given back", &s.draft.toolChars,
+		number(c, locale.AiSettingNoteChars(),
+			locale.AiSettingNoteCharsNote(), &s.draft.ctxChars,
+			1_000, 200_000)
+		number(c, locale.AiSettingToolChars(),
+			locale.AiSettingToolCharsNote(), &s.draft.toolChars,
 			500, 20_000)
 	})
 }
@@ -162,7 +163,7 @@ func (s *appState) aiModels(c *ui.Context) {
 		for i := range s.draft.cfg.Ai.Models {
 			s.aiModel(c, i)
 		}
-		if ui.Button(c.Key("add-model"), "Add a model").Clicked() {
+		if ui.Button(c.Key("add-model"), locale.AiModelsAdd()).Clicked() {
 			s.draft.cfg.Ai.Models = append(s.draft.cfg.Ai.Models,
 				s.newModel())
 		}
@@ -284,38 +285,40 @@ func (s *appState) aiModel(c *ui.Context, at int) {
 	last := at == len(s.draft.cfg.Ai.Models)-1
 	ui.Column(c).Gap(4).Children(func() {
 		ui.Row(c).Gap(6).Children(func() {
-			ui.Checkbox(c, &m.Enabled, "Turned on")
+			ui.Checkbox(c, &m.Enabled, locale.AiModelEnabled())
 			ui.Text(c, m.ID).Bold().Grow(1)
 			// The order is the order they are asked in: the
 			// first one turned on is the one asked when none
 			// has been named.
-			if ui.Button(c.Key("model-up#"+m.ID), "↑").
-				Label("Ask it earlier").Disabled(at == 0).Clicked() {
+			if ui.Button(c.Key("model-up#"+m.ID), locale.AiModelEarlier()).
+				Label(locale.AiModelEarlierLabel()).Disabled(
+				at == 0).Clicked() {
 				s.draft.moveID = m.ID
 				s.draft.moveBy = -1
 			}
-			if ui.Button(c.Key("model-down#"+m.ID), "↓").
-				Label("Ask it later").Disabled(last).Clicked() {
+			if ui.Button(c.Key("model-down#"+m.ID), locale.AiModelLater()).
+				Label(locale.AiModelLaterLabel()).Disabled(
+				last).Clicked() {
 				s.draft.moveID = m.ID
 				s.draft.moveBy = 1
 			}
 			open := st.open
-			label := "Open"
+			label := locale.AiModelOpen()
 			if open {
-				label = "Shut"
+				label = locale.AiModelShut()
 			}
 			if ui.Button(c.Key("model-open#"+m.ID), label).Clicked() {
 				st.open = !st.open
 			}
-			if ui.Button(c.Key("model-try#"+m.ID), "Try it").
+			if ui.Button(c.Key("model-try#"+m.ID), locale.AiModelTry()).
 				Clicked() && !st.trying {
 				s.tryModel(m.ID)
 			}
-			if ui.Button(c.Key("model-clone#"+m.ID), "Clone").
-				Label("The same model under another name").Clicked() {
+			if ui.Button(c.Key("model-clone#"+m.ID), locale.AiModelClone()).
+				Label(locale.AiModelCloneLabel()).Clicked() {
 				s.draft.clone = m.ID
 			}
-			if ui.Button(c.Key("model-drop#"+m.ID), "Forget").
+			if ui.Button(c.Key("model-drop#"+m.ID), locale.AiModelForget()).
 				Clicked() {
 				s.draft.drop = m.ID
 			}
@@ -324,23 +327,24 @@ func (s *appState) aiModel(c *ui.Context, at int) {
 			ui.Text(c, s.saidOf(st.probe)).TextColor(
 				c.Theme().TextMuted).FontSize(11)
 		} else if st.trying {
-			ui.Text(c, "Asking…").TextColor(
+			ui.Text(c, locale.AiModelAsking()).TextColor(
 				c.Theme().TextMuted).FontSize(11)
 		}
 		if !st.open {
 			return
 		}
 		ui.Column(c).FillWidth().Children(func() {
-			text(c, "Name", "What the model is called in the lists",
+			text(c, locale.AiModelName(), locale.AiModelNameNote(),
 				&m.Label, m.ID)
-			text(c, "Address", "Where the model is served from",
+			text(c, locale.AiModelAddress(), locale.AiModelAddressNote(),
 				&m.BaseURL, "http://localhost:11434")
-			text(c, "Key", "The key it is asked with", &m.PlainKey,
-				"none needed")
-			choice(c, "Speaks", "Which way it is spoken to", &m.Kind,
+			text(c, locale.AiModelKey(), locale.AiModelKeyNote(),
+				&m.PlainKey, locale.AiModelKeyPlaceholder())
+			choiceNamed(c, locale.AiModelSpeaks(),
+				locale.AiModelSpeaksNote(), &m.Kind,
 				[]string{
 					config.ModelOllama, config.ModelOpenAICompatible,
-				})
+				}, speaksName)
 			s.capabilitiesOf(c, m)
 		})
 	})
@@ -350,7 +354,7 @@ func (s *appState) aiModel(c *ui.Context, at int) {
 // one of them is saying it by hand, and from then on what the user said
 // is what is believed: the guess is no longer asked.
 func (s *appState) capabilitiesOf(c *ui.Context, m *config.ModelEntry) {
-	group(c, "What it can do", func() {
+	group(c, locale.AiGroupAbilities(), func() {
 		for _, id := range ai.Known {
 			info := ai.Info(id)
 			has := holds(ai.Effective(*m), id)
@@ -385,9 +389,10 @@ func (s *appState) capabilitiesOf(c *ui.Context, m *config.ModelEntry) {
 		}
 		for _, one := range unknown {
 			ui.Row(c).Children(func() {
-				ui.Text(c, one+"（"+ai.Info(one).Label+"）").Grow(1)
-				if ui.Button(c.Key("drop-cap#"+m.ID+"#"+one), "Forget").
-					Clicked() {
+				ui.Text(c, locale.AiModelCapabilityUnknown(one,
+					ai.Info(one).Label)).Grow(1)
+				if ui.Button(c.Key("drop-cap#"+m.ID+"#"+one),
+					locale.AiModelForget()).Clicked() {
 					kept := make([]string, 0, len(m.Capabilities))
 					for _, other := range m.Capabilities {
 						if other != one {
@@ -406,17 +411,15 @@ func (s *appState) capabilitiesOf(c *ui.Context, m *config.ModelEntry) {
 func (s *appState) saidOf(p *ai.Probe) string {
 	if !p.OK {
 		if p.Err != nil {
-			return "Could not be reached：" + p.Err.Error()
+			return locale.AiProbeUnreachableWhy(p.Err.Error())
 		}
-		return "Could not be reached"
+		return locale.AiProbeUnreachable()
 	}
-	out := "It answers（" + p.Took.Round(time.Millisecond).String() + "）"
+	took := p.Took.Round(time.Millisecond).String()
 	if p.Tools {
-		out += "，and it calls tools"
-	} else {
-		out += "，but it calls no tools"
+		return locale.AiProbeAnswersTools(took)
 	}
-	return out
+	return locale.AiProbeAnswersNoTools(took)
 }
 
 // tryModel asks a model one small question, and one tool it may call, to
@@ -465,4 +468,28 @@ func holds(list []string, want string) bool {
 		}
 	}
 	return false
+}
+
+// outputName is what one of the tongues an answer may come back in is
+// called in the language the app shows.
+func outputName(v string) string {
+	switch v {
+	case config.OutputZh:
+		return locale.AiOutputZh()
+	case config.OutputEn:
+		return locale.AiOutputEn()
+	default:
+		return locale.AiOutputAuto()
+	}
+}
+
+// speaksName is what one of the ways of speaking to a model is called in
+// the language the app shows.
+func speaksName(v string) string {
+	switch v {
+	case config.ModelOpenAICompatible:
+		return locale.AiSpeaksOpenai()
+	default:
+		return locale.AiSpeaksOllama()
+	}
 }

@@ -100,9 +100,10 @@ func TestIsAIDir(t *testing.T) {
 	}
 }
 
-// TestKind_string checks the names the logs and tests use.
+// TestKind_string checks the name a file is headed with in the file
+// view, which is what the kind is called in the language the app shows.
 func TestKind_string(t *testing.T) {
-	if KindMarkdown.String() != "markdown" || KindDir.String() != "dir" {
+	if KindMarkdown.String() != "Markdown" || KindDir.String() != "Folder" {
 		t.Errorf("kinds are named %q and %q", KindMarkdown, KindDir)
 	}
 }

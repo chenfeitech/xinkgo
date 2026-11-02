@@ -9,6 +9,7 @@ import (
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
+	"github.com/helightxu/xinkgo/internal/locale"
 	"github.com/helightxu/xinkgo/internal/note"
 	"github.com/helightxu/xinkgo/internal/task"
 )
@@ -31,7 +32,7 @@ func (s *appState) openTasks() {
 		return
 	}
 	s.tasksWin = mygo.NewWindow(mygo.WindowOptions{
-		Title:     "Library tasks",
+		Title:     locale.TitleLibraryTasks(),
 		Width:     680,
 		Height:    520,
 		MinWidth:  480,
@@ -59,32 +60,35 @@ func (s *appState) tasksView(c *ui.Context) {
 // tag. A new name is only asked for when a tag is being changed.
 func (s *appState) taskBeing(c *ui.Context) {
 	ui.Column(c).Gap(4).Children(func() {
-		ui.Text(c, "New task").Bold()
+		ui.Text(c, locale.TasksNew()).Bold()
 		ui.Row(c).Gap(6).Children(func() {
-			ui.Text(c, "What").Grow(1)
-			ui.Select(c, &s.taskDraft.Kind, []string{
+			ui.Text(c, locale.TasksWhat()).Grow(1)
+			kinds := []string{
 				task.Retag.ID(), task.AddTag.ID(), task.RemoveTag.ID(),
-			})
+			}
+			kind := kindOf(s.taskDraft.Kind).Label()
+			ui.Select(c, &kind, taskKindLabels(kinds))
+			s.taskDraft.Kind = kindIDOf(kind, kinds)
 		})
 		ui.Row(c).Gap(6).Children(func() {
-			ui.Text(c, "Tag").Grow(1)
+			ui.Text(c, locale.TasksTag()).Grow(1)
 			ui.TextInput(c, &s.taskDraft.Target).
-				Placeholder("without the #")
+				Placeholder(locale.TasksTagPlaceholder())
 		})
 		if s.taskDraft.Kind == task.Retag.ID() {
 			ui.Row(c).Gap(6).Children(func() {
-				ui.Text(c, "Into").Grow(1)
+				ui.Text(c, locale.TasksInto()).Grow(1)
 				ui.TextInput(c, &s.taskDraft.NewTag).
-					Placeholder("the new tag")
+					Placeholder(locale.TasksIntoPlaceholder())
 			})
 		}
 		ui.Row(c).Gap(6).Children(func() {
-			if ui.Button(c.Key("task-plan"), "Plan it").
-				Label("Read the vault and say what it would do").
+			if ui.Button(c.Key("task-plan"), locale.TasksPlan()).
+				Label(locale.TasksPlanLabel()).
 				Clicked() {
 				s.planTask()
 			}
-			if ui.Button(c.Key("task-drop"), "Put it away").Clicked() {
+			if ui.Button(c.Key("task-drop"), locale.TasksDrop()).Clicked() {
 				s.work = nil
 			}
 		})
@@ -98,15 +102,16 @@ func (s *appState) taskPlan(c *ui.Context) {
 	done, skipped, failed := one.Stats()
 	ui.Column(c).Gap(4).Children(func() {
 		ui.Text(c, one.Title()).Bold()
-		ui.Text(c, one.Status.Label()+" · 已改 "+
-			strconv.Itoa(done)+" · 跳过 "+strconv.Itoa(skipped)+
-			" · 失败 "+strconv.Itoa(failed)+" · 待处理 "+
-			strconv.Itoa(one.Pending())).TextColor(c.Theme().TextMuted)
+		ui.Text(c, locale.TaskStats(one.Status.Label(),
+			strconv.Itoa(done), strconv.Itoa(skipped),
+			strconv.Itoa(failed),
+			strconv.Itoa(one.Pending()))).
+			TextColor(c.Theme().TextMuted)
 		ui.Row(c).Gap(6).Children(func() {
 			if !one.Finished() {
-				if ui.Button(c.Key("task-run"), "Do the next batch").
-					Label("Do the next " + strconv.Itoa(task.BatchSize) +
-						" notes").Clicked() {
+				if ui.Button(c.Key("task-run"), locale.TasksRun()).
+					Label(locale.TasksRunLabel(
+						strconv.Itoa(task.BatchSize))).Clicked() {
 					s.runTask()
 				}
 			}
@@ -218,6 +223,26 @@ func withinRoot(root, path string) bool {
 	}
 	return rel != ".." && !strings.HasPrefix(rel, ".."+string(
 		filepath.Separator))
+}
+
+// taskKindLabels is what each kind of work is called in the language the
+// app shows, and kindIDOf the word the configuration keeps for one of
+// them: the row shows the names, and the file keeps the words.
+func taskKindLabels(kinds []string) []string {
+	out := make([]string, len(kinds))
+	for i, id := range kinds {
+		out[i] = kindOf(id).Label()
+	}
+	return out
+}
+
+func kindIDOf(label string, kinds []string) string {
+	for _, id := range kinds {
+		if kindOf(id).Label() == label {
+			return id
+		}
+	}
+	return kinds[0]
 }
 
 // kindOf is the kind named by that word.

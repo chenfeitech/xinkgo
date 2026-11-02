@@ -8,6 +8,7 @@ import (
 
 	"github.com/egoist/mygo"
 	"github.com/helightxu/xinkgo/internal/config"
+	"github.com/helightxu/xinkgo/internal/locale"
 	"github.com/helightxu/xinkgo/internal/sysinfo"
 )
 
@@ -125,6 +126,6 @@ func (s *appState) openOutside(address string) {
 func (s *appState) openExternally(path string) {
 	if err := mygo.Shell.OpenPath(path); err != nil {
 		slog.Warn("the file could not be opened", "path", path, "err", err)
-		s.ws.Say("the file could not be opened by the machine")
+		s.ws.Say(locale.SayFileNotOpened())
 	}
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/egoist/mygo/ui"
 	"github.com/egoist/mygo/ui/editor"
+	"github.com/helightxu/xinkgo/internal/locale"
 	"github.com/helightxu/xinkgo/internal/search"
 )
 
@@ -96,11 +97,13 @@ func (w *Workspace) searchResults(c *ui.Context) {
 	w.search.mu.Unlock()
 
 	if strings.TrimSpace(w.search.query) == "" {
-		ui.Text(c, "what to look for").TextColor(c.Theme().TextMuted)
+		ui.Text(c, locale.SearchPlaceholder()).
+			TextColor(c.Theme().TextMuted)
 		return
 	}
 	if len(hits) == 0 {
-		ui.Text(c, "not found in the vault").TextColor(c.Theme().TextMuted)
+		ui.Text(c, locale.SearchNotFound()).
+			TextColor(c.Theme().TextMuted)
 		return
 	}
 	if w.search.chosen >= len(hits) {

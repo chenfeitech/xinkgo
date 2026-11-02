@@ -3,7 +3,11 @@
 // out of one.
 package markdown
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/helightxu/xinkgo/internal/locale"
+)
 
 // Format is one button of the Markdown toolbar.
 type Format int
@@ -53,33 +57,33 @@ func everyFormat() []Format {
 func (f Format) Label() string {
 	switch f {
 	case Bold:
-		return "粗"
+		return locale.FormatBold()
 	case Italic:
-		return "斜"
+		return locale.FormatItalic()
 	case Strikethrough:
-		return "删"
+		return locale.FormatStrikethrough()
 	case InlineCode:
-		return "码"
+		return locale.FormatInlineCode()
 	case FormatHeading:
-		return "标题"
+		return locale.FormatHeading()
 	case BulletList:
-		return "无序"
+		return locale.FormatBulletList()
 	case NumberedList:
-		return "有序"
+		return locale.FormatNumberedList()
 	case TaskList:
-		return "任务"
+		return locale.FormatTaskList()
 	case Quote:
-		return "引用"
+		return locale.FormatQuote()
 	case CodeBlock:
-		return "代码块"
+		return locale.FormatCodeBlock()
 	case FormatLink:
-		return "链接"
+		return locale.FormatLink()
 	case Image:
-		return "图片"
+		return locale.FormatImage()
 	case Table:
-		return "表格"
+		return locale.FormatTable()
 	default:
-		return "横线"
+		return locale.FormatRule()
 	}
 }
 
@@ -87,33 +91,33 @@ func (f Format) Label() string {
 func (f Format) Desc() string {
 	switch f {
 	case Bold:
-		return "加粗：包裹选中文本，或插入 ** 标记"
+		return locale.FormatBoldDesc()
 	case Italic:
-		return "斜体：包裹选中文本，或插入 * 标记"
+		return locale.FormatItalicDesc()
 	case Strikethrough:
-		return "删除线：包裹选中文本，或插入 ~~ 标记"
+		return locale.FormatStrikethroughDesc()
 	case InlineCode:
-		return "行内代码：包裹选中文本，或插入 ` 标记"
+		return locale.FormatInlineCodeDesc()
 	case FormatHeading:
-		return "标题：插入 # 标题行"
+		return locale.FormatHeadingDesc()
 	case BulletList:
-		return "无序列表：插入 - 列表项"
+		return locale.FormatBulletListDesc()
 	case NumberedList:
-		return "有序列表：插入 1. 列表项"
+		return locale.FormatNumberedListDesc()
 	case TaskList:
-		return "任务列表：插入待办项 - [ ]"
+		return locale.FormatTaskListDesc()
 	case Quote:
-		return "引用：插入 > 引用块"
+		return locale.FormatQuoteDesc()
 	case CodeBlock:
-		return "代码块：插入 ``` 代码块"
+		return locale.FormatCodeBlockDesc()
 	case FormatLink:
-		return "链接：插入 [文本](地址)，无选中则插入占位"
+		return locale.FormatLinkDesc()
 	case Image:
-		return "图片：插入 ![描述](地址)，无选中则插入占位"
+		return locale.FormatImageDesc()
 	case Table:
-		return "表格：插入 Markdown 表格模板"
+		return locale.FormatTableDesc()
 	default:
-		return "分割线：插入 --- 水平分隔线"
+		return locale.FormatRuleDesc()
 	}
 }
 

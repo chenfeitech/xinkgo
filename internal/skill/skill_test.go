@@ -1,6 +1,7 @@
 package skill
 
 import (
+	"github.com/helightxu/xinkgo/internal/locale"
 	"os"
 	"path/filepath"
 	"strings"
@@ -114,8 +115,10 @@ func TestDiscover_whatCannotBeUsedIsSaidAndNotDropped(t *testing.T) {
 		reasons[one.Reason] = true
 	}
 	// Each is given a reason the user can act on.
-	for _, want := range []string{"缺少 name", "缺少 description",
-		"front-matter 没有闭合", "缺少 front-matter"} {
+	for _, want := range []string{locale.SkillIssueNoName(),
+		locale.SkillIssueNoDescription(),
+		locale.SkillIssueFrontMatterUnclosed(),
+		locale.SkillIssueNoFrontMatter()} {
 		said := false
 		for reason := range reasons {
 			if strings.Contains(reason, want) {

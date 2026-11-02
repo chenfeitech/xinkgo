@@ -7,6 +7,7 @@ import (
 	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/config"
 	"github.com/helightxu/xinkgo/internal/fuzzy"
+	"github.com/helightxu/xinkgo/internal/locale"
 	"github.com/helightxu/xinkgo/internal/skill"
 )
 
@@ -14,18 +15,19 @@ import (
 const (
 	paletteLimit = 50
 	paletteWidth = 560
-	// skillPrefix is what a skill is called in the palette, so that a
-	// skill is not taken for a note.
-	skillPrefix = "Skill · "
 	// skillPaletteLimit is how many skills the palette shows: there
 	// are not many of them, and the notes are what it is for.
 	skillPaletteLimit = 10
-	// actionPrefix is what one of the app's own actions is called in
-	// the palette, for the same reason: it is not a note either.
-	actionPrefix = "Action · "
 	// actionPaletteLimit is how many actions the palette shows.
 	actionPaletteLimit = 10
 )
+
+// skillPrefix is what a skill is called in the palette, so that a skill
+// is not taken for a note, and actionPrefix what one of the app's own
+// actions is called, for the same reason. Both are said in the language
+// the app shows, which may change while it stands.
+func skillPrefix() string  { return locale.PaletteSkillPrefix() }
+func actionPrefix() string { return locale.PaletteActionPrefix() }
 
 // OpenPalette is the palette opened: what was typed last time is
 // forgotten, and the first answer is the one the keys are on.
@@ -68,7 +70,7 @@ func (w *Workspace) palette(c *ui.Context) {
 			}
 			items := w.paletteItems()
 			if len(items) == 0 {
-				ui.Text(c, "nothing of that name").TextColor(
+				ui.Text(c, locale.PaletteNothing()).TextColor(
 					c.Theme().TextMuted)
 				return
 			}
@@ -145,14 +147,14 @@ func (w *Workspace) useSkill(s skill.Skill) {
 	session := w.aiOf(n.Path)
 	session.Open = true
 	session.Skill = &s
-	w.status = "using " + s.Name
+	w.status = locale.StatusUsingSkill(s.Name)
 }
 
 // openNote is the one way a note is opened from the window: its tab, and
 // its place in the tree.
 func (w *Workspace) openNote(path string) {
 	if _, err := w.Tabs.Open(path); err != nil {
-		w.status = "could not open " + PathOf(path)
+		w.status = locale.StatusCouldNotOpen(PathOf(path))
 		return
 	}
 	w.Tree.Reveal(path)
@@ -209,9 +211,9 @@ func (w *Workspace) actionItems() []paletteItem {
 			continue
 		}
 		items = append(items, paletteItem{
-			Name:      actionPrefix + r.Text,
+			Name:      actionPrefix() + r.Text,
 			Title:     one.Prompt,
-			Positions: shifted(r.Positions, len(actionPrefix)),
+			Positions: shifted(r.Positions, len(actionPrefix())),
 			Action:    one,
 		})
 	}
@@ -248,9 +250,9 @@ func (w *Workspace) skillItems() []paletteItem {
 		items = append(items, paletteItem{
 			// The prefix is part of what is shown, so the letters
 			// that were typed are lit up where they stand.
-			Name:      skillPrefix + r.Text,
+			Name:      skillPrefix() + r.Text,
 			Title:     one.Description,
-			Positions: shifted(r.Positions, len(skillPrefix)),
+			Positions: shifted(r.Positions, len(skillPrefix())),
 			Skill:     one,
 		})
 	}

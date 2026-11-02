@@ -9,6 +9,8 @@ package media
 import (
 	"path/filepath"
 	"strings"
+
+	"github.com/helightxu/xinkgo/internal/locale"
 )
 
 // Kind is what a file is, which decides its icon and whether the app opens
@@ -30,31 +32,32 @@ const (
 	KindOther
 )
 
-// String is the name of the kind, for logs and tests.
+// String is what the kind is called, as the file view heads a file with
+// it.
 func (k Kind) String() string {
 	switch k {
 	case KindDir:
-		return "dir"
+		return locale.MediaKindDir()
 	case KindMarkdown:
-		return "markdown"
+		return locale.MediaKindMarkdown()
 	case KindImage:
-		return "image"
+		return locale.MediaKindImage()
 	case KindPDF:
-		return "pdf"
+		return locale.MediaKindPDF()
 	case KindCode:
-		return "code"
+		return locale.MediaKindCode()
 	case KindData:
-		return "data"
+		return locale.MediaKindData()
 	case KindArchive:
-		return "archive"
+		return locale.MediaKindArchive()
 	case KindSpreadsheet:
-		return "spreadsheet"
+		return locale.MediaKindSpreadsheet()
 	case KindAudio:
-		return "audio"
+		return locale.MediaKindAudio()
 	case KindVideo:
-		return "video"
+		return locale.MediaKindVideo()
 	default:
-		return "other"
+		return locale.MediaKindOther()
 	}
 }
 

@@ -5,6 +5,7 @@ import (
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
+	"github.com/helightxu/xinkgo/internal/locale"
 	"github.com/helightxu/xinkgo/internal/state"
 	"github.com/helightxu/xinkgo/internal/vault"
 )
@@ -20,31 +21,32 @@ import (
 // of the settings are.
 func (s *appState) vaultSettings(c *ui.Context) {
 	th := c.Theme()
-	group(c, "The vault that is open", func() {
+	group(c, locale.GroupVaultOpen(), func() {
 		where := s.root
 		if where == "" {
-			where = "none is open"
+			where = locale.VaultNoneOpen()
 		}
-		buttons(c, "Where it is", where, func() {
-			if ui.Button(c.Key("open-other-vault"), "Open another…").
+		buttons(c, locale.VaultWhere(), where, func() {
+			if ui.Button(c.Key("open-other-vault"),
+				locale.VaultOpenAnother()).
 				Clicked() {
 				s.openVaultDialog()
 			}
 		})
 	})
-	group(c, "The folders the app knows", func() {
+	group(c, locale.GroupVaultsKnown(), func() {
 		for _, v := range s.vaults.Vaults {
 			s.vaultRow(c, v)
 		}
 		if len(s.vaults.Vaults) == 0 {
 			ui.Column(c).FillWidth().
 				Padding(th.Space(1), settingsRowPad).Children(func() {
-				ui.Text(c, "no vaults yet").TextColor(th.TextMuted)
+				ui.Text(c, locale.VaultsNoneYet()).TextColor(th.TextMuted)
 			})
 		}
-		buttons(c, "Another folder", "One the app does not know yet",
+		buttons(c, locale.VaultAdd(), locale.VaultAddNote(),
 			func() {
-				if ui.Button(c.Key("add-vault"), "Add a folder…").
+				if ui.Button(c.Key("add-vault"), locale.VaultAdd()).
 					Clicked() {
 					s.addVault()
 				}
@@ -84,22 +86,25 @@ func (s *appState) vaultRow(c *ui.Context, v vault.VaultEntry) {
 				// The one that is open is said so, rather than
 				// offered to be opened again.
 				if open {
-					ui.Text(c, "open").TextColor(th.Success).
+					ui.Text(c, locale.VaultIsOpen()).TextColor(th.Success).
 						FontSize(th.FontSize - 1)
-				} else if ui.Button(c.Key("vault-open#"+v.ID), "Open").
+				} else if ui.Button(c.Key("vault-open#"+v.ID),
+					locale.VaultOpenButton()).
 					Clicked() {
 					s.switchVault(v.Path)
 				}
-				if ui.Button(c.Key("vault-rename#"+v.ID), "Name again").
+				if ui.Button(c.Key("vault-rename#"+v.ID),
+					locale.VaultRenameButton()).
 					Clicked() {
 					s.draft.vaultRename = v.ID
 					s.draft.vaultName = v.Name
 				}
 				if ui.Button(c.Key("vault-relocate#"+v.ID),
-					"Find it again").Clicked() {
+					locale.VaultRelocate()).Clicked() {
 					s.relocateVault(v.ID)
 				}
-				if ui.Button(c.Key("vault-forget#"+v.ID), "Forget").
+				if ui.Button(c.Key("vault-forget#"+v.ID),
+					locale.VaultForget()).
 					Clicked() {
 					s.draft.vaultDrop = v.ID
 				}
@@ -113,7 +118,7 @@ func (s *appState) vaultRow(c *ui.Context, v vault.VaultEntry) {
 // Escape leaves it as it was.
 func (s *appState) vaultNameField(c *ui.Context, v vault.VaultEntry) {
 	field := ui.TextInput(c.Key("vault-name#"+v.ID), &s.draft.vaultName).
-		Label("The name of the vault").Grow(1)
+		Label(locale.VaultNameLabel()).Grow(1)
 	if field.Submitted() {
 		s.renameVault(v.ID, s.draft.vaultName)
 		s.draft.vaultRename = ""
@@ -130,7 +135,7 @@ func (s *appState) vaultNameField(c *ui.Context, v vault.VaultEntry) {
 func (s *appState) addVault() {
 	go func() {
 		picked, err := mygo.Dialog.Open(mygo.OpenDialogOptions{
-			Title:     "Add a folder as a vault",
+			Title:     locale.DialogAddVault(),
 			Directory: true,
 		})
 		if err != nil || len(picked) == 0 {
@@ -146,7 +151,7 @@ func (s *appState) addVault() {
 // would leave two rows for one folder.
 func (s *appState) keepVault(path string) {
 	if s.vaults.At(path) != nil {
-		s.ws.Say("that folder is one of them already")
+		s.ws.Say(locale.SayVaultAlreadyKnown())
 		return
 	}
 	s.vaults.Add(path)
@@ -166,7 +171,7 @@ func (s *appState) renameVault(id, name string) {
 func (s *appState) relocateVault(id string) {
 	go func() {
 		picked, err := mygo.Dialog.Open(mygo.OpenDialogOptions{
-			Title:     "Where has the vault gone?",
+			Title:     locale.DialogRelocateVault(),
 			Directory: true,
 		})
 		if err != nil || len(picked) == 0 {
@@ -197,7 +202,7 @@ func (s *appState) moveVault(id, path string) {
 func (s *appState) forgetVault(id string) {
 	v := s.vaults.ByID(id)
 	if v != nil && s.root == v.Path {
-		s.ws.Say("the vault that is open cannot be forgotten")
+		s.ws.Say(locale.SayOpenVaultNotForgotten())
 		return
 	}
 	s.vaults.Remove(id)

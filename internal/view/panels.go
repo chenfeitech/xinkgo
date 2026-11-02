@@ -6,6 +6,7 @@ import (
 
 	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/index"
+	"github.com/helightxu/xinkgo/internal/locale"
 )
 
 // backlinks are the places in the vault that named the note that is
@@ -18,7 +19,7 @@ func (w *Workspace) backlinks(c *ui.Context) {
 	}
 	refs := w.Index.Backlinks(n.Path)
 	if len(refs) == 0 {
-		ui.Text(c, "no other note names this one").TextColor(
+		ui.Text(c, locale.PanelsNoBacklinks()).TextColor(
 			c.Theme().TextMuted)
 		return
 	}
@@ -72,7 +73,7 @@ func (w *Workspace) tags(c *ui.Context) {
 	}
 	tags := w.Index.Tags()
 	if len(tags) == 0 {
-		ui.Text(c, "nothing is tagged in this vault").TextColor(
+		ui.Text(c, locale.PanelsNoTags()).TextColor(
 			c.Theme().TextMuted)
 		return
 	}

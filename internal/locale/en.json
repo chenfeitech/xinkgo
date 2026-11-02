@@ -1,0 +1,588 @@
+{
+  "@@locale": "en",
+  "languageFollowSystem": "Follow the machine",
+  "languageEnglish": "English",
+  "languageChineseHans": "简体中文",
+  "menuFile": "File",
+  "menuOpenVault": "Open Vault…",
+  "menuNewNote": "New Note",
+  "menuNewFolder": "New Folder",
+  "menuPasteIntoVault": "Paste into Vault",
+  "menuGoToNote": "Go to Note…",
+  "menuSearchInVault": "Search in Vault",
+  "menuAskAi": "Ask AI",
+  "menuSettings": "Settings…",
+  "menuLibraryTasks": "Library tasks…",
+  "menuSnapshots": "Snapshots…",
+  "menuSave": "Save",
+  "menuCloseTab": "Close Tab",
+  "menuVault": "Vault",
+  "menuOpenAnotherFolder": "Open Another Folder…",
+  "menuManageVaults": "Manage Vaults…",
+  "menuNote": "Note",
+  "menuRename": "Rename…",
+  "menuDelete": "Delete",
+  "menuFormat": "Format",
+  "menuBold": "Bold",
+  "menuItalic": "Italic",
+  "menuStrikethrough": "Strikethrough",
+  "menuInlineCode": "Inline code",
+  "menuLink": "Link",
+  "menuView": "View",
+  "menuToggleTheme": "Turn the light the other way",
+  "titleSettings": "Settings",
+  "titleSnapshots": "Snapshots",
+  "titleLibraryTasks": "Library tasks",
+  "settingsTabBasic": "Basic",
+  "settingsTabBasicNote": "How the window looks",
+  "settingsTabEditor": "Editor",
+  "settingsTabEditorNote": "How a note is written",
+  "settingsTabPreview": "Preview",
+  "settingsTabPreviewNote": "How a note reads beside what it says",
+  "settingsTabAi": "AI",
+  "settingsTabAiNote": "Which model is asked, and how",
+  "settingsTabVault": "Vault",
+  "settingsTabVaultNote": "The folders the app knows",
+  "settingsTabFile": "Settings file",
+  "settingsTabFileNote": "Given away, and taken in again",
+  "groupAppearance": "Appearance",
+  "settingLanguage": "Language",
+  "settingLanguageNote": "What the app says its menus, its settings and its own words in",
+  "settingTheme": "Theme",
+  "settingThemeNote": "Light, dark, or whatever the machine has",
+  "settingShowAllFiles": "Show every file",
+  "settingShowAllFilesNote": "Files the app cannot read are listed by the tree too",
+  "settingTreeFontSize": "Tree font size",
+  "settingTreeFontSizeNote": "How large the names in the file tree are drawn",
+  "groupWindow": "Window",
+  "settingShowTree": "Show the file tree",
+  "settingShowTreeNote": "The panel on the left",
+  "settingShowPreview": "Show the preview",
+  "settingShowPreviewNote": "The panel on the right",
+  "settingAutoSave": "Save as I type",
+  "settingAutoSaveNote": "The note is written to the disk while it is written",
+  "settingAutoSaveDelay": "Save after (ms)",
+  "settingAutoSaveDelayNote": "How long the typing pauses before the note is written",
+  "settingSoftWrap": "Wrap long lines",
+  "settingSoftWrapNote": "A line longer than the window is broken, rather than run out of it",
+  "settingLineNumbers": "Show line numbers",
+  "settingLineNumbersNote": "A number beside every line",
+  "settingIndentTabs": "Indent with tabs",
+  "settingIndentTabsNote": "A tab, rather than spaces",
+  "settingIndentSize": "Indent size",
+  "settingIndentSizeNote": "How far an indented line starts in",
+  "settingFontSize": "Font size",
+  "settingFontSizeNote": "How large the note's letters are",
+  "settingLineHeight": "Line height",
+  "settingLineHeightNote": "How far apart the lines stand",
+  "settingCodeTheme": "Code theme",
+  "settingCodeThemeNote": "The colors the code in a note is shown in",
+  "settingSyncScroll": "Follow where the note is",
+  "settingSyncScrollNote": "The preview follows the line being written",
+  "settingSyncMode": "Follow by",
+  "settingSyncModeNote": "By how far down the note is, by the heading at the top, or once the typing stops",
+  "settingImages": "Images",
+  "settingImagesNote": "Shown as wide as the text runs, or not at all",
+  "settingImageWidth": "Image width (%)",
+  "settingImageWidthNote": "How much of the text's width an image is given",
+  "settingLinkOpen": "Open links",
+  "settingLinkOpenNote": "In the app, or in the browser",
+  "settingMaxWidth": "Widest the text runs",
+  "settingMaxWidthNote": "A note is not set wider than this, however wide the window is",
+  "settingDensity": "Density",
+  "settingDensityNote": "How much room the lines are given",
+  "themeSystem": "Follow the machine",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "syncRatio": "How far down the note is",
+  "syncAnchor": "The heading at the top",
+  "syncOnStop": "Once the typing stops",
+  "imageFitWidth": "As wide as the text",
+  "imageHidden": "Not at all",
+  "linkInApp": "In the app",
+  "linkExternal": "In the browser",
+  "densityCompact": "Compact",
+  "densityNormal": "Normal",
+  "densityRelaxed": "Relaxed",
+  "highlightXink": "Xink",
+  "highlightOcean": "Ocean",
+  "highlightSolarized": "Solarized",
+  "groupConfigFile": "Kept as a file",
+  "configExport": "Save a copy…",
+  "configImport": "Take one in…",
+  "configReset": "Back to the defaults",
+  "dialogOpenVault": "Open a folder as a vault",
+  "dialogSaveSettings": "Save the settings",
+  "dialogImportSettings": "Take settings in",
+  "sayVaultNotOpened": "that folder could not be opened",
+  "sayNoteNotSaved": "the note could not be saved",
+  "sayRevisionOpen": "put the revision away first",
+  "noVaultYet": "No vault yet",
+  "openFolder": "Open a folder",
+  "newNoteLabel": "New note",
+  "tabCloseLabel": "close {name}",
+  "tabCloseTooltip": "Close {name}",
+  "toolbarMarkdown": "Markdown",
+  "aiAssist": "AI assist",
+  "aiAssistTooltip": "AI assist: open the conversation below the note",
+  "problemsWellFormed": "· well formed",
+  "noNoteOpen": "No note open",
+  "statusNoNoteAt": "no note at {name}",
+  "statusNoNoteCalled": "no note called {name}",
+  "statusCouldNotOpen": "could not open {name}",
+  "noteCount": "{count, plural, one {# note} other {# notes}}",
+  "@noteCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "folderCount": "{count, plural, one {# folder} other {# folders}}",
+  "@folderCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "treeCounts": "{notes} · {folders}",
+  "treeSettings": "Settings",
+  "treeRefresh": "Read the folder again",
+  "treeNewNoteHere": "New note here",
+  "treeNewFolderHere": "New folder here",
+  "treeFoldAll": "Fold every folder",
+  "treeUnfoldAll": "Open every folder",
+  "treeSwitchVault": "Switch vault",
+  "treeNoOtherVault": "no other vault",
+  "treeOpenAnotherFolder": "Open another folder…",
+  "treeManageVaults": "Manage vaults…",
+  "treeNoVault": "no vault",
+  "treeRename": "Rename…",
+  "treeMoveTo": "Move to…",
+  "treeDelete": "Delete",
+  "reviewTitle": "AI revision · {hunks} changes (+{added} −{removed})",
+  "reviewTakeAll": "Take all",
+  "reviewTakeAllLabel": "Take every change",
+  "reviewSendAllBack": "Send all back",
+  "reviewSendAllBackLabel": "Send every change back",
+  "reviewWriteIn": "Write it in",
+  "reviewWriteInLabel": "Write what is left into the note",
+  "reviewAway": "Away",
+  "reviewAwayLabel": "Put the revision away",
+  "statusModelSaidSame": "the model said what the note says",
+  "statusNoteChangedPiece": "the note has changed: the piece cannot be put back",
+  "statusModelSaidPiece": "the model said what the piece says",
+  "statusNothingTaken": "nothing was taken",
+  "statusRevisionInNote": "the revision is in the note",
+  "statusWrittenIssues": "written, but {count} to look over again: {first}",
+  "aiUsingSkill": "using {name}",
+  "aiPutSkillDown": "Put it down",
+  "aiPutSkillDownLabel": "Stop using this skill",
+  "aiAnswering": "answering…",
+  "aiForget": "Forget",
+  "aiForgetLabel": "Forget this conversation",
+  "aiHideLabel": "Hide the conversation",
+  "aiOutOfRoom": "the model ran out of room",
+  "aiLookOver": "Look it over",
+  "aiLookOverLabel": "Look over these changes",
+  "aiStop": "Stop",
+  "aiStopLabel": "Stop the answer",
+  "aiAsk": "Ask",
+  "aiAskLabel": "Ask the model",
+  "statusNoNoteForAction": "no note is open to do that to",
+  "statusStillAnswering": "the model is still answering",
+  "statusActionAsked": "{name} asked of it",
+  "paletteNothing": "nothing of that name",
+  "paletteSkillPrefix": "Skill · ",
+  "paletteActionPrefix": "Action · ",
+  "statusUsingSkill": "using {name}",
+  "searchPlaceholder": "what to look for",
+  "searchNotFound": "not found in the vault",
+  "panelsNoBacklinks": "no other note names this one",
+  "panelsNoTags": "nothing is tagged in this vault",
+  "drawerOutlineLabel": "Outline",
+  "drawerLinksLabel": "Backlinks",
+  "drawerTagsLabel": "Tags",
+  "outlineNoHeadings": "no headings in this note",
+  "pictureComing": "the picture is coming",
+  "pictureNotShown": "this picture cannot be shown here",
+  "openWithAnotherApp": "Open with another app",
+  "pdfPreviewed": "a PDF is previewed by the program the machine has for it",
+  "fileNotUsable": "this file can neither be edited nor shown here",
+  "shownNotEdited": "· shown, not edited",
+  "sayFileNotOpened": "the file could not be opened by the machine",
+  "sayNoteNotMade": "the note could not be made",
+  "sayFolderNotMade": "the folder could not be made",
+  "sayVaultNotRenamed": "the vault itself cannot be named again",
+  "sayFileNotRenamed": "the file could not be named again",
+  "sayVaultNotRemoved": "the vault itself cannot be taken away",
+  "deleteTitle": "Take it away?",
+  "deleteMessage": "{name} and all that is in it will be gone.",
+  "takeAway": "Take it away",
+  "sayNothingChosen": "no file is chosen",
+  "sayNotRemoved": "that could not be taken away",
+  "sayVaultNotMoved": "the vault itself cannot be moved",
+  "dialogMoveTo": "Move {name} to…",
+  "sayNotMoved": "that could not be moved",
+  "sayBroughtIn": "{count, plural, one {# file brought in} other {# files brought in}}",
+  "@sayBroughtIn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sayCouldNotBeBroughtIn": "{count, plural, one {# file could not be} other {# files could not be}}",
+  "@sayCouldNotBeBroughtIn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sayNothingBroughtIn": "nothing could be brought in",
+  "sayPictureNotWritten": "the picture could not be written",
+  "sayTextNotWritten": "the words could not be written",
+  "vaultStatusOk": "ok",
+  "vaultStatusMissing": "the folder is not there",
+  "vaultStatusNotDir": "it is not a folder",
+  "vaultStatusNoPermission": "the folder cannot be read",
+  "vaultStatusDuplicate": "another vault is the same folder",
+  "vaultStatusNested": "another vault is a folder above it",
+  "vaultStatusUnknown": "unknown",
+  "groupVaultOpen": "The vault that is open",
+  "vaultNoneOpen": "none is open",
+  "vaultWhere": "Where it is",
+  "vaultOpenAnother": "Open another…",
+  "groupVaultsKnown": "The folders the app knows",
+  "vaultsNoneYet": "no vaults yet",
+  "vaultAddNote": "One the app does not know yet",
+  "vaultAdd": "Add a folder…",
+  "vaultOpenButton": "Open",
+  "vaultIsOpen": "open",
+  "vaultRenameButton": "Name again",
+  "vaultRelocate": "Find it again",
+  "vaultForget": "Forget",
+  "vaultNameLabel": "The name of the vault",
+  "dialogAddVault": "Add a folder as a vault",
+  "dialogRelocateVault": "Where has the vault gone?",
+  "sayVaultAlreadyKnown": "that folder is one of them already",
+  "sayOpenVaultNotForgotten": "the vault that is open cannot be forgotten",
+  "histIntro": "What a note said before it was changed. The oldest {max} are kept; putting one back goes into the note of that name in the vault that is open, and what stands there now is kept first.",
+  "histEmpty": "Nothing kept yet: a note is kept when a revision is written into it, or when one is put back.",
+  "histKept": "{count, plural, one {# kept} other {# kept}}",
+  "@histKept": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "histPutBack": "Put it back",
+  "histNotRead": "that snapshot could not be read",
+  "histNoteNotRead": "the note could not be read",
+  "histNoteNotWritten": "the note could not be written",
+  "histPutBackDone": "{name} is as it was again",
+  "histNothingInIt": "(nothing in it)",
+  "tasksNew": "New task",
+  "tasksWhat": "What",
+  "tasksTag": "Tag",
+  "tasksTagPlaceholder": "without the #",
+  "tasksInto": "Into",
+  "tasksIntoPlaceholder": "the new tag",
+  "tasksPlan": "Plan it",
+  "tasksPlanLabel": "Read the vault and say what it would do",
+  "tasksDrop": "Put it away",
+  "tasksRun": "Do the next batch",
+  "tasksRunLabel": "Do the next {n} notes",
+  "taskStats": "{status} · changed {changed} · skipped {skipped} · failed {failed} · pending {pending}",
+  "cancel": "Cancel",
+  "aiSettingAskAtAll": "Ask a model at all",
+  "aiSettingAskAtAllNote": "Turning this on is what lets a note be asked about",
+  "aiGroupSkills": "Skills",
+  "aiSkillsNone": "No skills yet: write one at <vault>/.xink/skills/<name>/SKILL.md",
+  "aiSkillIssue": "{path}: {reason}",
+  "@aiSkillIssue": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "aiGroupWhere": "Where it is asked",
+  "aiSettingOllama": "Local Ollama",
+  "aiSettingOllamaNote": "Where the model is served from",
+  "aiSettingKeepAlive": "Keep it loaded for",
+  "aiSettingKeepAliveNote": "How long a model is held in memory after it has answered",
+  "aiSettingDefaultModel": "Ask this one",
+  "aiSettingDefaultModelNote": "The model asked when a note does not name one",
+  "aiSettingFallbackModel": "And if it cannot answer",
+  "aiSettingFallbackModelNote": "The one asked when the first cannot be reached",
+  "aiSettingAgentic": "Look through the vault first",
+  "aiSettingAgenticNote": "It may read the vault before it answers",
+  "aiSettingSkills": "Use the skills",
+  "aiSettingSkillsNote": "The skills written in the vault, and those in the folder of the app itself",
+  "aiGroupAsking": "Asking",
+  "aiSettingOutputLanguage": "Answer in",
+  "aiSettingOutputLanguageNote": "The tongue the answer comes back in",
+  "aiOutputAuto": "Follow the note",
+  "aiOutputZh": "Chinese",
+  "aiOutputEn": "English",
+  "aiSettingTimeout": "How long an answer may take (s)",
+  "aiSettingTimeoutNote": "A question that takes longer is given up on",
+  "aiSettingFirstByte": "How long before the first of it (s)",
+  "aiSettingFirstByteNote": "A model that says nothing by then is left",
+  "aiSettingTries": "How often it is tried again",
+  "aiSettingTriesNote": "A question that failed is asked again this many times",
+  "aiSettingBackoff": "How long between two tries (ms)",
+  "aiSettingBackoffNote": "How long the app waits before it asks again",
+  "aiSettingSteps": "How far it may go through the vault",
+  "aiSettingStepsNote": "How many times it may read the vault before it answers",
+  "aiSettingNoteChars": "How much of a note it is shown (letters)",
+  "aiSettingNoteCharsNote": "The most of a note a model is given at once",
+  "aiSettingToolChars": "How much a tool may answer (letters)",
+  "aiSettingToolCharsNote": "The most of what a tool answered that it is given back",
+  "aiModelsAdd": "Add a model",
+  "aiModelEnabled": "Turned on",
+  "aiModelEarlier": "↑",
+  "aiModelEarlierLabel": "Ask it earlier",
+  "aiModelLater": "↓",
+  "aiModelLaterLabel": "Ask it later",
+  "aiModelOpen": "Open",
+  "aiModelShut": "Shut",
+  "aiModelTry": "Try it",
+  "aiModelClone": "Clone",
+  "aiModelCloneLabel": "The same model under another name",
+  "aiModelForget": "Forget",
+  "aiModelAsking": "Asking…",
+  "aiModelName": "Name",
+  "aiModelNameNote": "What the model is called in the lists",
+  "aiModelAddress": "Address",
+  "aiModelAddressNote": "Where the model is served from",
+  "aiModelKey": "Key",
+  "aiModelKeyNote": "The key it is asked with",
+  "aiModelKeyPlaceholder": "none needed",
+  "aiModelSpeaks": "Speaks",
+  "aiModelSpeaksNote": "Which way it is spoken to",
+  "aiSpeaksOllama": "Ollama",
+  "aiSpeaksOpenai": "OpenAI-compatible",
+  "aiGroupAbilities": "What it can do",
+  "aiModelCapabilityUnknown": "{id} ({label})",
+  "@aiModelCapabilityUnknown": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "aiProbeUnreachable": "Could not be reached",
+  "aiProbeUnreachableWhy": "Could not be reached: {err}",
+  "@aiProbeUnreachableWhy": {
+    "placeholders": {
+      "err": {
+        "type": "String"
+      }
+    }
+  },
+  "aiProbeAnswersTools": "It answers ({took}), and it calls tools",
+  "@aiProbeAnswersTools": {
+    "placeholders": {
+      "took": {
+        "type": "String"
+      }
+    }
+  },
+  "aiProbeAnswersNoTools": "It answers ({took}), but it calls no tools",
+  "@aiProbeAnswersNoTools": {
+    "placeholders": {
+      "took": {
+        "type": "String"
+      }
+    }
+  },
+  "aiCapabilityCompletion": "Chat completion",
+  "aiCapabilityCompletionMeaning": "The plainest thing a model does: it is given some words, and goes on from them or answers",
+  "aiCapabilityCompletionUsage": "Every conversation, quick action and rewrite rests on it",
+  "aiCapabilityTools": "Tool calling",
+  "aiCapabilityToolsMeaning": "It can ask, in a shape agreed beforehand, for a function outside itself to be called: reading a note, searching the notes",
+  "aiCapabilityToolsUsage": "With it on, the AI may read the vault before it answers; what trying it out found is what is believed",
+  "aiCapabilityThinking": "Thinking / reasoning",
+  "aiCapabilityThinkingMeaning": "It writes its reasoning out first, and then the answer it came to",
+  "aiCapabilityThinkingUsage": "A hard question is answered better, but slower, and it spends the room the answer has; only Ollama can be told to leave it out",
+  "aiCapabilityVision": "Vision",
+  "aiCapabilityVisionMeaning": "It can be given a picture as input",
+  "aiCapabilityVisionUsage": "This app makes no use of it yet",
+  "aiCapabilityUnknown": "Unknown capability",
+  "aiCapabilityUnknownMeaning": "This one is not among the capabilities the app knows: a vendor made it up",
+  "aiCapabilityUnknownUsage": "It can be dropped by hand; keeping it does no harm",
+  "mediaKindDir": "Folder",
+  "mediaKindMarkdown": "Markdown",
+  "mediaKindImage": "Picture",
+  "mediaKindPDF": "PDF",
+  "mediaKindCode": "Code",
+  "mediaKindData": "Data",
+  "mediaKindArchive": "Archive",
+  "mediaKindSpreadsheet": "Spreadsheet",
+  "mediaKindAudio": "Audio",
+  "mediaKindVideo": "Video",
+  "mediaKindOther": "Other",
+  "formatBold": "B",
+  "formatBoldDesc": "Bold: wrap what is selected, or put in the ** marks",
+  "formatItalic": "I",
+  "formatItalicDesc": "Italic: wrap what is selected, or put in the * marks",
+  "formatStrikethrough": "S",
+  "formatStrikethroughDesc": "Strikethrough: wrap what is selected, or put in the ~~ marks",
+  "formatInlineCode": "`",
+  "formatInlineCodeDesc": "Inline code: wrap what is selected, or put in the ` marks",
+  "formatHeading": "Heading",
+  "formatHeadingDesc": "Heading: write a # heading line",
+  "formatBulletList": "Bullets",
+  "formatBulletListDesc": "Bullet list: write a - item",
+  "formatNumberedList": "Numbers",
+  "formatNumberedListDesc": "Numbered list: write a 1. item",
+  "formatTaskList": "Tasks",
+  "formatTaskListDesc": "Task list: write a - [ ] item to do",
+  "formatQuote": "Quote",
+  "formatQuoteDesc": "Quote: write a > block quoting what stands above",
+  "formatCodeBlock": "Code",
+  "formatCodeBlockDesc": "Code block: write a ``` fenced block",
+  "formatLink": "Link",
+  "formatLinkDesc": "Link: write [text](address), or a placeholder when nothing is selected",
+  "formatImage": "Image",
+  "formatImageDesc": "Image: write ![description](address), or a placeholder when nothing is selected",
+  "formatTable": "Table",
+  "formatTableDesc": "Table: write a Markdown table to fill in",
+  "formatRule": "Rule",
+  "formatRuleDesc": "Divider: write a --- line across the note",
+  "taskKindRetag": "Retag",
+  "taskKindAddTag": "Add a tag",
+  "taskKindRemoveTag": "Remove a tag",
+  "taskStatusReady": "Ready",
+  "taskStatusRunning": "Running",
+  "taskStatusPaused": "Paused",
+  "taskStatusDone": "Done",
+  "taskItemPending": "Pending",
+  "taskItemDone": "Changed",
+  "taskItemSkipped": "Skipped ({reason})",
+  "@taskItemSkipped": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "taskItemFailed": "Failed ({reason})",
+  "@taskItemFailed": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "taskTitleRetag": "{kind}: #{target} → #{new}",
+  "@taskTitleRetag": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      },
+      "new": {
+        "type": "String"
+      }
+    }
+  },
+  "taskTitleRetagToFill": "{kind}: #{target} → (to fill in)",
+  "@taskTitleRetagToFill": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "taskTitleToFill": "{kind}: (to fill in)",
+  "@taskTitleToFill": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "taskTitleTag": "{kind}: #{target}",
+  "@taskTitleTag": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "taskReasonHasTag": "already has #{tag}",
+  "@taskReasonHasTag": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      }
+    }
+  },
+  "taskReasonNoTag": "no #{tag} in it",
+  "@taskReasonNoTag": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      }
+    }
+  },
+  "taskReasonNotRead": "could not be read: {err}",
+  "@taskReasonNotRead": {
+    "placeholders": {
+      "err": {
+        "type": "String"
+      }
+    }
+  },
+  "taskReasonNotWritten": "could not be written: {err}",
+  "@taskReasonNotWritten": {
+    "placeholders": {
+      "err": {
+        "type": "String"
+      }
+    }
+  },
+  "skillFromVault": "in the vault",
+  "skillFromUser": "your own",
+  "aiErrNotConfigured": "no model is set up yet: turn it on and choose one in Settings ▸ AI",
+  "aiErrNoModel": "no model is chosen: choose one in Settings ▸ AI",
+  "aiErrAuth": "the key was not taken: is it the right one?",
+  "aiErrRateLimit": "the one who serves it is holding us back; try again in a moment",
+  "aiErrTimeout": "the answer took too long: try again, or give it longer in the settings",
+  "aiErrTruncated": "the connection broke off: what came may be in pieces",
+  "aiErrEmptyResult": "the model sent no words back, having spent them all on thinking: try again, or turn thinking off",
+  "aiErrCanceled": "given up on",
+  "aiErrSteps": "it looked through the vault too many times without answering: give it more steps in the settings, or stop it looking first",
+  "aiErrSilent": "the model said nothing",
+  "aiErrProtocol": "what came back cannot be read ({detail})",
+  "aiErrNoSuchModel": "there is no model called {name}",
+  "aiErrUnreachable": "it cannot be reached ({detail}): is the address the right one, and is it running?",
+  "skillIssueNotRead": "could not be read: {err}",
+  "skillIssueNoFrontMatter": "no front matter: it must begin with ---",
+  "skillIssueFrontMatterUnclosed": "the front matter is never closed",
+  "skillIssueNoName": "no name in it",
+  "skillIssueNoDescription": "no description in it",
+  "watchChangedOutside": "changed outside Xinkgo, but you have changes that are not saved",
+  "watchTookInOutside": "took in the changes from outside",
+  "a11yPicture": "picture {name}"
+}

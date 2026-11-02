@@ -7,14 +7,13 @@
 package view
 
 import (
-	"fmt"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/egoist/mygo/transfer"
 	"github.com/egoist/mygo/ui"
+	"github.com/helightxu/xinkgo/internal/locale"
 	"github.com/helightxu/xinkgo/internal/vault"
 )
 
@@ -184,17 +183,8 @@ func (t *Tree) dirs() int {
 
 // counts is what the header says the vault holds.
 func (t *Tree) counts() string {
-	return fmt.Sprintf("%s · %s", plural(t.count(), "note"),
-		plural(t.dirs(), "folder"))
-}
-
-// plural is a number and the word for what it counts, with an s when it
-// is not one of them.
-func plural(n int, word string) string {
-	if n == 1 {
-		return strconv.Itoa(n) + " " + word
-	}
-	return strconv.Itoa(n) + " " + word + "s"
+	return locale.TreeCounts(locale.NoteCount(t.count()),
+		locale.FolderCount(t.dirs()))
 }
 
 // View draws the tree: the vault at the head, and under it one line for
@@ -225,8 +215,10 @@ func (t *Tree) footer(c *ui.Context) {
 	}
 	th := c.Theme()
 	ui.Box(c).FillWidth().Height(1).Background(th.Border)
-	line := ui.ButtonBase(c.Key("tree-settings")).Label("Settings").
-		Tooltip("Settings").FillWidth().Height(treeRowHeight).
+	line := ui.ButtonBase(c.Key("tree-settings")).
+		Label(locale.TreeSettings()).
+		Tooltip(locale.TreeSettings()).
+		FillWidth().Height(treeRowHeight).
 		Radius(th.Radius).Justify(ui.Start).AlignItems(ui.Center)
 	line.Draw(func(p *ui.Painter, box ui.Rect) {
 		if line.Hovered() {
@@ -239,7 +231,8 @@ func (t *Tree) footer(c *ui.Context) {
 			PaddingStart(treePad).PaddingEnd(treePad).Children(func() {
 			ui.Icon(c, iconSettings).Size(treeIcon, treeIcon).
 				TextColor(th.TextMuted)
-			ui.Text(c, "Settings").Grow(1).Ellipsis("…").NoWrap()
+			ui.Text(c, locale.TreeSettings()).Grow(1).Ellipsis("…").
+				NoWrap()
 		})
 	})
 	if line.Clicked() {
@@ -259,7 +252,7 @@ func (t *Tree) header(c *ui.Context) {
 				t.vaultSwitch(c, name)
 				if t.OnRefresh != nil {
 					t.button(c, "refresh", iconRefresh,
-						"Read the folder again", t.refresh)
+						locale.TreeRefresh(), t.refresh)
 				}
 			})
 		ui.Row(c).FillWidth().Gap(4).AlignItems(ui.Center).
@@ -270,20 +263,21 @@ func (t *Tree) header(c *ui.Context) {
 					return
 				}
 				if t.OnNewNoteIn != nil {
-					t.button(c, "new-note", iconFilePlus, "New note here",
+					t.button(c, "new-note", iconFilePlus,
+						locale.TreeNewNoteHere(),
 						func() { t.OnNewNoteIn(t.DirOf()) })
 				}
 				if t.OnNewFolderIn != nil {
 					t.button(c, "new-folder", iconFolderPlus,
-						"New folder here",
+						locale.TreeNewFolderHere(),
 						func() { t.OnNewFolderIn(t.DirOf()) })
 				}
 				if t.AnyOpen() {
 					t.button(c, "fold", iconFoldAll,
-						"Fold every folder", t.CollapseAll)
+						locale.TreeFoldAll(), t.CollapseAll)
 				} else {
 					t.button(c, "fold", iconUnfoldAll,
-						"Open every folder", t.ExpandAll)
+						locale.TreeUnfoldAll(), t.ExpandAll)
 				}
 			})
 	})
@@ -296,7 +290,7 @@ func (t *Tree) header(c *ui.Context) {
 // rather than failing when it is chosen.
 func (t *Tree) vaultSwitch(c *ui.Context, name string) {
 	th := c.Theme()
-	label := "Switch vault"
+	label := locale.TreeSwitchVault()
 	head := ui.ButtonBase(c.Key("vault-switch")).Label(label).
 		Tooltip(label).Grow(1).MinWidth(0).Radius(th.Radius)
 	head.Menu(func(m *ui.Menu) { t.vaultMenu(m) })
@@ -327,13 +321,15 @@ func (t *Tree) vaultMenu(m *ui.Menu) {
 		}
 	}
 	if len(t.Vaults.Vaults) == 0 {
-		m.Item("no other vault").Disabled(true)
+		m.Item(locale.TreeNoOtherVault()).Disabled(true)
 	}
 	m.Separator()
-	if m.Item("Open another folder…").Chosen() && t.OnOpenFolder != nil {
+	if m.Item(locale.TreeOpenAnotherFolder()).Chosen() &&
+		t.OnOpenFolder != nil {
 		t.OnOpenFolder()
 	}
-	if m.Item("Manage vaults…").Chosen() && t.OnManageVaults != nil {
+	if m.Item(locale.TreeManageVaults()).Chosen() &&
+		t.OnManageVaults != nil {
 		t.OnManageVaults()
 	}
 }
@@ -359,7 +355,7 @@ func (t *Tree) vaultName() string {
 	if t.Root != nil {
 		return t.Root.Name
 	}
-	return "no vault"
+	return locale.TreeNoVault()
 }
 
 // button is one of the header's buttons: it shows no face of its own
@@ -457,21 +453,21 @@ func (t *Tree) refresh() {
 // menu is what a click of the other button asks: what can be done to
 // this file or folder.
 func (t *Tree) menu(m *ui.Menu, e *vault.Entry) {
-	if m.Item("New note here").Chosen() {
+	if m.Item(locale.TreeNewNoteHere()).Chosen() {
 		t.in(e, t.OnNewNoteIn)
 	}
-	if m.Item("New folder here").Chosen() {
+	if m.Item(locale.TreeNewFolderHere()).Chosen() {
 		t.in(e, t.OnNewFolderIn)
 	}
 	m.Separator()
-	if m.Item("Rename…").Chosen() {
+	if m.Item(locale.TreeRename()).Chosen() {
 		t.Renaming = e.Path
 		t.Name = e.Name
 	}
-	if m.Item("Move to…").Chosen() && t.OnMove != nil {
+	if m.Item(locale.TreeMoveTo()).Chosen() && t.OnMove != nil {
 		t.OnMove(e.Path)
 	}
-	if m.Item("Delete").Chosen() && t.OnDelete != nil {
+	if m.Item(locale.TreeDelete()).Chosen() && t.OnDelete != nil {
 		t.OnDelete(e.Path)
 	}
 }

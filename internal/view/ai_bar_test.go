@@ -149,7 +149,7 @@ func TestAiHear_whatWentWrongIsWrittenOnTheBlock(t *testing.T) {
 	if blocks[1].Failed == "" {
 		t.Fatal("nothing was said of what went wrong")
 	}
-	if !strings.Contains(blocks[1].Failed, "超时") {
+	if !strings.Contains(blocks[1].Failed, ai.ErrTimeout.Error()) {
 		t.Fatalf("failed = %q, want a sentence about the timeout",
 			blocks[1].Failed)
 	}
@@ -170,7 +170,7 @@ func TestAiAsk_aModelThatCannotBeAskedSaysSo(t *testing.T) {
 	if len(blocks) != 2 {
 		t.Fatalf("blocks = %v", len(blocks))
 	}
-	if !strings.Contains(blocks[1].Failed, "配置") {
+	if !strings.Contains(blocks[1].Failed, ai.ErrNotConfigured.Error()) {
 		t.Fatalf("failed = %q, want to be told to configure it",
 			blocks[1].Failed)
 	}
@@ -196,7 +196,7 @@ func TestAiAsk_aModelThatRefusesAtTheDoorSaysSo(t *testing.T) {
 	s.Input = "hello"
 	w.aiAsk(w.Tabs.ActiveNote(), s)
 	blocks := s.blocks()
-	if len(blocks) != 2 || !strings.Contains(blocks[1].Failed, "认证") {
+	if len(blocks) != 2 || !strings.Contains(blocks[1].Failed, ai.ErrAuth.Error()) {
 		t.Fatalf("blocks = %+v, want to be told of the key", blocks)
 	}
 }

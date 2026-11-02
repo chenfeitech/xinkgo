@@ -4,11 +4,11 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/egoist/mygo"
 	"github.com/helightxu/xinkgo/internal/fs"
+	"github.com/helightxu/xinkgo/internal/locale"
 	"github.com/helightxu/xinkgo/internal/view"
 )
 
@@ -37,7 +37,7 @@ func (s *appState) newNoteIn(dir string) {
 	title := strings.TrimSuffix(name, ".md")
 	if _, err := s.ws.Tabs.Create(path, "# "+title+"\n"); err != nil {
 		slog.Warn("a note could not be made", "path", path, "err", err)
-		s.ws.Say("the note could not be made")
+		s.ws.Say(locale.SayNoteNotMade())
 		return
 	}
 	s.rescan()
@@ -56,7 +56,7 @@ func (s *appState) newFolderIn(dir string) {
 	path := filepath.Join(dir, fs.UniqueName(dir, "new folder"))
 	if err := os.MkdirAll(path, 0o755); err != nil {
 		slog.Warn("a folder could not be made", "path", path, "err", err)
-		s.ws.Say("the folder could not be made")
+		s.ws.Say(locale.SayFolderNotMade())
 		return
 	}
 	s.rescan()
@@ -68,7 +68,7 @@ func (s *appState) newFolderIn(dir string) {
 // change at all.
 func (s *appState) renameItem(path, name string) {
 	if path == s.root {
-		s.ws.Say("the vault itself cannot be named again")
+		s.ws.Say(locale.SayVaultNotRenamed())
 		return
 	}
 	newPath := fs.RenameName(path, name)
@@ -78,7 +78,7 @@ func (s *appState) renameItem(path, name string) {
 	if err := fs.Move(path, newPath); err != nil {
 		slog.Warn("a file could not be named again", "path", path,
 			"err", err)
-		s.ws.Say("the file could not be named again")
+		s.ws.Say(locale.SayFileNotRenamed())
 		return
 	}
 	// A note that is open follows its file: its tab keeps its place.
@@ -93,16 +93,16 @@ func (s *appState) renameItem(path, name string) {
 // with everything in it, and the vault itself never does.
 func (s *appState) deleteItem(path string) {
 	if path == s.root {
-		s.ws.Say("the vault itself cannot be taken away")
+		s.ws.Say(locale.SayVaultNotRemoved())
 		return
 	}
 	go func() {
 		answer, err := mygo.Dialog.Message(mygo.MessageOptions{
 			Type:    mygo.MessageQuestion,
-			Title:   "Take it away?",
-			Message: view.PathOf(path) + " and all that is in it will be gone.",
+			Title:   locale.DeleteTitle(),
+			Message: locale.DeleteMessage(view.PathOf(path)),
 			Detail:  path,
-			Buttons: []string{"Take it away", "Cancel"},
+			Buttons: []string{locale.TakeAway(), locale.Cancel()},
 			// Cancel is what Enter and Escape do: taking a file away
 			// should never be the answer to a slip of the key.
 			DefaultButton: 1,
@@ -136,7 +136,7 @@ func (s *appState) chosen() string {
 func (s *appState) renameChosen() {
 	path := s.chosen()
 	if path == "" {
-		s.ws.Say("no file is chosen")
+		s.ws.Say(locale.SayNothingChosen())
 		return
 	}
 	s.ws.Tree.Renaming = path
@@ -147,7 +147,7 @@ func (s *appState) renameChosen() {
 func (s *appState) deleteChosen() {
 	path := s.chosen()
 	if path == "" {
-		s.ws.Say("no file is chosen")
+		s.ws.Say(locale.SayNothingChosen())
 		return
 	}
 	s.deleteItem(path)
@@ -161,7 +161,7 @@ func (s *appState) removeItem(path string) {
 	if err := fs.RemoveAll(s.root, path); err != nil {
 		slog.Warn("a file could not be taken away", "path", path,
 			"err", err)
-		s.ws.Say("that could not be taken away")
+		s.ws.Say(locale.SayNotRemoved())
 		return
 	}
 	s.idx.Remove(path)
@@ -172,12 +172,12 @@ func (s *appState) removeItem(path string) {
 // moveItem moves the file at path to a folder the user chooses.
 func (s *appState) moveItem(path string) {
 	if path == s.root {
-		s.ws.Say("the vault itself cannot be moved")
+		s.ws.Say(locale.SayVaultNotMoved())
 		return
 	}
 	go func() {
 		picked, err := mygo.Dialog.Open(mygo.OpenDialogOptions{
-			Title:     "Move " + view.PathOf(path) + " to…",
+			Title:     locale.DialogMoveTo(view.PathOf(path)),
 			Directory: true,
 		})
 		if err != nil || len(picked) == 0 {
@@ -198,7 +198,7 @@ func (s *appState) moveItemTo(path, dir string) {
 	}
 	if err := fs.Move(path, target); err != nil {
 		slog.Warn("a file could not be moved", "path", path, "err", err)
-		s.ws.Say("that could not be moved")
+		s.ws.Say(locale.SayNotMoved())
 		return
 	}
 	s.ws.Tabs.Rename(path, target)
@@ -234,12 +234,12 @@ func (s *appState) importFiles(dir string, paths []string) {
 			s.reindexAll()
 			switch {
 			case brought > 0 && failed > 0:
-				s.ws.Say(sayCount(brought, "brought in") + ", " +
-					sayCount(failed, "could not be"))
+				s.ws.Say(locale.SayBroughtIn(brought) + ", " +
+					locale.SayCouldNotBeBroughtIn(failed))
 			case brought > 0:
-				s.ws.Say(sayCount(brought, "brought in"))
+				s.ws.Say(locale.SayBroughtIn(brought))
 			default:
-				s.ws.Say("nothing could be brought in")
+				s.ws.Say(locale.SayNothingBroughtIn())
 			}
 		})
 	}()
@@ -276,7 +276,7 @@ func (s *appState) pastePicture(dir string, picture []byte) {
 	if err := os.WriteFile(path, picture, 0o644); err != nil {
 		slog.Warn("the picture could not be written", "path", path,
 			"err", err)
-		s.ws.Say("the picture could not be written")
+		s.ws.Say(locale.SayPictureNotWritten())
 		return
 	}
 	s.rescan()
@@ -295,18 +295,10 @@ func (s *appState) pasteText(dir, text string) {
 	if _, err := s.ws.Tabs.Create(path, text+"\n"); err != nil {
 		slog.Warn("the words could not be written", "path", path, "err",
 			err)
-		s.ws.Say("the words could not be written")
+		s.ws.Say(locale.SayTextNotWritten())
 		return
 	}
 	s.rescan()
 	s.idx.Reindex(path)
 	s.ws.Tree.Reveal(path)
-}
-
-// sayCount is how many of something, said as a sentence wants it.
-func sayCount(n int, what string) string {
-	if n == 1 {
-		return "1 file " + what
-	}
-	return strconv.Itoa(n) + " files " + what
 }

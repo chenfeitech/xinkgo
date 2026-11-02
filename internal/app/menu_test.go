@@ -4,7 +4,9 @@ import (
 	"testing"
 
 	"github.com/egoist/mygo"
+	"github.com/egoist/mygo/i18n"
 	"github.com/helightxu/xinkgo/internal/keymap"
+	"github.com/helightxu/xinkgo/internal/locale"
 	"github.com/helightxu/xinkgo/internal/vault"
 )
 
@@ -44,6 +46,44 @@ func TestMainMenu_theSettingsStandInOneMenu(t *testing.T) {
 	if shown != 1 {
 		t.Errorf("the settings stand in %d menus, want one", shown)
 	}
+}
+
+// TestMainMenu_theLanguageItIsBuiltIn checks that the menu says its items
+// in the language the app shows: unlike the window, a menu is built once
+// and not drawn again every frame, so OnLocaleChanged makes it again.
+func TestMainMenu_theLanguageItIsBuiltIn(t *testing.T) {
+	// The language the catalogs are asked in, as MyGo asks them.
+	i18n.SetLocaleFunc(func() string { return "zh-Hans" })
+	t.Cleanup(func() { i18n.SetLocaleFunc(func() string { return "" }) })
+	m := mainMenu(keymap.Resolve(nil), vault.Registry{})
+	for label, want := range map[string]string{
+		"文件":  locale.MenuFile(),
+		"设置…": locale.MenuSettings(),
+	} {
+		if label != want {
+			t.Fatalf("the test and the catalog disagree: %q, %q", label,
+				want)
+		}
+	}
+	if _, ok := itemIn(m, locale.MenuFile(), locale.MenuOpenVault()); !ok {
+		t.Errorf("no way to open a vault: %v", labelsOf(m))
+	}
+	if _, ok := itemIn(m, "app", locale.MenuSettings()); !ok {
+		t.Errorf("no way to the settings: %v", labelsOf(m))
+	}
+}
+
+// labelsOf is every label of a menu and of its submenus, as a test says
+// them when it cannot find one.
+func labelsOf(m *mygo.Menu) []string {
+	var out []string
+	for _, it := range m.Items() {
+		out = append(out, it.Label)
+		for _, sub := range it.Submenu {
+			out = append(out, sub.Label)
+		}
+	}
+	return out
 }
 
 // TestMainMenu_theSettingsSayTheKeyTheyAreOpenedBy checks that the item

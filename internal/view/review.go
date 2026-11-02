@@ -5,6 +5,7 @@ import (
 
 	"github.com/egoist/mygo/ui"
 	"github.com/egoist/mygo/ui/editor"
+	"github.com/helightxu/xinkgo/internal/locale"
 )
 
 // reviewState is a revision being looked over: what the note was, what
@@ -40,7 +41,7 @@ func (w *Workspace) StartReview(text string) {
 	}
 	before := n.Editor.Buffer.String()
 	if text == before {
-		w.status = "the model said what the note says"
+		w.status = locale.StatusModelSaidSame()
 		return
 	}
 	w.review = reviewState{
@@ -66,12 +67,12 @@ func (w *Workspace) StartPieceReview(from, to int, text string) {
 	if from < 0 || to > len(whole) || from > to {
 		// The note is not as it was when the piece was taken out of
 		// it: where it went is no longer known.
-		w.status = "the note has changed: the piece cannot be put back"
+		w.status = locale.StatusNoteChangedPiece()
 		return
 	}
 	before := whole[from:to]
 	if text == before {
-		w.status = "the model said what the piece says"
+		w.status = locale.StatusModelSaidPiece()
 		return
 	}
 	w.review = reviewState{
@@ -115,22 +116,22 @@ func (w *Workspace) reviewBar(c *ui.Context) {
 	hunks := diff.Hunks()
 	added, removed := diff.Stats()
 	ui.Row(c).Gap(8).Padding(6).Children(func() {
-		ui.Text(c, "AI 修订 · "+strconv.Itoa(len(hunks))+" 处（+"+
-			strconv.Itoa(added)+" −"+strconv.Itoa(removed)+"）").Bold()
-		if ui.Button(c.Key("rev-take"), "Take all").
-			Label("Take every change").Clicked() {
+		ui.Text(c, locale.ReviewTitle(strconv.Itoa(len(hunks)),
+			strconv.Itoa(added), strconv.Itoa(removed))).Bold()
+		if ui.Button(c.Key("rev-take"), locale.ReviewTakeAll()).
+			Label(locale.ReviewTakeAllLabel()).Clicked() {
 			w.reviewEach(true)
 		}
-		if ui.Button(c.Key("rev-send"), "Send all back").
-			Label("Send every change back").Clicked() {
+		if ui.Button(c.Key("rev-send"), locale.ReviewSendAllBack()).
+			Label(locale.ReviewSendAllBackLabel()).Clicked() {
 			w.reviewEach(false)
 		}
-		if ui.Button(c.Key("rev-write"), "Write it in").
-			Label("Write what is left into the note").Clicked() {
+		if ui.Button(c.Key("rev-write"), locale.ReviewWriteIn()).
+			Label(locale.ReviewWriteInLabel()).Clicked() {
 			w.writeReview()
 		}
-		if ui.Button(c.Key("rev-away"), "Away").
-			Label("Put the revision away").Clicked() {
+		if ui.Button(c.Key("rev-away"), locale.ReviewAway()).
+			Label(locale.ReviewAwayLabel()).Clicked() {
 			w.review.open = false
 		}
 	})
@@ -156,7 +157,7 @@ func (w *Workspace) writeReview() {
 	diff := w.review.diff
 	n, err := w.Tabs.Open(w.review.path)
 	if err != nil {
-		w.status = "could not open " + PathOf(w.review.path)
+		w.status = locale.StatusCouldNotOpen(PathOf(w.review.path))
 		return
 	}
 	text := diff.New.String()
@@ -164,8 +165,7 @@ func (w *Workspace) writeReview() {
 	if w.review.part {
 		from, to := w.review.from, w.review.to
 		if from > len(whole) || to > len(whole) || from > to {
-			w.status = "the note has changed: the piece cannot be " +
-				"put back"
+			w.status = locale.StatusNoteChangedPiece()
 			return
 		}
 		// The piece goes back where it was taken from, and the rest
@@ -176,7 +176,7 @@ func (w *Workspace) writeReview() {
 		// Nothing was taken: the note is left as it was, and saying
 		// otherwise would be a lie.
 		w.review.open = false
-		w.status = "nothing was taken"
+		w.status = locale.StatusNothingTaken()
 		return
 	}
 	// What the note said before is kept: a save is on the disk at once,
@@ -189,7 +189,7 @@ func (w *Workspace) writeReview() {
 	n.Editor.Buffer.Set(text)
 	w.Tabs.Edited(n)
 	w.review.open = false
-	w.status = "the revision is in the note"
+	w.status = locale.StatusRevisionInNote()
 	// And whether what was written still holds together. What is found
 	// is said, and does not undo the writing: a vault may well not have
 	// the note a draft points at yet.
@@ -197,7 +197,7 @@ func (w *Workspace) writeReview() {
 		return
 	}
 	if issues := w.OnVerify(text); len(issues) > 0 {
-		w.status = "written, but " + strconv.Itoa(len(issues)) +
-			" 处要再看一眼：" + issues[0].Feedback()
+		w.status = locale.StatusWrittenIssues(
+			strconv.Itoa(len(issues)), issues[0].Feedback())
 	}
 }

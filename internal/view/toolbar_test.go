@@ -8,6 +8,7 @@ import (
 
 	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/config"
+	"github.com/helightxu/xinkgo/internal/locale"
 	xmd "github.com/helightxu/xinkgo/internal/markdown"
 )
 
@@ -125,7 +126,7 @@ func TestToolbar_theWayToTheModelStandsAtItsEnd(t *testing.T) {
 		if !ok {
 			t.Fatalf("no toolbar in a window %d wide", width)
 		}
-		ai, ok := tt.Find("AI 辅助")
+		ai, ok := tt.Find(locale.AiAssist())
 		if !ok {
 			t.Fatalf("no way to the model in a window %d wide: %v",
 				width, tt.Texts())
@@ -145,7 +146,7 @@ func TestToolbar_theWayToTheModelStandsAtItsEnd(t *testing.T) {
 // as the others are: a picture, and not the word it stands for.
 func TestToolbar_theWayToTheModelIsAPicture(t *testing.T) {
 	tt := toolbarTester(t, 1100)
-	ai, ok := tt.Find("AI 辅助")
+	ai, ok := tt.Find(locale.AiAssist())
 	if !ok {
 		t.Fatalf("no way to the model: %v", tt.Texts())
 	}
@@ -166,7 +167,7 @@ func TestToolbar_clickingItOpensTheConversation(t *testing.T) {
 	}
 	w.Layout.Left, w.Layout.Right = 0, 0
 	tt := ui.NewTester(w.View, 1100, 320)
-	ai, ok := tt.Find("AI 辅助")
+	ai, ok := tt.Find(locale.AiAssist())
 	if !ok {
 		t.Fatalf("no way to the model: %v", tt.Texts())
 	}
@@ -199,7 +200,7 @@ func TestToolbar_aFileOfDataHasNoUseOfIt(t *testing.T) {
 	}
 	w.Layout.Left, w.Layout.Right = 0, 0
 	tt := ui.NewTester(w.View, 1100, 320)
-	if _, ok := tt.Find("AI 辅助"); ok {
+	if _, ok := tt.Find(locale.AiAssist()); ok {
 		t.Errorf("a file of data is offered the model: %v", tt.Texts())
 	}
 }
@@ -215,11 +216,11 @@ func TestToolbar_theButtonStandsClearOfTheRail(t *testing.T) {
 		t.Fatalf("Open: %v", err)
 	}
 	tt := ui.NewTester(w.View, 1000, 600)
-	ai, ok := tt.Find("AI 辅助")
+	ai, ok := tt.Find(locale.AiAssist())
 	if !ok {
 		t.Fatalf("no way to the model: %v", tt.Texts())
 	}
-	rail, ok := tt.Find("大纲")
+	rail, ok := tt.Find(locale.DrawerOutlineLabel())
 	if !ok {
 		t.Fatalf("no rail in the window: %v", tt.Texts())
 	}

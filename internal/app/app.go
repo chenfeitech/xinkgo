@@ -21,6 +21,7 @@ import (
 	"github.com/helightxu/xinkgo/internal/config"
 	"github.com/helightxu/xinkgo/internal/index"
 	"github.com/helightxu/xinkgo/internal/keymap"
+	"github.com/helightxu/xinkgo/internal/locale"
 	"github.com/helightxu/xinkgo/internal/logging"
 	"github.com/helightxu/xinkgo/internal/media"
 	"github.com/helightxu/xinkgo/internal/session"
@@ -132,6 +133,9 @@ func Run() error {
 			return
 		}
 		current = st
+		// The language before the menu: the menu takes its words from
+		// the one the app shows, which is the configuration's.
+		current.applyLanguage()
 		// Light or dark as the user chose, or as the desktop has it: the
 		// code themes follow the appearance on their own.
 		mygo.Theme.SetSource(mygo.ThemeSource(st.config.Basic.Theme))
@@ -139,6 +143,13 @@ func Run() error {
 		// typed client from this and whatever else is bound here.
 		mygo.Bind(system{info: info})
 		current.refreshMenu()
+		// A language chosen later, or the machine's changing while the
+		// app follows it, is said again by the menu.
+		mygo.App.OnLocaleChanged(func(string) {
+			if current != nil {
+				current.refreshMenu()
+			}
+		})
 		openMainWindow()
 		st.restore()
 		if err := st.watchVault(); err != nil {
@@ -410,7 +421,7 @@ func (s *appState) rememberVault(path string) {
 func (s *appState) openVaultDialog() {
 	go func() {
 		picked, err := mygo.Dialog.Open(mygo.OpenDialogOptions{
-			Title:     "Open a folder as a vault",
+			Title:     locale.DialogOpenVault(),
 			Directory: true,
 		})
 		if err != nil || len(picked) == 0 {
@@ -433,7 +444,7 @@ func (s *appState) switchVault(path string) {
 	// A note of another vault is closed, and written before it goes.
 	s.ws.Tabs.CloseOutside(path)
 	if err := s.openVault(path); err != nil {
-		s.ws.Say("that folder could not be opened")
+		s.ws.Say(locale.SayVaultNotOpened())
 		slog.Warn("vault", "path", path, "err", err)
 		return
 	}
@@ -459,6 +470,7 @@ func (s *appState) switchToVault(id string) {
 func (s *appState) applyConfig() {
 	s.ws.Config = s.config
 	s.setAppearance()
+	s.applyLanguage()
 	// Saving as the user types, after the pause they chose.
 	s.ws.Tabs.AutoSave = s.config.Editor.AutoSave
 	s.ws.Tabs.AutoSaveDelay = time.Duration(
@@ -476,6 +488,18 @@ func (s *appState) applyConfig() {
 	}
 	// The menu says what the keys are, and the keys may have changed.
 	s.refreshMenu()
+}
+
+// applyLanguage is the language the app shows: the one the user chose in
+// the settings, or the languages the machine reads when they left it to
+// follow them. MyGo is told, and says its own controls, menus and dialogs
+// in it as well; the menu is made again by OnLocaleChanged, whose words
+// are the ones of the language the app shows now.
+func (s *appState) applyLanguage() {
+	if !mygo.App.IsReady() {
+		return
+	}
+	mygo.App.SetLocale(s.config.Basic.LocaleTag())
 }
 
 // setAppearance is the app told how things are to look, as the user

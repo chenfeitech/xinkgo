@@ -7,6 +7,7 @@ import (
 
 	"github.com/egoist/mygo/ui"
 	"github.com/egoist/mygo/ui/markdown"
+	"github.com/helightxu/xinkgo/internal/locale"
 	xmd "github.com/helightxu/xinkgo/internal/markdown"
 )
 
@@ -60,9 +61,11 @@ func (w *Workspace) rail(c *ui.Context) {
 			w.drawerPanel(c)
 		}
 		ui.Column(c).Width(railWidth).Children(func() {
-			w.railButton(c, drawerOutline, "◫", "大纲")
-			w.railButton(c, drawerLinks, "⇄", "反向链接")
-			w.railButton(c, drawerTags, "＃", "标签")
+			w.railButton(c, drawerOutline, "◫",
+				locale.DrawerOutlineLabel())
+			w.railButton(c, drawerLinks, "⇄",
+				locale.DrawerLinksLabel())
+			w.railButton(c, drawerTags, "＃", locale.DrawerTagsLabel())
 		})
 	})
 }
@@ -124,7 +127,7 @@ func (w *Workspace) outline(c *ui.Context) {
 	}
 	headings := w.outlineOf(n)
 	if len(headings) == 0 {
-		ui.Text(c, "no headings in this note").TextColor(
+		ui.Text(c, locale.OutlineNoHeadings()).TextColor(
 			c.Theme().TextMuted)
 		return
 	}
