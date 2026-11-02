@@ -148,9 +148,10 @@ level=INFO msg=starting app="Xinkgo 0.1.0 (darwin/arm64)" data="..." development
 make deps                  # 依赖就绪（构建与打包的前置步骤）
 make build                 # 当前机器：bin/darwin-arm64/xinkgo
 make build-macos           # macOS 两个架构
-make package               # 默认当前机器：build/darwin-arm64/ 下的 .app 与 .dmg
+make package               # 默认当前机器 + Windows/amd64：.app 与 .dmg，以及 Xinkgo.exe
 make build-windows         # 交叉编译：bin/windows-amd64/xinkgo.exe
-PLATFORMS="windows/amd64" make package   # 次要平台，显式指定
+PLATFORMS="darwin/arm64" make package    # 只打包这一个平台
+make package-windows                     # Windows 两个架构
 ```
 
 macOS 打包输出（已在本机验证）：

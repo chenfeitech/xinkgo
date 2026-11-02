@@ -39,8 +39,9 @@ macOS 放在最前面。Windows 与 Linux 仍然受支持，优先级在其后�
 | `make build` | 为当前机器构建，产物 `bin/darwin-arm64/xinkgo`（Mac 上） |
 | `make build-macos` | 构建 macOS 两个架构，产物 `bin/darwin-arm64/`、`bin/darwin-amd64/` |
 | `make build-windows` | 交叉编译 Windows，产物 `bin/windows-amd64/xinkgo.exe`、`bin/windows-arm64/xinkgo.exe` |
-| `make package` | 打包可安装应用，**默认当前机器（macOS）**，产物 `build/darwin-arm64/` |
+| `make package` | 打包可安装应用，**默认当前机器 + Windows/amd64**，产物 `build/darwin-arm64/`、`build/windows-amd64/` |
 | `make package-macos` | 打包 macOS 两个架构：`.app` 与 `.dmg` |
+| `make package-windows` | 打包 Windows 两个架构：`Xinkgo.exe`（安装器需 NSIS） |
 | `make cross` | 为全部目标平台编译，macOS 优先（不打包） |
 | `make test` / `make test-race` | 跑测试 / 带竞态检测跑测试 |
 | `make vet` / `make fmt` / `make fmt-check` | 静态检查 / 格式化 / 格式校验 |
@@ -84,16 +85,17 @@ GOOS=windows GOARCH=arm64 CGO_ENABLED=0 go build ./cmd/xinkgo   # 单个目标
 | P2 | `linux/amd64` | 构建 | CI 冒烟 |
 
 优先级落点：Makefile 的 `ALL_PLATFORMS` 顺序、`scripts/check.sh` 的编译顺序
-（本机平台 → 其余 macOS → Windows → Linux）、`make package` 的默认目标。
+（本机平台 → 其余 macOS → Windows → Linux）、`make package` 的默认目标（本机平台
++ Windows/amd64）。
 
 ### 3.3 打包可安装应用
 
 ```sh
-make package                                     # macOS（当前机器）：.app + .dmg
+make package                                     # 当前机器 + Windows x64：.app + .dmg、Xinkgo.exe
 make package-macos                               # macOS 两个架构
+make package-windows                             # Windows 两个架构（x64、arm64）
 scripts/package.sh darwin/universal              # macOS 通用包（一个 .app 含两架构）
-PLATFORMS="windows/amd64" make package           # Windows x64
-scripts/package.sh windows/amd64 windows/arm64   # Windows 两个架构
+PLATFORMS="darwin/arm64" make package            # 只打包这一个平台
 make icon                                        # icon.png 从 xink.icns 重新导出
 ```
 

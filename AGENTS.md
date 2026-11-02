@@ -41,8 +41,9 @@ make dev            # live reload
 make build          # 当前机器（macOS）→ bin/darwin-arm64/
 make build-macos    # macOS 两个架构
 make build-windows  # 交叉编译 Windows
-make package        # 打包（默认当前机器，Mac 上即 macOS：.app + .dmg）
+make package        # 打包当前机器 + Windows/amd64（Mac 上即 macOS：.app + .dmg，以及 Xinkgo.exe）
 make package-macos  # macOS 两个架构
+make package-windows # Windows 两个架构
 make test           # go test ./...
 make check          # 提交前门禁：全部，macOS 先编译
 make doctor         # 环境自检

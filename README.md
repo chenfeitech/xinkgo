@@ -36,7 +36,7 @@ make dev            # 或：live reload，改 .go 自动重建重启
 ```sh
 make deps             # 依赖就绪（构建与打包的前置）
 make build            # 当前机器（macOS）→ bin/darwin-arm64/xinkgo
-make package          # 打包当前机器 → build/darwin-arm64/Xinkgo.app + .dmg
+make package          # 打包当前机器 + Windows → build/darwin-arm64/Xinkgo.app + .dmg、build/windows-amd64/Xinkgo.exe
 make build-windows    # 交叉编译 → bin/windows-amd64/xinkgo.exe
 make check            # 提交前门禁：格式 + vet + 测试 + 全平台编译（macOS 先）
 ```
