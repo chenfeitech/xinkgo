@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"net/http"
 )
 
 // openAI is a model spoken to in the tongue OpenAI made, which is what most
@@ -21,12 +20,8 @@ func (p openAI) Stream(ctx context.Context, req Request) (<-chan Piece, error) {
 	if err != nil {
 		return nil, err
 	}
-	header := http.Header{}
-	if p.e.APIKey != "" {
-		header.Set("Authorization", "Bearer "+p.e.APIKey)
-	}
 	url := p.e.BaseURL + "/chat/completions"
-	response, err := p.e.post(ctx, url, header, body)
+	response, err := p.e.post(ctx, url, p.e.authHeader(), body)
 	if err != nil {
 		return nil, err
 	}

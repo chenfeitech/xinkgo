@@ -27,15 +27,24 @@ func TestNewModel_everyNewModelHasANameOfItsOwn(t *testing.T) {
 }
 
 // TestNewModel_oneThatIsNotSetUpYetIsStillUsable checks that a model just
-// added is turned on and asks the local server, so that filling in an
-// address is all that is left to do.
+// added is turned on and is one of the user's own, so that filling in an
+// address and a key is all that is left to do: the models the machine
+// holds are found by asking the machine, and are not written in.
 func TestNewModel_oneThatIsNotSetUpYetIsStillUsable(t *testing.T) {
 	m := (&appState{}).newModel()
 	if !m.Enabled {
 		t.Fatal("a new model is turned off")
 	}
-	if m.Kind != config.ModelOllama {
-		t.Fatalf("kind = %q, want the local one", m.Kind)
+	if m.Source != config.ModelSourceCustom {
+		t.Fatalf("source = %q, want one written in by hand", m.Source)
+	}
+	if m.Kind != config.ModelOpenAICompatible {
+		t.Fatalf("kind = %q, want one spoken to as the clouds are",
+			m.Kind)
+	}
+	if m.ApiKeySource != config.KeyPlain {
+		t.Fatalf("key source = %q, want one written out",
+			m.ApiKeySource)
 	}
 	if m.Params.NumPredict == 0 || m.Params.Temperature == 0 {
 		t.Fatalf("params = %+v, want the defaults", m.Params)
@@ -311,5 +320,211 @@ func TestWhole_theNearestOneIsMeant(t *testing.T) {
 		if got := whole(in); got != want {
 			t.Errorf("whole(%v) = %d, want %d", in, got, want)
 		}
+	}
+}
+
+// ollamaFound is a model the machine holds, as asking it gives one back.
+func ollamaFound(name string) ai.OllamaModel {
+	return ai.OllamaModel{
+		Name:          name,
+		Size:          522928832,
+		Family:        "qwen3",
+		ParameterSize: "0.6B",
+		ContextLimit:  32768,
+		Capabilities:  []string{ai.CapCompletion, ai.CapTools},
+	}
+}
+
+// TestAddOllamaModel_oneTheMachineHoldsIsTakenInAsTheMachineSaid checks
+// the whole of what asking the machine is for: the model comes into the
+// settings as one of the machine's, with what the machine said it can do,
+// and with no address of its own to go out of step with the one above.
+func TestAddOllamaModel_oneTheMachineHoldsIsTakenInAsTheMachineSaid(t *testing.T) {
+	st := &settings{cfg: config.Default()}
+	st.cfg.Ai.Models = nil
+	st.addOllamaModel(ollamaFound("qwen3:0.6b"))
+	if len(st.cfg.Ai.Models) != 1 {
+		t.Fatalf("models = %d, want one", len(st.cfg.Ai.Models))
+	}
+	m := st.cfg.Ai.Models[0]
+	if m.ID != "qwen3:0.6b" || m.Label != "qwen3:0.6b" {
+		t.Fatalf("id = %q label = %q, want the machine's name",
+			m.ID, m.Label)
+	}
+	if m.Source != config.ModelSourceOllama || !m.FromOllama() {
+		t.Fatalf("source = %q, want one the machine holds", m.Source)
+	}
+	if m.Kind != config.ModelOllama {
+		t.Fatalf("kind = %q, want the local one", m.Kind)
+	}
+	if m.BaseURL != "" {
+		t.Fatalf("address = %q, want it left to the one above",
+			m.BaseURL)
+	}
+	if !m.Enabled || !m.ToolsEnabled {
+		t.Fatalf("enabled = %v tools = %v, want both on",
+			m.Enabled, m.ToolsEnabled)
+	}
+	if m.ContextLimit == nil || *m.ContextLimit != 32768 {
+		t.Fatalf("context = %v, want 32768", m.ContextLimit)
+	}
+	want := []string{ai.CapCompletion, ai.CapTools}
+	if strings.Join(m.Capabilities, ",") != strings.Join(want, ",") {
+		t.Fatalf("capabilities = %v, want %v", m.Capabilities, want)
+	}
+	// Ticking it is what put it there, and it stays ticked.
+	if on, there := st.ollamaOn("qwen3:0.6b"); !on || !there {
+		t.Fatalf("on = %v there = %v, want it asked", on, there)
+	}
+}
+
+// TestAddOllamaModel_askingTwiceDoesNotMakeTwo checks that a model pulled
+// again, or ticked twice, is the same model and not two of them: the name
+// is what the app asks by.
+func TestAddOllamaModel_askingTwiceDoesNotMakeTwo(t *testing.T) {
+	st := &settings{cfg: config.Default()}
+	st.cfg.Ai.Models = nil
+	one := ollamaFound("qwen3:0.6b")
+	st.addOllamaModel(one)
+	one.Capabilities = []string{ai.CapCompletion, ai.CapThinking}
+	st.addOllamaModel(one)
+	if len(st.cfg.Ai.Models) != 1 {
+		t.Fatalf("models = %d, want one", len(st.cfg.Ai.Models))
+	}
+	// What the machine says now is believed over what it said before.
+	if holds(st.cfg.Ai.Models[0].Capabilities, ai.CapTools) {
+		t.Fatalf("capabilities = %v, want the newer word kept",
+			st.cfg.Ai.Models[0].Capabilities)
+	}
+}
+
+// TestAddOllamaModel_whatTheHandChoseIsKept checks that capabilities the
+// user ticked by hand are not overwritten by what the machine says: the
+// hand was laid on them, and that is what is believed.
+func TestAddOllamaModel_whatTheHandChoseIsKept(t *testing.T) {
+	st := &settings{cfg: config.Default()}
+	st.cfg.Ai.Models = []config.ModelEntry{{
+		ID: "qwen3:0.6b", Source: config.ModelSourceOllama,
+		Kind: config.ModelOllama, Enabled: false,
+		Capabilities:       []string{ai.CapVision},
+		CapabilitiesPinned: true,
+	}}
+	st.addOllamaModel(ollamaFound("qwen3:0.6b"))
+	m := st.cfg.Ai.Models[0]
+	if !m.Enabled {
+		t.Fatal("it was not turned on")
+	}
+	if strings.Join(m.Capabilities, ",") != ai.CapVision {
+		t.Fatalf("capabilities = %v, want the hand's kept",
+			m.Capabilities)
+	}
+}
+
+// TestOllamaOn_aModelOfTheSameNameWrittenByHandIsNotTheMachines checks that
+// the two kinds are told apart by more than a name: a model the user wrote
+// in does not answer to the machine's tick, and is not taken out by it.
+func TestOllamaOn_aModelOfTheSameNameWrittenByHandIsNotTheMachines(t *testing.T) {
+	st := &settings{cfg: config.Default()}
+	st.cfg.Ai.Models = []config.ModelEntry{{
+		ID: "qwen3:0.6b", Source: config.ModelSourceCustom,
+		Kind: config.ModelOllama, Enabled: true,
+	}}
+	if on, there := st.ollamaOn("qwen3:0.6b"); on || there {
+		t.Fatalf("on = %v there = %v, want it left to the user",
+			on, there)
+	}
+}
+
+// TestRenameModel_itIsFollowedEverywhereItWasNamed checks the one thing
+// that makes renaming safe: a model asked by another name is still the
+// one asked, wherever it had been named.
+func TestRenameModel_itIsFollowedEverywhereItWasNamed(t *testing.T) {
+	st := &settings{cfg: config.Default()}
+	other := "qwen3:0.6b"
+	st.cfg.Ai.Models = []config.ModelEntry{{
+		ID: "model", Label: "model", Enabled: true,
+	}}
+	st.cfg.Ai.DefaultModel = "model"
+	st.cfg.Ai.FallbackModel = "model"
+	st.cfg.Ai.Route.Chat = &other
+	st.cfg.Ai.Actions = []config.AiAction{{ID: "polish", Model: &other}}
+	// A route of another model is not one of this one's.
+	_ = st.stateOf("model")
+
+	if !st.renameModel("model", "gpt-4o-mini") {
+		t.Fatal("the new name was not taken")
+	}
+	if st.cfg.Ai.Models[0].ID != "gpt-4o-mini" {
+		t.Fatalf("id = %q, want the new name", st.cfg.Ai.Models[0].ID)
+	}
+	if st.cfg.Ai.Models[0].Label != "gpt-4o-mini" {
+		t.Fatalf("label = %q, want it to follow the name",
+			st.cfg.Ai.Models[0].Label)
+	}
+	if st.cfg.Ai.DefaultModel != "gpt-4o-mini" {
+		t.Fatalf("default = %q, want it to follow",
+			st.cfg.Ai.DefaultModel)
+	}
+	if st.cfg.Ai.FallbackModel != "gpt-4o-mini" {
+		t.Fatalf("fallback = %q, want it to follow",
+			st.cfg.Ai.FallbackModel)
+	}
+	// What the row kept between two frames comes too.
+	if _, there := st.models["model"]; there {
+		t.Fatal("the row was left under the old name")
+	}
+	if _, there := st.models["gpt-4o-mini"]; !there {
+		t.Fatal("the row was not kept under the new name")
+	}
+}
+
+// TestRenameModel_aNameAnotherAnswersToIsNotTaken checks that two models
+// are not made into one by name: a name another model already answers to
+// is refused, and the model keeps its own.
+func TestRenameModel_aNameAnotherAnswersToIsNotTaken(t *testing.T) {
+	st := &settings{cfg: config.Default()}
+	st.cfg.Ai.Models = []config.ModelEntry{
+		{ID: "one", Enabled: true}, {ID: "two", Enabled: true},
+	}
+	if st.renameModel("one", "two") {
+		t.Fatal("a name another answers to was taken")
+	}
+	if st.cfg.Ai.Models[0].ID != "one" || st.cfg.Ai.Models[1].ID != "two" {
+		t.Fatalf("ids = %q %q, want them left alone",
+			st.cfg.Ai.Models[0].ID, st.cfg.Ai.Models[1].ID)
+	}
+	if st.renameModel("one", "") {
+		t.Fatal("no name at all was taken")
+	}
+}
+
+// TestSizeOf_howMuchRoomAModelTakes checks that a number of bytes is said
+// in words a person can read.
+func TestSizeOf_howMuchRoomAModelTakes(t *testing.T) {
+	cases := map[uint64]string{
+		0:          "",
+		512:        "512 B",
+		2048:       "2 KB",
+		522928832:  "499 MB",
+		4700000000: "4.4 GB",
+	}
+	for in, want := range cases {
+		if got := sizeOf(in); got != want {
+			t.Errorf("sizeOf(%d) = %q, want %q", in, got, want)
+		}
+	}
+}
+
+// TestMadeOf_whatAModelIsBuiltOf checks the line under a model the machine
+// holds: what it is made of, and nothing when the machine said nothing.
+func TestMadeOf_whatAModelIsBuiltOf(t *testing.T) {
+	got := madeOf(ai.OllamaModel{
+		Family: "qwen3", ParameterSize: "0.6B", Quantization: "Q8_0",
+	})
+	if got != "qwen3 · 0.6B · Q8_0" {
+		t.Fatalf("made of = %q, want all three", got)
+	}
+	if made := madeOf(ai.OllamaModel{Name: "x"}); made != "" {
+		t.Fatalf("made of = %q, want nothing said", made)
 	}
 }

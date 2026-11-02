@@ -57,6 +57,10 @@ type settings struct {
 	scroll ui.ScrollState
 	// models is what each model's row keeps between two frames.
 	models map[string]*modelState
+	// ollama is what the window knows of the models the machine holds:
+	// the last look at them, when it was made, and what came of it. It
+	// is asked for, and is kept while the window stands.
+	ollama ollamaState
 	// drop is the model to be forgotten, clone the one to be made into
 	// two, and moveID with moveBy the one to be moved earlier or later
 	// (-1 or 1). All are named by the row that was clicked and done

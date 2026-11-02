@@ -22,9 +22,9 @@ func workspaceAsking(
 		t.Fatalf("Open: %v", err)
 	}
 	n.Editor.Buffer.Set("one\ntwo\nthree\n")
-	w.OnAsk = func(ctx context.Context, got []ai.Message) (
-		<-chan ai.Event, error,
-	) {
+	w.OnAsk = func(
+		ctx context.Context, got []ai.Message, model string,
+	) (<-chan ai.Event, error) {
 		*told = got
 		events := make(chan ai.Event, 2)
 		events <- ai.Delta(answer)
