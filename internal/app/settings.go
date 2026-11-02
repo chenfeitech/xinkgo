@@ -13,6 +13,7 @@ import (
 	"github.com/helightxu/xinkgo/internal/config"
 	"github.com/helightxu/xinkgo/internal/locale"
 	"github.com/helightxu/xinkgo/internal/theme"
+	"github.com/helightxu/xinkgo/internal/view"
 )
 
 // The options a setting may be one of, as the window says them and as
@@ -122,9 +123,10 @@ const (
 )
 
 // settingsTab is one group of the settings: what the list calls it, what
-// it is about, and the rows it holds.
+// it is about, the picture the list draws it by, and the rows it holds.
 type settingsTab struct {
 	ID, Name, Note string
+	Icon           *ui.SVG
 	Draw           func(c *ui.Context)
 }
 
@@ -135,19 +137,24 @@ type settingsTab struct {
 func (s *appState) settingsTabs() []settingsTab {
 	return []settingsTab{
 		{tabBasic, locale.SettingsTabBasic(),
-			locale.SettingsTabBasicNote(), func(c *ui.Context) {
+			locale.SettingsTabBasicNote(), view.IconSettingsBasic,
+			func(c *ui.Context) {
 				s.appearance(c)
 				s.window(c)
 			}},
 		{tabEditor, locale.SettingsTabEditor(),
-			locale.SettingsTabEditorNote(), s.editorSettings},
+			locale.SettingsTabEditorNote(), view.IconSettingsEditor,
+			s.editorSettings},
 		{tabPreview, locale.SettingsTabPreview(),
-			locale.SettingsTabPreviewNote(), s.previewSettings},
-		{tabAi, locale.SettingsTabAi(), locale.SettingsTabAiNote(), s.ai},
+			locale.SettingsTabPreviewNote(), view.IconSettingsPreview,
+			s.previewSettings},
+		{tabAi, locale.SettingsTabAi(), locale.SettingsTabAiNote(),
+			view.IconSettingsAi, s.ai},
 		{tabVault, locale.SettingsTabVault(),
-			locale.SettingsTabVaultNote(), s.vaultSettings},
+			locale.SettingsTabVaultNote(), view.IconSettingsVault,
+			s.vaultSettings},
 		{tabFile, locale.SettingsTabFile(), locale.SettingsTabFileNote(),
-			s.configFile},
+			view.IconSettingsFile, s.configFile},
 	}
 }
 
@@ -229,7 +236,7 @@ func (s *appState) settingsView(c *ui.Context) {
 func (s *appState) settingsNav(c *ui.Context) {
 	ui.Sidebar(c, &s.draft.tab, func() {
 		for _, tab := range s.settingsTabs() {
-			ui.SidebarItem(c, tab.ID, nil, tab.Name)
+			ui.SidebarItem(c, tab.ID, tab.Icon, tab.Name)
 		}
 	}).Width(settingsNavWidth).FillHeight()
 }

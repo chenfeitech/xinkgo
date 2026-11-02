@@ -54,6 +54,22 @@ var (
 	iconAi = svgIcon(`<path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/>`)
 )
 
+// The pictures of the groups of the settings, as the list on the left
+// shows them: the knobs of what the window looks like, a pen for how a
+// note is written, an eye for how it is read, the spark of the model that
+// is asked, a row of books for the vaults, and a note for the file the
+// choices are kept in. Their shapes are Lucide's (ISC licence), as the
+// toolbar's; the last two are the ones the AI's button and a note in the
+// tree are drawn by.
+var (
+	IconSettingsBasic   = svgIcon(`<line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/>`)
+	IconSettingsEditor  = svgIcon(`<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/>`)
+	IconSettingsPreview = svgIcon(`<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/>`)
+	IconSettingsVault   = svgIcon(`<path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/>`)
+	IconSettingsAi      = iconAi
+	IconSettingsFile    = iconFileText
+)
+
 // formatIcon is the picture a button of the Markdown toolbar shows.
 func formatIcon(f xmd.Format) *ui.SVG {
 	switch f {
