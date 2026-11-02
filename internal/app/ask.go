@@ -19,30 +19,30 @@ import (
 // settings, and is told when they change, so that a model chosen in the
 // settings is the one asked next.
 func (s *appState) ask(
-	ctx context.Context, messages []ai.Message,
+	ctx context.Context, messages []ai.Message, model string,
 ) (<-chan ai.Event, error) {
 	cfg := s.config.Ai
 	if !cfg.Enabled {
 		return nil, ai.ErrNotConfigured
 	}
-	model, ok := s.modelFor(cfg)
+	entry, ok := s.modelFor(cfg, model)
 	if !ok {
 		return nil, ai.ErrNoModel
 	}
-	endpoint := ai.NewEndpoint(model, cfg)
+	endpoint := ai.NewEndpoint(entry, cfg)
 	req := ai.Request{
-		Model:    model.ID,
+		Model:    entry.ID,
 		Messages: messages,
 		Params: ai.Params{
-			Temperature: model.Params.Temperature,
-			NumPredict:  model.Params.NumPredict,
-			NumCtx:      model.Params.NumCtx,
-			Think:       model.Params.Think,
+			Temperature: entry.Params.Temperature,
+			NumPredict:  entry.Params.NumPredict,
+			NumCtx:      entry.Params.NumCtx,
+			Think:       entry.Params.Think,
 		},
 	}
 	// Tools, when the model is one that has been found to call them,
 	// and the user has said it may look through the vault first.
-	if cfg.Agentic && model.ToolsEnabled {
+	if cfg.Agentic && entry.ToolsEnabled {
 		req.Tools = ai.Specs(cfg.SkillsEnabled)
 	}
 	if len(req.Tools) > 0 {
@@ -152,9 +152,23 @@ func (s *appState) aiTalksOf() state.AiSessions {
 	return s.aiTalks
 }
 
-// modelFor is the model to ask: the one the settings name as the default,
-// or the first one that is turned on when none is named.
-func (s *appState) modelFor(cfg config.AiConfig) (config.ModelEntry, bool) {
+// modelFor is the model to ask: the one named, when the settings hold it
+// and it is turned on; otherwise the one the settings name as the default;
+// otherwise the first one that is turned on.
+//
+// A name the settings do not hold is not asked: it was picked in the bar
+// out of a list that has since changed, and asking nothing at all is not
+// an answer either.
+func (s *appState) modelFor(
+	cfg config.AiConfig, named string,
+) (config.ModelEntry, bool) {
+	if named != "" {
+		for _, m := range cfg.Models {
+			if m.ID == named && m.Enabled {
+				return m, true
+			}
+		}
+	}
 	if cfg.DefaultModel != "" {
 		for _, m := range cfg.Models {
 			if m.ID == cfg.DefaultModel && m.Enabled {

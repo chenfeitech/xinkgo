@@ -18,6 +18,10 @@ import (
 // talk itself scrolls within it, and the place to ask stays below.
 const aiTalkHeight float32 = 260
 
+// How wide the list of the models is, in the place to ask: wide enough
+// for the names the machine gives them, and no wider.
+const aiModelWidth float32 = 150
+
 // aiBlock is one thing said in a conversation: what the user asked, or
 // what the model answered.
 type aiBlock struct {
@@ -267,10 +271,11 @@ func oneLine(text string) string {
 	return flat
 }
 
-// aiCompose is the place to ask: the words to be asked, and the way to
-// ask them — or to stop the answer that is coming.
+// aiCompose is the place to ask: which model is asked, the words to be
+// asked, and the way to ask them — or to stop the answer that is coming.
 func (w *Workspace) aiCompose(c *ui.Context, s *aiSession, n *OpenNote) {
 	ui.Row(c).Gap(6).Children(func() {
+		w.aiModelPick(c, s)
 		field := ui.TextInput(c.Key("ai-input"), &s.Input).Grow(1)
 		if s.focus {
 			field.Focus()
@@ -294,6 +299,87 @@ func (w *Workspace) aiCompose(c *ui.Context, s *aiSession, n *OpenNote) {
 	})
 }
 
+// aiModelPick is which model is asked: the ones the settings hold and are
+// turned on, of which one is picked here.
+//
+// What is offered is only what can be asked. A model turned off is not on
+// the list, and neither is one the settings no longer hold; a picked one
+// that has gone since is let go of, and the one the settings name is
+// asked again.
+func (w *Workspace) aiModelPick(c *ui.Context, s *aiSession) {
+	// A model is offered where it may be asked: with the asking turned
+	// off, or with no model to ask, there is nothing to choose from.
+	if !w.Config.Ai.Enabled {
+		return
+	}
+	names := w.aiModelNames()
+	if len(names) == 0 {
+		return
+	}
+	w.AiModel = w.aiModelNamed(names)
+	was := w.AiModel
+	ui.Select(c, &w.AiModel, names).Width(aiModelWidth).
+		Label("Which model is asked").Disabled(s.isBusy())
+	if w.AiModel != was {
+		// The hand has been laid on it: what is picked here is asked
+		// from now on, and not what the settings name.
+		w.aiPicked = true
+	}
+}
+
+// aiModelNamed is the model the bar asks as things stand: the one picked
+// in it while it is still one the settings hold, and the one the settings
+// name when it is not. A model taken out of the settings since is let go
+// of, rather than asked and found wanting.
+func (w *Workspace) aiModelNamed(names []string) string {
+	if !w.aiPicked || !hasName(names, w.AiModel) {
+		w.aiPicked = false
+		return namedOf(names, w.Config.Ai.DefaultModel)
+	}
+	return w.AiModel
+}
+
+// aiModelNames is the models the bar may ask, in the order the settings
+// hold them: one that is turned off is not one of them.
+func (w *Workspace) aiModelNames() []string {
+	out := make([]string, 0, len(w.Config.Ai.Models))
+	for _, m := range w.Config.Ai.Models {
+		if m.Enabled && strings.TrimSpace(m.ID) != "" {
+			out = append(out, m.ID)
+		}
+	}
+	return out
+}
+
+// namedOf is the name in the list that the settings named, or the first of
+// them when they named none: a bar that asks a model the settings no
+// longer hold asks nothing at all.
+func namedOf(names []string, want string) string {
+	if hasName(names, want) {
+		return want
+	}
+	return names[0]
+}
+
+// modelOf is the model an action is asked of: the one the action names of
+// its own, when it names one, and otherwise the one the bar asks.
+func modelOf(a config.AiAction, fallback string) string {
+	if a.Model != nil && strings.TrimSpace(*a.Model) != "" {
+		return strings.TrimSpace(*a.Model)
+	}
+	return fallback
+}
+
+// hasName is whether the list holds that name.
+func hasName(list []string, want string) bool {
+	for _, one := range list {
+		if one == want {
+			return true
+		}
+	}
+	return false
+}
+
 // runAction is one of the app's own actions run on the note: what the
 // action says is asked of the model, and what comes back is put before
 // the user as a revision — as any other revision is, and not written
@@ -311,7 +397,7 @@ func (w *Workspace) runAction(a config.AiAction) {
 	}
 	piece, from, to, part := pieceOf(n, a)
 	s.Open = true
-	w.aiSend(n, s, askingOf(a, piece, part),
+	w.aiSend(n, s, askingOf(a, piece, part), modelOf(a, w.AiModel),
 		&waitReview{part: part, from: from, to: to})
 	w.status = a.Name + " asked of it"
 }
@@ -393,7 +479,7 @@ func (w *Workspace) aiReviewDone() {
 
 // aiAsk is the question asked: what was typed into the place to ask.
 func (w *Workspace) aiAsk(n *OpenNote, s *aiSession) {
-	w.aiSend(n, s, strings.TrimSpace(s.Input), nil)
+	w.aiSend(n, s, strings.TrimSpace(s.Input), w.AiModel, nil)
 	s.Input = ""
 	s.focus = true
 }
@@ -402,10 +488,12 @@ func (w *Workspace) aiAsk(n *OpenNote, s *aiSession) {
 // the model is asked, and the answer grows into the block after it as it
 // comes.
 //
-// wait, when there is one, is what the answer is to be put before the
-// user as when it is over, and which piece of the note it is about.
+// model is which model is asked of the ones the settings hold, empty for
+// the one the settings name. wait, when there is one, is what the answer
+// is to be put before the user as when it is over, and which piece of the
+// note it is about.
 func (w *Workspace) aiSend(
-	n *OpenNote, s *aiSession, asking string, wait *waitReview,
+	n *OpenNote, s *aiSession, asking, model string, wait *waitReview,
 ) {
 	text := strings.TrimSpace(asking)
 	if text == "" {
@@ -430,7 +518,7 @@ func (w *Workspace) aiSend(
 	s.mu.Lock()
 	s.cancel = cancel
 	s.mu.Unlock()
-	events, err := w.OnAsk(ctx, w.aiTold(s, n))
+	events, err := w.OnAsk(ctx, w.aiTold(s, n), model)
 	if err != nil {
 		cancel()
 		w.aiDone(s, at, err)

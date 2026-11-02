@@ -243,3 +243,27 @@ func TestMeasured_whatTryingReallyShowed(t *testing.T) {
 		t.Fatalf("measured = %v, want no tools", got)
 	}
 }
+
+// TestEndpoint_aModelTheMachineHoldsIsAskedWhereTheMachineIs checks the
+// one thing a model found on the machine is for: it names no address of
+// its own, and is asked where the machine is — so that the address in the
+// settings is the only one there is to change.
+func TestEndpoint_aModelTheMachineHoldsIsAskedWhereTheMachineIs(t *testing.T) {
+	cfg := config.DefaultAi()
+	cfg.Ollama.BaseURL = "http://localhost:11434/"
+	entry := config.ModelEntry{ID: "qwen3:0.6b",
+		Source: config.ModelSourceOllama, Kind: config.ModelOllama,
+		Enabled: true}
+	e := NewEndpoint(entry, cfg)
+	if e.BaseURL != "http://localhost:11434" {
+		t.Fatalf("asked at %q, want the machine's own address",
+			e.BaseURL)
+	}
+	if e.Model != "qwen3:0.6b" {
+		t.Fatalf("asked for %q, want the machine's name", e.Model)
+	}
+	if e.Params.KeepAlive != cfg.Ollama.KeepAlive {
+		t.Fatalf("keep alive = %q, want the settings'",
+			e.Params.KeepAlive)
+	}
+}
