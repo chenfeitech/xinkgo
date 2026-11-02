@@ -2,7 +2,10 @@ package app
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
+	"log/slog"
 	"strconv"
 	"strings"
 	"time"
@@ -12,6 +15,7 @@ import (
 	"github.com/helightxu/xinkgo/internal/ai"
 	"github.com/helightxu/xinkgo/internal/config"
 	"github.com/helightxu/xinkgo/internal/locale"
+	"github.com/helightxu/xinkgo/internal/secret"
 )
 
 // modelState is what one model's row keeps between two frames: whether
@@ -30,6 +34,9 @@ type modelState struct {
 	// settings one letter at a time but when the writing is done.
 	idField string
 	idSet   bool
+	// keyNote is what keeping the key in the keyring came to, said
+	// under the row when it was said at all.
+	keyNote string
 }
 
 // ollamaState is what the window knows of the models the machine itself
@@ -357,6 +364,9 @@ func (s *appState) aiOtherModel(c *ui.Context, at int, first, last bool) {
 				text(c, locale.AiModelKey(),
 					locale.AiModelKeyNote(), &m.PlainKey,
 					locale.AiModelKeyPlaceholder())
+			}
+			if secret.Available() {
+				s.keyRingOf(c, m)
 			}
 			if m.Kind == config.ModelOpenAICompatible {
 				buttons(c, locale.AiModelHolds(),
@@ -900,6 +910,140 @@ func sizeOf(n uint64) string {
 	default:
 		return strconv.FormatUint(n, 10) + " B"
 	}
+}
+
+// keyRingOf is the key of a model and the keyring of the system: it may
+// be kept there instead of being written in the settings, and a key kept
+// there is written to disk nowhere at all.
+//
+// Putting it there is not done in the window: the system is asked, and
+// may ask the user besides, and a window is not to wait for that.
+func (s *appState) keyRingOf(c *ui.Context, m *config.ModelEntry) {
+	st := s.draft.stateOf(m.ID)
+	kept := m.ApiKeySource == config.KeyKeychain &&
+		strings.TrimSpace(m.PlainKey) == ""
+	ui.Row(c).Gap(6).Children(func() {
+		if kept {
+			ui.Text(c, locale.AiModelKeyKept()).TextColor(
+				c.Theme().TextMuted).FontSize(11)
+			if ui.Button(c.Key("key-forget#"+m.ID),
+				locale.AiModelKeyTakeOut()).Label(
+				locale.AiModelKeyTakeOutLabel()).Clicked() {
+				s.forgetKey(m.ID)
+			}
+			return
+		}
+		if ui.Button(c.Key("key-keep#"+m.ID),
+			locale.AiModelKeyKeep()).Label(
+			locale.AiModelKeyKeepLabel()).
+			Disabled(strings.TrimSpace(m.PlainKey) == "").Clicked() {
+			s.keepKey(m.ID)
+		}
+	})
+	if st.keyNote != "" {
+		ui.Text(c, st.keyNote).TextColor(c.Theme().Danger).FontSize(11)
+	}
+}
+
+// keepKey puts the key of that model into the keyring of the system, and
+// out of the settings.
+//
+// A key the system would not take is left where it was: a key half moved
+// is worse than one written in the settings.
+func (s *appState) keepKey(id string) {
+	st := s.draft.stateOf(id)
+	st.keyNote = ""
+	key := ""
+	for i := range s.draft.cfg.Ai.Models {
+		m := &s.draft.cfg.Ai.Models[i]
+		if m.ID != id {
+			continue
+		}
+		key = strings.TrimSpace(m.PlainKey)
+		if key == "" {
+			return
+		}
+		if m.KeyRef == "" {
+			m.KeyRef = newKeyRef()
+		}
+	}
+	if key == "" {
+		return
+	}
+	ref := s.draft.keyRefOf(id)
+	go func() {
+		err := secret.Put(ref, key)
+		mygo.RunOnMain(func() {
+			if err != nil {
+				slog.Warn("the key could not be kept in the keyring",
+					"model", id, "err", err)
+				st.keyNote = locale.AiModelKeyringRefused(
+					err.Error())
+				return
+			}
+			for i := range s.draft.cfg.Ai.Models {
+				m := &s.draft.cfg.Ai.Models[i]
+				if m.ID != id {
+					continue
+				}
+				m.ApiKeySource = config.KeyKeychain
+				m.PlainKey = ""
+			}
+		})
+	}()
+}
+
+// forgetKey takes the key of that model out of the keyring: what is
+// asked with from then on is nothing, until a key is written again.
+func (s *appState) forgetKey(id string) {
+	ref := s.draft.keyRefOf(id)
+	st := s.draft.stateOf(id)
+	st.keyNote = ""
+	if ref == "" {
+		return
+	}
+	go func() {
+		err := secret.Drop(ref)
+		mygo.RunOnMain(func() {
+			if err != nil {
+				slog.Warn("the key could not be taken out of the "+
+					"keyring", "model", id, "err", err)
+				st.keyNote = locale.AiModelKeyringKeeps(
+					err.Error())
+				return
+			}
+			for i := range s.draft.cfg.Ai.Models {
+				m := &s.draft.cfg.Ai.Models[i]
+				if m.ID != id {
+					continue
+				}
+				m.ApiKeySource = config.KeyPlain
+				m.PlainKey = ""
+				m.KeyRef = ""
+			}
+		})
+	}()
+}
+
+// keyRefOf is the name the key of that model is kept under.
+func (st *settings) keyRefOf(id string) string {
+	for i := range st.cfg.Ai.Models {
+		if st.cfg.Ai.Models[i].ID == id {
+			return st.cfg.Ai.Models[i].KeyRef
+		}
+	}
+	return ""
+}
+
+// newKeyRef is a name for a key to be kept under: one made up, so that a
+// model called by a new name keeps the key it had, and so that the name
+// says nothing of the key itself.
+func newKeyRef() string {
+	var made [8]byte
+	if _, err := rand.Read(made[:]); err != nil {
+		return strconv.FormatInt(time.Now().UnixNano(), 36)
+	}
+	return hex.EncodeToString(made[:])
 }
 
 // without is the list with that name taken out of it.

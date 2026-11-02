@@ -89,12 +89,18 @@ type ModelEntry struct {
 	// ModelSourceCustom for one the user wrote in by hand. The two are
 	// kept apart in the settings window: the first is asked for, the
 	// second is filled in.
-	Source             string        `json:"source"`
-	Kind               string        `json:"kind"`
-	Label              string        `json:"label"`
-	BaseURL            string        `json:"base_url"`
-	ApiKeySource       string        `json:"api_key_source"`
-	PlainKey           string        `json:"plain_key"`
+	Source       string `json:"source"`
+	Kind         string `json:"kind"`
+	Label        string `json:"label"`
+	BaseURL      string `json:"base_url"`
+	ApiKeySource string `json:"api_key_source"`
+	PlainKey     string `json:"plain_key"`
+
+	// KeyRef is the name the key is kept under in the keyring of the
+	// system, when it is kept there and not written here: a name made
+	// up for it, so that a model called by a new name keeps the key
+	// it had.
+	KeyRef             string        `json:"key_ref,omitempty"`
 	Params             AiModelParams `json:"params"`
 	ContextLimit       *uint32       `json:"context_limit"`
 	Capabilities       []string      `json:"capabilities"`
@@ -306,17 +312,20 @@ func (a *AiConfig) Sanitize() {
 	known := map[string]bool{}
 	for i := range a.Models {
 		m := &a.Models[i]
-		if strings.TrimSpace(m.ID) == "" || known[m.ID] {
+		// The name is sent as it stands: a space pasted with it is no
+		// part of any name.
+		m.ID = strings.TrimSpace(m.ID)
+		if m.ID == "" || known[m.ID] {
 			continue
 		}
 		if !oneOf(m.Kind, ModelOllama, ModelOpenAICompatible) {
 			m.Kind = ModelOllama
 		}
-		// A key is either written out or named after a name the
-		// machine keeps one under: there is no third place it is
-		// taken from, and a key that cannot be found is worse than
-		// one that was written out.
-		if !oneOf(m.ApiKeySource, KeyEnv, KeyPlain) {
+		// A key is either written out, or named after a name the
+		// machine keeps one under, or kept in the keyring of the
+		// system: there is no fourth place it is taken from, and a
+		// key that cannot be found is worse than one written out.
+		if !oneOf(m.ApiKeySource, KeyEnv, KeyKeychain, KeyPlain) {
 			m.ApiKeySource = KeyPlain
 		}
 		// A model that stood in the settings before the two kinds

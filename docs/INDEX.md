@@ -7,6 +7,8 @@
 | [HARNESS.md](HARNESS.md) | 构建 / 运行 / 测试 / 调试流程、故障排查、CI | 日常开发与排障 |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | 分层、依赖方向、启动时序、线程模型、扩展点 | 加功能、决定代码放哪 |
 | [ACCEPTANCE.md](ACCEPTANCE.md) | **人工验收项**：只能靠人眼/手感验的都在这里 | 交付前后逐条走 |
+| [XINKGO_FEATURES.md](XINKGO_FEATURES.md) | xinkgo 已实现功能清单：逐项对照 xink，标出已实现 / 部分 / 未实现 | 看进度、找缺口 |
+| [XINK_FEATURES.md](XINK_FEATURES.md) | Rust 版 xink 的已实现清单，上面那份的对照骨架 | 核对 xinkgo 与 xink 的差异 |
 | [requirements/xink-port.md](requirements/xink-port.md) | 复刻 xink 的需求口径（R-1 ~ R-10，附 xink 证据） | 开工、验收 |
 | [design/xink-port.md](design/xink-port.md) | 复刻的技术设计（底座核查、数据模型、流程、风险） | 动手前 |
 | [design/ai-assist.md](design/ai-assist.md) | AI 编辑辅助：菜单/工具条入口 + 编辑区下方对话条（草案，待拍板） | 加 AI 入口前 |

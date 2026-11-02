@@ -153,6 +153,50 @@ func TestStateOf_theSameRowComesBack(t *testing.T) {
 	}
 }
 
+// TestNewModel_itsKeyIsWrittenInTheSettingsUntilItIsSaidOtherwise checks
+// that a model just added keeps its key where it is written, rather than
+// having the keyring asked for a key nobody has put in it.
+func TestNewModel_itsKeyIsWrittenInTheSettingsUntilItIsSaidOtherwise(t *testing.T) {
+	m := (&appState{}).newModel()
+	if m.ApiKeySource != config.KeyPlain {
+		t.Fatalf("source = %q, want the key written in the settings",
+			m.ApiKeySource)
+	}
+}
+
+// TestNewKeyRef_twoKeysAreKeptUnderTwoNames checks that two keys are
+// never kept under one name: a key kept under another's name is the
+// other's key.
+func TestNewKeyRef_twoKeysAreKeptUnderTwoNames(t *testing.T) {
+	seen := map[string]bool{}
+	for range 8 {
+		ref := newKeyRef()
+		if ref == "" {
+			t.Fatal("a name was made up and it is nothing")
+		}
+		if seen[ref] {
+			t.Fatalf("%q was made up twice", ref)
+		}
+		seen[ref] = true
+	}
+}
+
+// TestKeyRefOf_theNameTheKeyOfThatModelIsKeptUnder checks the name a key
+// is looked up by, which is the whole of what the settings keep of it.
+func TestKeyRefOf_theNameTheKeyOfThatModelIsKeptUnder(t *testing.T) {
+	st := &settings{cfg: config.Default()}
+	st.cfg.Ai.Models = []config.ModelEntry{
+		{ID: "first", KeyRef: "ref-one"},
+		{ID: "second", KeyRef: "ref-two"},
+	}
+	if got := st.keyRefOf("second"); got != "ref-two" {
+		t.Fatalf("ref = %q, want the one of the second", got)
+	}
+	if got := st.keyRefOf("none"); got != "" {
+		t.Fatalf("ref = %q, want none for a model that is not there", got)
+	}
+}
+
 // modelsOf is an app whose settings hold those models.
 func modelsOf(ids ...string) *appState {
 	s := &appState{}

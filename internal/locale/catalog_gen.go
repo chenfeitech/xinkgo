@@ -3384,6 +3384,76 @@ func (msgs Messages) AiModelKeyNamePlaceholder() string {
 	return Catalog.Format(msgs.locale, "aiModelKeyNamePlaceholder", nil)
 }
 
+// AiModelKeyKept says "Kept in the keyring of this Mac"
+// in the language the app shows.
+func AiModelKeyKept() string { return In(i18n.Locale()).AiModelKeyKept() }
+
+// AiModelKeyKept says "Kept in the keyring of this Mac"
+// in the language of msgs.
+func (msgs Messages) AiModelKeyKept() string {
+	return Catalog.Format(msgs.locale, "aiModelKeyKept", nil)
+}
+
+// AiModelKeyKeep says "Keep it in the keyring"
+// in the language the app shows.
+func AiModelKeyKeep() string { return In(i18n.Locale()).AiModelKeyKeep() }
+
+// AiModelKeyKeep says "Keep it in the keyring"
+// in the language of msgs.
+func (msgs Messages) AiModelKeyKeep() string {
+	return Catalog.Format(msgs.locale, "aiModelKeyKeep", nil)
+}
+
+// AiModelKeyKeepLabel says "Keep the key in the keyring of this Mac rather than in the settings"
+// in the language the app shows.
+func AiModelKeyKeepLabel() string { return In(i18n.Locale()).AiModelKeyKeepLabel() }
+
+// AiModelKeyKeepLabel says "Keep the key in the keyring of this Mac rather than in the settings"
+// in the language of msgs.
+func (msgs Messages) AiModelKeyKeepLabel() string {
+	return Catalog.Format(msgs.locale, "aiModelKeyKeepLabel", nil)
+}
+
+// AiModelKeyTakeOut says "Take it out"
+// in the language the app shows.
+func AiModelKeyTakeOut() string { return In(i18n.Locale()).AiModelKeyTakeOut() }
+
+// AiModelKeyTakeOut says "Take it out"
+// in the language of msgs.
+func (msgs Messages) AiModelKeyTakeOut() string {
+	return Catalog.Format(msgs.locale, "aiModelKeyTakeOut", nil)
+}
+
+// AiModelKeyTakeOutLabel says "Take the key out of the keyring"
+// in the language the app shows.
+func AiModelKeyTakeOutLabel() string { return In(i18n.Locale()).AiModelKeyTakeOutLabel() }
+
+// AiModelKeyTakeOutLabel says "Take the key out of the keyring"
+// in the language of msgs.
+func (msgs Messages) AiModelKeyTakeOutLabel() string {
+	return Catalog.Format(msgs.locale, "aiModelKeyTakeOutLabel", nil)
+}
+
+// AiModelKeyringRefused says "The keyring would not take it: {err}"
+// in the language the app shows.
+func AiModelKeyringRefused(err string) string { return In(i18n.Locale()).AiModelKeyringRefused(err) }
+
+// AiModelKeyringRefused says "The keyring would not take it: {err}"
+// in the language of msgs.
+func (msgs Messages) AiModelKeyringRefused(err string) string {
+	return Catalog.Format(msgs.locale, "aiModelKeyringRefused", map[string]any{"err": err})
+}
+
+// AiModelKeyringKeeps says "The keyring would not give it up: {err}"
+// in the language the app shows.
+func AiModelKeyringKeeps(err string) string { return In(i18n.Locale()).AiModelKeyringKeeps(err) }
+
+// AiModelKeyringKeeps says "The keyring would not give it up: {err}"
+// in the language of msgs.
+func (msgs Messages) AiModelKeyringKeeps(err string) string {
+	return Catalog.Format(msgs.locale, "aiModelKeyringKeeps", map[string]any{"err": err})
+}
+
 // AiModelHolds says "What the address holds"
 // in the language the app shows.
 func AiModelHolds() string { return In(i18n.Locale()).AiModelHolds() }

@@ -498,10 +498,10 @@ func TestSanitize_modelsWithoutASourceAreToldApart(t *testing.T) {
 	}
 }
 
-// TestSanitize_aKeyIsEitherWrittenOutOrNamed checks the two places a key
-// may come from: one written out here, or one the machine keeps under a
-// name. There is no third, and a key that cannot be found is worse than
-// one that was written out.
+// TestSanitize_aKeyIsEitherWrittenOutOrNamed checks the three places a
+// key may come from: one written out here, one the machine keeps under a
+// name, or one the keyring of the system keeps. There is no fourth, and
+// a key that cannot be found is worse than one that was written out.
 func TestSanitize_aKeyIsEitherWrittenOutOrNamed(t *testing.T) {
 	cfg := Default()
 	cfg.Ai.Models = []ModelEntry{
@@ -511,7 +511,7 @@ func TestSanitize_aKeyIsEitherWrittenOutOrNamed(t *testing.T) {
 	}
 	cfg.Sanitize()
 	want := map[string]string{
-		"a": KeyPlain, "b": KeyPlain, "c": KeyEnv,
+		"a": KeyPlain, "b": KeyKeychain, "c": KeyEnv,
 	}
 	for _, m := range cfg.Ai.Models {
 		if m.ApiKeySource != want[m.ID] {

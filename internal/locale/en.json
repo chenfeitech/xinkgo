@@ -396,6 +396,27 @@
   "aiModelKeyName": "Name of the key",
   "aiModelKeyNameNote": "The name it is kept under in the shell that started the app",
   "aiModelKeyNamePlaceholder": "OPENAI_API_KEY",
+  "aiModelKeyKept": "Kept in the keyring of this Mac",
+  "aiModelKeyKeep": "Keep it in the keyring",
+  "aiModelKeyKeepLabel": "Keep the key in the keyring of this Mac rather than in the settings",
+  "aiModelKeyTakeOut": "Take it out",
+  "aiModelKeyTakeOutLabel": "Take the key out of the keyring",
+  "aiModelKeyringRefused": "The keyring would not take it: {err}",
+  "@aiModelKeyringRefused": {
+    "placeholders": {
+      "err": {
+        "type": "String"
+      }
+    }
+  },
+  "aiModelKeyringKeeps": "The keyring would not give it up: {err}",
+  "@aiModelKeyringKeeps": {
+    "placeholders": {
+      "err": {
+        "type": "String"
+      }
+    }
+  },
   "aiModelHolds": "What the address holds",
   "aiModelHoldsNote": "Most clouds say, and so do most local servers",
   "aiModelList": "List them",

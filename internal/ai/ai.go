@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/helightxu/xinkgo/internal/config"
+	"github.com/helightxu/xinkgo/internal/secret"
 )
 
 // Role is who says a message.
@@ -87,7 +88,8 @@ type Endpoint struct {
 //
 // The key the user wrote is one of them: an endpoint that asks for one
 // is asked as them, or not at all. It is trimmed, for a newline pasted
-// with a key is no part of any key.
+// with a key is no part of any key. A key kept in the keyring of the
+// system rather than in the settings is fetched from there.
 func NewEndpoint(m config.ModelEntry, cfg config.AiConfig) Endpoint {
 	e := Endpoint{
 		Kind:    m.Kind,
@@ -114,20 +116,38 @@ func NewEndpoint(m config.ModelEntry, cfg config.AiConfig) Endpoint {
 	return e
 }
 
-// keyOf is the key a model is asked with, and where it is taken from: the
-// one the user wrote out, or — when they named a name the machine keeps
-// a key under — the one the machine has.
+// keyOf is the key a model is asked with, and where it is taken from:
+// the one the user wrote out, or -- when they named a name the machine
+// keeps a key under, or one the keyring of the system keeps -- the one
+// found there.
 //
 // A key the machine keeps in its keyhole is one this build cannot read,
 // and so it is asked as it was written out: a key that works is worth
 // more than a promise about where it is kept.
 func keyOf(m config.ModelEntry) string {
 	name := strings.TrimSpace(m.PlainKey)
-	if m.ApiKeySource == config.KeyEnv {
+	switch m.ApiKeySource {
+	case config.KeyEnv:
 		return strings.TrimSpace(os.Getenv(name))
+	case config.KeyKeychain:
+		if name != "" {
+			return name
+		}
+		if m.KeyRef == "" {
+			return ""
+		}
+		key, err := keyring(m.KeyRef)
+		if err != nil {
+			return ""
+		}
+		return strings.TrimSpace(key)
 	}
 	return name
 }
+
+// keyring is where a key kept outside the settings is looked for. It is
+// held in a variable so that a test may answer for the system.
+var keyring = secret.Get
 
 // authHeader is how an endpoint is told who is asking.
 func (e Endpoint) authHeader() http.Header {
