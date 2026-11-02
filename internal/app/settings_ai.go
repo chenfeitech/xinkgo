@@ -34,26 +34,22 @@ func (st *settings) stateOf(id string) *modelState {
 // ai is the settings of the AI: whether it is used at all, and the models
 // it may be asked.
 func (s *appState) ai(c *ui.Context) {
-	group(c, "AI", func() {
-		ui.Checkbox(c, &s.draft.cfg.Ai.Enabled, "Ask a model at all")
-		if !s.draft.cfg.Ai.Enabled {
-			ui.Text(c, "Turning this on is what lets a note be asked "+
-				"about.").TextColor(c.Theme().TextMuted)
-			return
-		}
-		s.aiServer(c)
-		s.aiModels(c)
-		s.aiAsking(c)
-		s.aiSkills(c)
-	})
+	toggle(c, "Ask a model at all", "Turning this on is what lets "+
+		"a note be asked about", &s.draft.cfg.Ai.Enabled)
+	if !s.draft.cfg.Ai.Enabled {
+		return
+	}
+	s.aiServer(c)
+	s.aiModels(c)
+	s.aiAsking(c)
+	s.aiSkills(c)
 }
 
 // aiSkills is the skills found in the vault and in the application's own
 // folder: each may be turned off, and one that was found but cannot be
 // used is said so rather than left out.
 func (s *appState) aiSkills(c *ui.Context) {
-	ui.Column(c).Gap(4).Children(func() {
-		ui.Text(c, "Skills").Bold()
+	group(c, "Skills", func() {
 		if len(s.skills) == 0 && len(s.skillIssues) == 0 {
 			ui.Text(c, "No skills yet：write one at <vault>/.xink/"+
 				"skills/<name>/SKILL.md").TextColor(
@@ -63,11 +59,8 @@ func (s *appState) aiSkills(c *ui.Context) {
 			one := one
 			off := holds(s.draft.cfg.Ai.DisabledSkills, one.Name)
 			use := !off
-			ui.Row(c).Children(func() {
-				ui.Checkbox(c, &use, one.Name).Label(one.Description)
-				ui.Text(c, one.From.Label()).TextColor(
-					c.Theme().TextMuted).FontSize(11)
-			})
+			toggle(c, one.Name,
+				one.Description+" · "+one.From.Label(), &use)
 			if use == off {
 				// It was turned, one way or the other.
 				s.draft.cfg.Ai.DisabledSkills =
@@ -105,24 +98,21 @@ func (s *appState) aiServer(c *ui.Context) {
 	for i := range s.draft.cfg.Ai.Models {
 		names = append(names, s.draft.cfg.Ai.Models[i].ID)
 	}
-	ui.Column(c).Gap(4).Children(func() {
-		ui.Row(c).Children(func() {
-			ui.Text(c, "Local Ollama").Grow(1)
-			ui.TextInput(c, &s.draft.cfg.Ai.Ollama.BaseURL).
-				Placeholder("http://localhost:11434")
-		})
-		ui.Row(c).Children(func() {
-			ui.Text(c, "Keep it loaded for").Grow(1)
-			ui.TextInput(c, &s.draft.cfg.Ai.Ollama.KeepAlive).
-				Placeholder("5m")
-		})
-		choice(c, "Ask this one", &s.draft.cfg.Ai.DefaultModel, names)
-		choice(c, "And if it cannot answer",
-			&s.draft.cfg.Ai.FallbackModel, names)
-		ui.Checkbox(c, &s.draft.cfg.Ai.Agentic,
-			"Let it look through the vault before it answers")
-		ui.Checkbox(c, &s.draft.cfg.Ai.SkillsEnabled,
-			"Let it use the skills written in the vault")
+	group(c, "Where it is asked", func() {
+		text(c, "Local Ollama", "Where the model is served from",
+			&s.draft.cfg.Ai.Ollama.BaseURL, "http://localhost:11434")
+		text(c, "Keep it loaded for", "How long a model is held in "+
+			"memory after it has answered",
+			&s.draft.cfg.Ai.Ollama.KeepAlive, "5m")
+		choice(c, "Ask this one", "The model asked when a note does "+
+			"not name one", &s.draft.cfg.Ai.DefaultModel, names)
+		choice(c, "And if it cannot answer", "The one asked when the "+
+			"first cannot be reached", &s.draft.cfg.Ai.FallbackModel,
+			names)
+		toggle(c, "Look through the vault first", "It may read the "+
+			"vault before it answers", &s.draft.cfg.Ai.Agentic)
+		toggle(c, "Use the skills", "The skills written in the vault "+
+			"and in the app's own folder", &s.draft.cfg.Ai.SkillsEnabled)
 	})
 }
 
@@ -141,21 +131,28 @@ func (s *appState) aiServer(c *ui.Context) {
 // the settings then refuse is a window that lies.
 func (s *appState) aiAsking(c *ui.Context) {
 	group(c, "Asking", func() {
-		choice(c, "Answer in", &s.draft.cfg.Ai.OutputLanguage,
-			outputLanguages)
-		number(c, "How long an answer may take (s)", &s.draft.timeout,
+		choice(c, "Answer in", "The tongue the answer comes back in",
+			&s.draft.cfg.Ai.OutputLanguage, outputLanguages)
+		number(c, "How long an answer may take (s)", "A question that "+
+			"takes longer is given up on", &s.draft.timeout, 5, 600)
+		number(c, "How long before the first of it (s)", "A model "+
+			"that says nothing by then is left", &s.draft.firstByte,
 			5, 600)
-		number(c, "How long before the first of it (s)",
-			&s.draft.firstByte, 5, 600)
-		number(c, "How often it is tried again", &s.draft.tries, 1, 5)
-		number(c, "How long between two tries (ms)", &s.draft.backoff,
+		number(c, "How often it is tried again", "A question that "+
+			"failed is asked again this many times", &s.draft.tries,
+			1, 5)
+		number(c, "How long between two tries (ms)", "How long the "+
+			"app waits before it asks again", &s.draft.backoff,
 			100, 10_000)
-		number(c, "How far it may go through the vault", &s.draft.steps,
-			1, 64)
-		number(c, "How much of a note it is shown (letters)",
+		number(c, "How far it may go through the vault", "How many "+
+			"times it may read the vault before it answers",
+			&s.draft.steps, 1, 64)
+		number(c, "How much of a note it is shown (letters)", "The "+
+			"most of a note a model is given at once",
 			&s.draft.ctxChars, 1_000, 200_000)
-		number(c, "How much a tool may answer (letters)",
-			&s.draft.toolChars, 500, 20_000)
+		number(c, "How much a tool may answer (letters)", "The most "+
+			"of a tool's answer it is given back", &s.draft.toolChars,
+			500, 20_000)
 	})
 }
 
@@ -333,23 +330,17 @@ func (s *appState) aiModel(c *ui.Context, at int) {
 		if !st.open {
 			return
 		}
-		ui.Column(c).Gap(4).Children(func() {
-			ui.Row(c).Children(func() {
-				ui.Text(c, "Name").Grow(1)
-				ui.TextInput(c, &m.Label).Placeholder(m.ID)
-			})
-			ui.Row(c).Children(func() {
-				ui.Text(c, "Address").Grow(1)
-				ui.TextInput(c, &m.BaseURL).Placeholder(
-					"http://localhost:11434")
-			})
-			ui.Row(c).Children(func() {
-				ui.Text(c, "Key").Grow(1)
-				ui.TextInput(c, &m.PlainKey).Placeholder("none needed")
-			})
-			choice(c, "Speaks", &m.Kind, []string{
-				config.ModelOllama, config.ModelOpenAICompatible,
-			})
+		ui.Column(c).FillWidth().Children(func() {
+			text(c, "Name", "What the model is called in the lists",
+				&m.Label, m.ID)
+			text(c, "Address", "Where the model is served from",
+				&m.BaseURL, "http://localhost:11434")
+			text(c, "Key", "The key it is asked with", &m.PlainKey,
+				"none needed")
+			choice(c, "Speaks", "Which way it is spoken to", &m.Kind,
+				[]string{
+					config.ModelOllama, config.ModelOpenAICompatible,
+				})
 			s.capabilitiesOf(c, m)
 		})
 	})
@@ -359,17 +350,12 @@ func (s *appState) aiModel(c *ui.Context, at int) {
 // one of them is saying it by hand, and from then on what the user said
 // is what is believed: the guess is no longer asked.
 func (s *appState) capabilitiesOf(c *ui.Context, m *config.ModelEntry) {
-	ui.Column(c).Gap(2).Children(func() {
-		ui.Text(c, "What it can do").Bold()
+	group(c, "What it can do", func() {
 		for _, id := range ai.Known {
 			info := ai.Info(id)
 			has := holds(ai.Effective(*m), id)
 			use := has
-			ui.Row(c).Children(func() {
-				ui.Checkbox(c, &use, info.Label).Label(info.Meaning)
-				ui.Text(c, info.Usage).TextColor(
-					c.Theme().TextMuted).FontSize(11)
-			})
+			toggle(c, info.Label, info.Meaning+" · "+info.Usage, &use)
 			if use == has {
 				continue
 			}

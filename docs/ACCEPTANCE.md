@@ -50,7 +50,7 @@
 
 | # | 项 | 怎么验 | 预期 |
 |---|---|---|---|
-| C1 | 设置窗口 | `Cmd-,`（macOS：应用菜单 Xinkgo ▸ Settings…；Windows / Linux：File ▸ Settings…），或目录树最下方那一行 Settings | 分四组：外观 / 编辑器 / 预览 / 库；改动**立刻**存 `config.json` 且立刻生效（不用重启） |
+| C1 | 设置窗口 | `Cmd-,`（macOS：应用菜单 Xinkgo ▸ Settings…；Windows / Linux：File ▸ Settings…），或目录树最下方那一行 Settings | 左边一列分组（Basic / Editor / Preview / AI / Vault / Settings file），右边只画选中的那一组；每行「名称 + 一行说明 + 右侧控件 + 分隔线」；改动**立刻**存 `config.json` 且立刻生效（不用重启） |
 | C2 | 编辑器配置生效 | 改「字体大小 / 行高 / 软换行 / 行号 / 缩进」 | 编辑区当场变；不用重开笔记 |
 | C3 | 预览配置生效 | 改「正文字号 / 密度 / 最宽 / 图片：隐藏」 | 预览当场变；图片隐藏时预览不再读图 |
 | C4 | 主题与代码主题 | 改「主题」与「代码主题」 | 明暗与三套预设（xink/ocean/solarized）当场变，编辑区与预览同源 |

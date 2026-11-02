@@ -66,6 +66,51 @@ type settings struct {
 	clone  string
 	moveID string
 	moveBy int
+	// tab is the group of the settings whose rows are on show: the
+	// list on the left says which, and it is kept while the window
+	// stands, and between two openings of it. shown is the group whose
+	// rows were drawn last, which is how a group chosen anew is known
+	// to start at its top.
+	tab, shown string
+}
+
+// The groups the settings are in, as the list on the left shows them.
+const (
+	tabBasic   = "basic"
+	tabEditor  = "editor"
+	tabPreview = "preview"
+	tabAi      = "ai"
+	tabVault   = "vault"
+	tabFile    = "file"
+)
+
+// settingsTab is one group of the settings: what the list calls it, what
+// it is about, and the rows it holds.
+type settingsTab struct {
+	ID, Name, Note string
+	Draw           func(c *ui.Context)
+}
+
+// settingsTabs is every group of the settings, in the order the list
+// shows them: what the window looks like and how it is laid out first,
+// then how a note is written and how it is read, then the model that is
+// asked, and last the folders and the file the choices are kept in.
+func (s *appState) settingsTabs() []settingsTab {
+	return []settingsTab{
+		{tabBasic, "Basic", "How the window looks", func(c *ui.Context) {
+			s.appearance(c)
+			s.window(c)
+		}},
+		{tabEditor, "Editor", "How a note is written",
+			s.editorSettings},
+		{tabPreview, "Preview", "How a note reads beside what it says",
+			s.previewSettings},
+		{tabAi, "AI", "Which model is asked, and how", s.ai},
+		{tabVault, "Vault", "The folders the app knows",
+			s.vaultSettings},
+		{tabFile, "Settings file", "Given away, and taken in again",
+			s.configFile},
+	}
 }
 
 // openSettings shows the settings window, or brings it back when it is
@@ -76,30 +121,41 @@ func (s *appState) openSettings() {
 		s.settingsWin.Focus()
 		return
 	}
-	s.draft = settings{cfg: s.config}
+	// The group that was on show is on show again; a first opening
+	// starts with the one that is asked about most.
+	tab := s.draft.tab
+	if tab == "" {
+		tab = tabBasic
+	}
+	s.draft = settings{cfg: s.config, tab: tab}
 	s.draft.read(&s.config)
 	s.settingsWin = mygo.NewWindow(mygo.WindowOptions{
-		Title:    Name + " Settings",
-		Width:    560,
-		Height:   720,
-		MinWidth: 420,
+		Title:     Name + " Settings",
+		Width:     820,
+		Height:    680,
+		MinWidth:  640,
+		MinHeight: 420,
 		// The window shows the interface MyGo draws, not a web page.
 		Content: ui.View(s.settingsView),
 	})
 }
 
-// settingsView is the settings window: what the user chose, grouped by
-// what it is about.
+// settingsView is the settings window: the groups in a list on the left,
+// and the rows of the one chosen on the right, as Obsidian has them. A
+// group is drawn only while it is chosen, so that a group thousands of
+// rows deep would be no slower than a shallow one.
 func (s *appState) settingsView(c *ui.Context) {
-	ui.Scroll(c).TrackScroll(&s.draft.scroll).Fill().Children(func() {
-		ui.Column(c).Fill().Children(func() {
-			s.window(c)
-			s.appearance(c)
-			s.editorSettings(c)
-			s.previewSettings(c)
-			s.vaultSettings(c)
-			s.ai(c)
-			s.configFile(c)
+	th := c.Theme()
+	ui.Row(c).Fill().Children(func() {
+		s.settingsNav(c)
+		ui.Box(c).FillHeight().Width(1).Background(th.Border)
+		ui.Column(c).Fill().Grow(1).Children(func() {
+			ui.Scroll(c).TrackScroll(&s.draft.scroll).Fill().
+				Children(func() {
+					ui.Column(c).FillWidth().Children(func() {
+						s.chosenSettings(c)
+					})
+				})
 		})
 	})
 	// What the user changed is kept, and takes effect at once.
@@ -114,71 +170,118 @@ func (s *appState) settingsView(c *ui.Context) {
 	}
 }
 
+// settingsNav is the list of the groups, on the left: choosing one shows
+// its rows on the right.
+func (s *appState) settingsNav(c *ui.Context) {
+	ui.Sidebar(c, &s.draft.tab, func() {
+		for _, tab := range s.settingsTabs() {
+			ui.SidebarItem(c, tab.ID, nil, tab.Name)
+		}
+	}).Width(settingsNavWidth).FillHeight()
+}
+
+// chosenSettings is the group chosen: what it is about under its name,
+// and its rows below.
+func (s *appState) chosenSettings(c *ui.Context) {
+	th := c.Theme()
+	tabs := s.settingsTabs()
+	if s.draft.tab == "" {
+		s.draft.tab = tabs[0].ID
+	}
+	// A group chosen anew is scrolled to its top, and not to where
+	// the one before it was left.
+	if s.draft.shown != s.draft.tab {
+		s.draft.shown = s.draft.tab
+		s.draft.scroll = ui.ScrollState{}
+	}
+	for _, tab := range tabs {
+		if tab.ID != s.draft.tab {
+			continue
+		}
+		ui.Column(c).FillWidth().Gap(th.Space(0.5)).
+			Padding(th.Space(6), settingsRowPad, th.Space(4)).
+			Children(func() {
+				ui.Text(c, tab.Name).Bold().FontSize(th.FontSize + 6)
+				ui.Text(c, tab.Note).FontSize(th.FontSize - 1).
+					TextColor(th.TextMuted)
+			})
+		tab.Draw(c)
+	}
+}
+
 // appearance is how the window looks.
 func (s *appState) appearance(c *ui.Context) {
 	group(c, "Appearance", func() {
-		choice(c, "Theme", &s.draft.cfg.Basic.Theme, themes)
-		ui.Checkbox(c, &s.draft.cfg.Basic.ShowAllFiles,
-			"Show every file, not only the ones that can be read")
-		slider(c, "Tree font size", &s.draft.treeSize, 10, 20)
+		choice(c, "Theme", "Light, dark, or whatever the machine has",
+			&s.draft.cfg.Basic.Theme, themes)
+		toggle(c, "Show every file", "Files the app cannot read are "+
+			"listed by the tree too", &s.draft.cfg.Basic.ShowAllFiles)
+		slider(c, "Tree font size", "How large the names in the file "+
+			"tree are drawn", &s.draft.treeSize, 10, 20)
 	})
 }
 
 // editorSettings is how the editor behaves.
 func (s *appState) editorSettings(c *ui.Context) {
-	group(c, "Editor", func() {
-		ui.Checkbox(c, &s.draft.cfg.Editor.AutoSave,
-			"Save as I type")
-		slider(c, "Save after (ms)", &s.draft.delay, 200, 5000)
-		ui.Checkbox(c, &s.draft.cfg.Editor.SoftWrap, "Wrap long lines")
-		ui.Checkbox(c, &s.draft.cfg.Editor.ShowLineNumbers,
-			"Show line numbers")
-		ui.Checkbox(c, &s.draft.cfg.Editor.Indent.UseTabs,
-			"Indent with tabs")
-		slider(c, "Indent size", &s.draft.indent, 1, 8)
-		slider(c, "Font size", &s.draft.size, 10, 24)
-		slider(c, "Line height", &s.draft.lineHeight, 1.2, 2.2)
-		choice(c, "Code theme", &s.draft.cfg.Highlight.Theme,
-			highlightThemes)
-	})
+	toggle(c, "Save as I type", "The note is written to the disk "+
+		"while it is written", &s.draft.cfg.Editor.AutoSave)
+	slider(c, "Save after (ms)", "How long the typing pauses before "+
+		"the note is written", &s.draft.delay, 200, 5000)
+	toggle(c, "Wrap long lines", "A line longer than the window is "+
+		"broken, rather than run out of it",
+		&s.draft.cfg.Editor.SoftWrap)
+	toggle(c, "Show line numbers", "A number beside every line",
+		&s.draft.cfg.Editor.ShowLineNumbers)
+	toggle(c, "Indent with tabs", "A tab, rather than spaces",
+		&s.draft.cfg.Editor.Indent.UseTabs)
+	slider(c, "Indent size", "How far an indented line starts in",
+		&s.draft.indent, 1, 8)
+	slider(c, "Font size", "How large the note's letters are",
+		&s.draft.size, 10, 24)
+	slider(c, "Line height", "How far apart the lines stand",
+		&s.draft.lineHeight, 1.2, 2.2)
+	choice(c, "Code theme", "The colors the code in a note is shown "+
+		"in", &s.draft.cfg.Highlight.Theme, highlightThemes)
 }
 
 // previewSettings is what a note looks like beside what it says.
 func (s *appState) previewSettings(c *ui.Context) {
-	group(c, "Preview", func() {
-		ui.Checkbox(c, &s.draft.cfg.Preview.SyncScroll,
-			"Follow where the note is")
-		choice(c, "Follow by", &s.draft.cfg.Preview.SyncMode, syncModes)
-		choice(c, "Images", &s.draft.cfg.Preview.ImageDisplay, imageShows)
-		slider(c, "Image width (%)", &s.draft.imageWidth, 20, 100)
-		choice(c, "Open links", &s.draft.cfg.Preview.LinkOpen, linkOpens)
-		slider(c, "Widest the text runs", &s.draft.width, 400, 1400)
-		choice(c, "Density", &s.draft.cfg.Preview.Density, densities)
-	})
+	toggle(c, "Follow where the note is", "The preview follows the "+
+		"line being written", &s.draft.cfg.Preview.SyncScroll)
+	choice(c, "Follow by", "By how far down the note is, by the "+
+		"heading at the top, or once the typing stops",
+		&s.draft.cfg.Preview.SyncMode, syncModes)
+	choice(c, "Images", "Shown as wide as the text runs, or not at "+
+		"all", &s.draft.cfg.Preview.ImageDisplay, imageShows)
+	slider(c, "Image width (%)", "How much of the text's width an "+
+		"image is given", &s.draft.imageWidth, 20, 100)
+	choice(c, "Open links", "In the app, or in the browser",
+		&s.draft.cfg.Preview.LinkOpen, linkOpens)
+	slider(c, "Widest the text runs", "A note is not set wider than "+
+		"this, however wide the window is", &s.draft.width, 400, 1400)
+	choice(c, "Density", "How much room the lines are given",
+		&s.draft.cfg.Preview.Density, densities)
 }
 
 // vaultSettings is the folders the app knows, and the window that keeps
 // them.
 func (s *appState) vaultSettings(c *ui.Context) {
-	group(c, "Vault", func() {
-		ui.Row(c).Children(func() {
-			ui.Text(c, filepath.Base(s.root)).Grow(1)
-			if ui.Button(c.Key("manage-vaults"), "Manage…").Clicked() {
-				s.openVaultManager()
-			}
-			if ui.Button(c.Key("open-other-vault"), "Open another…").
-				Clicked() {
-				s.openVaultDialog()
-			}
-		})
+	buttons(c, "The vault that is open", s.root, func() {
+		if ui.Button(c.Key("manage-vaults"), "Manage…").Clicked() {
+			s.openVaultManager()
+		}
+		if ui.Button(c.Key("open-other-vault"), "Open another…").
+			Clicked() {
+			s.openVaultDialog()
+		}
 	})
 }
 
 // configFile is the settings themselves: kept as a file, given away and
 // taken in again.
 func (s *appState) configFile(c *ui.Context) {
-	group(c, "Settings file", func() {
-		ui.Row(c).Children(func() {
+	buttons(c, "Kept as a file", filepath.Join(s.dir, "config.json"),
+		func() {
 			if ui.Button(c.Key("export-config"), "Save a copy…").
 				Clicked() {
 				s.exportConfig()
@@ -187,15 +290,12 @@ func (s *appState) configFile(c *ui.Context) {
 				Clicked() {
 				s.importConfig()
 			}
-			if ui.Button(c.Key("default-config"), "Back to the defaults").
-				Clicked() {
+			if ui.Button(c.Key("default-config"),
+				"Back to the defaults").Clicked() {
 				s.draft.cfg = config.Default()
 				s.draft.read(&s.draft.cfg)
 			}
 		})
-		ui.Text(c, filepath.Join(s.dir, "config.json")).TextColor(
-			c.Theme().TextMuted)
-	})
 }
 
 // exportConfig writes the settings to a file the user names, so that
@@ -304,48 +404,112 @@ func (s *appState) window(c *ui.Context) {
 	}
 	group(c, "Window", func() {
 		tree := s.ws.TreeShown()
-		ui.Checkbox(c, &tree, "Show the file tree")
+		toggle(c, "Show the file tree", "The panel on the left", &tree)
 		if tree != s.ws.TreeShown() {
 			s.ws.SetTreeShown(tree)
 		}
 		preview := s.ws.PreviewShown()
-		ui.Checkbox(c, &preview, "Show the preview")
+		toggle(c, "Show the preview", "The panel on the right", &preview)
 		if preview != s.ws.PreviewShown() {
 			s.ws.SetPreviewShown(preview)
 		}
 	})
 }
 
-// group is one group of settings, with its name above them.
+// How wide the list of the groups is, how wide the column of the
+// controls is, and how far a row starts from the window's edge: the same
+// for every row, so that the controls stand in a line of their own, as
+// they do in Obsidian's settings.
+const (
+	settingsNavWidth     float32 = 200
+	settingsControlWidth float32 = 220
+	settingsRowPad       float32 = 20
+)
+
+// group is one group of settings inside a category, its name above them.
 func group(c *ui.Context, name string, fn func()) {
-	ui.Column(c).Fill().Children(func() {
-		ui.Text(c, name).Bold()
-		ui.Column(c).Children(fn)
+	th := c.Theme()
+	ui.Column(c).FillWidth().
+		Padding(th.Space(4), settingsRowPad, th.Space(1)).
+		Children(func() {
+			ui.Text(c, name).Bold().FontSize(th.FontSize + 2)
+		})
+	ui.Column(c).FillWidth().Children(fn)
+}
+
+// field is one setting: its name and what it is for on the near side,
+// and what changes it on the far side, with a line under it setting it
+// apart from the row below.
+func field(c *ui.Context, name, note string, control func()) {
+	settingRow(c, name, note, settingsControlWidth, control)
+}
+
+// buttons is a row whose far side holds buttons rather than one control:
+// they stand where a control would, and take the room they need.
+func buttons(c *ui.Context, name, note string, fn func()) {
+	settingRow(c, name, note, 0, fn)
+}
+
+// settingRow is one row of the settings: what it is about on the near
+// side, and what fn draws in a column of width on the far side, a width
+// of 0 leaving it as wide as it asks to be.
+func settingRow(
+	c *ui.Context, name, note string, width float32, fn func(),
+) {
+	th := c.Theme()
+	ui.Column(c).FillWidth().Children(func() {
+		ui.Row(c).FillWidth().Gap(th.Space(4)).AlignItems(ui.Center).
+			Padding(th.Space(2.5), settingsRowPad).Children(func() {
+			ui.Column(c).Grow(1).Gap(th.Space(0.5)).Children(func() {
+				ui.Text(c, name)
+				if note != "" {
+					ui.Text(c, note).FontSize(th.FontSize - 1).
+						TextColor(th.TextMuted)
+				}
+			})
+			control := ui.Row(c).Justify(ui.End)
+			if width > 0 {
+				control = control.Width(width)
+			}
+			control.Children(fn)
+		})
+		ui.Box(c).FillWidth().Height(1).Background(th.Border)
 	})
+}
+
+// toggle is a setting that is on or off.
+func toggle(c *ui.Context, name, note string, value *bool) {
+	field(c, name, note, func() { ui.Switch(c, value).Label(name) })
 }
 
 // choice is a setting that is one of a few things.
-func choice(c *ui.Context, label string, value *string, options []string) {
-	ui.Row(c).Children(func() {
-		ui.Text(c, label).Grow(1)
-		ui.Select(c, value, options)
-	})
+func choice(
+	c *ui.Context, name, note string, value *string, options []string,
+) {
+	field(c, name, note, func() { ui.Select(c, value, options) })
 }
 
 // slider is a setting between two numbers.
-func slider(c *ui.Context, label string, value *float64, lo, hi float64) {
-	ui.Row(c).Children(func() {
-		ui.Text(c, label).Grow(1)
-		ui.Slider(c, value, lo, hi)
+func slider(
+	c *ui.Context, name, note string, value *float64, lo, hi float64,
+) {
+	field(c, name, note, func() { ui.Slider(c, value, lo, hi) })
+}
+
+// text is a setting the user writes out.
+func text(
+	c *ui.Context, name, note string, value *string, placeholder string,
+) {
+	field(c, name, note, func() {
+		ui.TextInput(c, value).Placeholder(placeholder)
 	})
 }
 
 // number is a setting that is a whole number between two of them: it
 // says which it is, and goes up and down one at a time, which a slider
 // does neither of.
-func number(c *ui.Context, label string, value *float64, lo, hi float64) {
-	ui.Row(c).Children(func() {
-		ui.Text(c, label).Grow(1)
-		ui.NumberInput(c, value, lo, hi, 1)
-	})
+func number(
+	c *ui.Context, name, note string, value *float64, lo, hi float64,
+) {
+	field(c, name, note, func() { ui.NumberInput(c, value, lo, hi, 1) })
 }
