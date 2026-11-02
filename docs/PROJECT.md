@@ -6,14 +6,14 @@
 
 ## 1 项目是什么
 
-桌面软件，Go 写成，界面由 [MyGo](https://github.com/egoist/mygo) v0.7.3
+桌面软件，Go 写成，界面由 [MyGo](https://github.com/egoist/mygo) v0.7.4
 绘制。**macOS 是首要目标平台**，Windows 与 Linux 受支持但优先级在其后。
 
 | 项 | 值 |
 |---|---|
 | 目标平台（优先级） | **P0 macOS**（`darwin/arm64` 开发机首要，`darwin/amd64` 同优先级）→ P1 `windows/amd64` → P2 `windows/arm64`、`linux/amd64`（CI 冒烟） |
 | 界面形态 | **原生 UI**（`mygo/ui`，MyGo 自己用 GPU 画，无 HTML/JS/webview）；同时**预留 Web 窗口**能力 |
-| 语言 / 框架 | Go 1.27（模块声明 1.27.3）+ MyGo v0.7.3 |
+| 语言 / 框架 | Go 1.27（模块声明 1.27.3）+ MyGo v0.7.4 |
 | cgo | **禁用**（`CGO_ENABLED=0`），因此任意机器都能交叉编译到其它平台 |
 | 前端工具链 | 无（原生 UI 不需要 Bun/Node；未来接入 Web 窗口时再引入） |
 | 应用名 / 标识符 | `Xinkgo` / `com.helight.xinkgo` |
@@ -97,13 +97,13 @@ cmd/xinkgo  →  internal/app  →  internal/{view, config, logging, sysinfo}
 
 - Go 1.27 或更高（低版本会自动下载 1.27.3 toolchain；`Makefile` 已导出
   `GOTOOLCHAIN=auto`）。
-- MyGo CLI 不用单独装：`go.mod` 的 `tool` 指令固定了 v0.7.3，`go tool mygo`
+- MyGo CLI 不用单独装：`go.mod` 的 `tool` 指令固定了 v0.7.4，`go tool mygo`
   直接可用。
 - 打包安装器才需要 NSIS（可选，见下）。
 
 ```sh
 go version          # go1.27.x
-go tool mygo version   # mygo 0.7.3
+go tool mygo version   # mygo 0.7.4
 ```
 
 ### 3.2 三步跑起来
@@ -147,7 +147,7 @@ PLATFORMS="windows/amd64" make package   # 次要平台，显式指定
 macOS 打包输出（已在本机验证）：
 
 ```
-  MyGo!!!!! v0.7.3  build
+  MyGo!!!!! v0.7.4  build
   ○ Compiling darwin/arm64
   ✓ Compiled darwin/arm64  4.6s
   ○ Signing Xinkgo.app
