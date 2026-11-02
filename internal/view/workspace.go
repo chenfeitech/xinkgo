@@ -682,15 +682,24 @@ func (w *Workspace) widenButton(c *ui.Context) {
 		icon, label, tip = iconWidenBack, locale.WidenBack(),
 			locale.WidenBackTooltip()
 	}
-	button := ui.Button(c.Key("widen"), "").
+	// A button of no look: the picture alone, standing on the bar as the
+	// words of the tabs do, and not in a box of its own. Nothing is
+	// filled in behind it — not when the pointer rests on it, and not
+	// while the note stands over the preview, for the arrow turned round
+	// is what says so. Only the picture changes: it is quiet until the
+	// pointer comes to it, or until the note has the room. What it does,
+	// and whether it is pressed, are still said to the keys and to what
+	// reads the window aloud, which is what the box was for.
+	button := ui.ButtonBase(c.Key("widen")).
 		Label(label).Tooltip(tip).
-		Padding(4, 5).
-		Children(func() {
-			ui.Icon(c, icon).Size(iconSize, iconSize)
-		})
-	if w.stretched {
-		button.Selected(true)
-	}
+		Role(ui.RoleToggleButton).Checked(w.stretched).
+		Padding(4, 5)
+	button.Children(func() {
+		glyph := ui.Icon(c, icon).Size(iconSize, iconSize)
+		if !w.stretched && !button.Hovered() {
+			glyph.TextColor(c.Theme().TextMuted)
+		}
+	})
 	if button.Clicked() {
 		w.stretched = !w.stretched
 	}
