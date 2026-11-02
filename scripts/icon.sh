@@ -4,7 +4,7 @@
 # so that the two never drift apart: macOS is packaged with the .icns as it
 # is, and Windows and Linux with the icon rendered from this PNG.
 #
-#	scripts/icon.sh       # resources/icon.png from resources/xink.icns
+#	scripts/icon.sh       # assets/icon.png from assets/xink.icns
 #
 # It runs on a Mac, whose tools are the ones that read an .icns. The PNG is
 # kept in the repository, so packaging needs no Mac of its own.
@@ -12,8 +12,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-icns=resources/xink.icns
-png=resources/icon.png
+icns=assets/xink.icns
+png=assets/icon.png
 
 if [ ! -f "$icns" ]; then
 	echo "There is no $icns, whose icon the app is packaged with."

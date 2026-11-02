@@ -63,10 +63,11 @@ xinkgo/
 │   ├── theme/               配色方案表：每套方案明暗两套取色（纯数据 + ui）
 │   ├── logging/             slog 初始化（开发到终端，安装版到文件）
 │   └── sysinfo/             版本与运行环境信息（纯数据）
-├── resources/
+├── assets/                  不随产物发布的素材：应用图标的 .icns 与它的 PNG
 │   ├── xink.icns            macOS 应用图标（打包时原样写进 .app）
 │   └── icon.png             同一图标的 PNG：Windows 图标资源与 Linux
 │                            桌面项图标由它生成（scripts/icon.sh 从 .icns 导出）
+├── resources/               随应用发布的资源：整目录进产物，由应用运行时读取
 ├── scripts/
 │   ├── check.sh             提交前门禁
 │   ├── icon.sh              icon.png 从 xink.icns 导出
