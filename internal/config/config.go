@@ -67,6 +67,18 @@ const (
 	LanguageChinese = "zh-Hans"
 )
 
+// How far the text of a pane stands from the edges of it, in DIPs: the
+// room the note's own and the preview's are given at a first start, and
+// how near to and how far from their edges they may be put. A pane whose
+// text touches its edges is not one to read, and one whose room is wider
+// than a few words is a pane of nothing but room.
+const (
+	DefaultPaddingX uint32 = 16
+	DefaultPaddingY uint32 = 12
+	MinPadding      uint32 = 4
+	MaxPadding      uint32 = 64
+)
+
 // FontConfig is a font and how it is set.
 type FontConfig struct {
 	Family     string  `json:"family"`
@@ -102,14 +114,18 @@ type DataFileConfig struct {
 
 // EditorConfig is the editor's own settings.
 type EditorConfig struct {
-	AutoSave        bool              `json:"auto_save"`
-	AutoSaveDelayMs uint64            `json:"auto_save_delay_ms"`
-	Indent          IndentConfig      `json:"indent"`
-	ShowLineNumbers bool              `json:"show_line_numbers"`
-	SoftWrap        bool              `json:"soft_wrap"`
-	Font            FontConfig        `json:"font"`
-	Keymap          map[string]string `json:"keymap"`
-	DataFile        DataFileConfig    `json:"data_file"`
+	AutoSave        bool         `json:"auto_save"`
+	AutoSaveDelayMs uint64       `json:"auto_save_delay_ms"`
+	Indent          IndentConfig `json:"indent"`
+	ShowLineNumbers bool         `json:"show_line_numbers"`
+	SoftWrap        bool         `json:"soft_wrap"`
+	// PaddingX is how far the note's text stands from the sides of its
+	// pane, in DIPs: the same on both, so that a note reads as a column
+	// in the middle of the room it was given.
+	PaddingX uint32            `json:"padding_x"`
+	Font     FontConfig        `json:"font"`
+	Keymap   map[string]string `json:"keymap"`
+	DataFile DataFileConfig    `json:"data_file"`
 }
 
 // PreviewConfig is the Markdown preview's settings.
@@ -123,9 +139,15 @@ type PreviewConfig struct {
 	LinkOpen          string  `json:"link_open"`
 	SyncScroll        bool    `json:"sync_scroll"`
 	SyncMode          string  `json:"sync_mode"`
-	MaxWidth          uint32  `json:"max_width"`
-	Density           string  `json:"density"`
-	DebugScrollSync   bool    `json:"debug_scroll_sync"`
+	// PaddingX is how far what is read stands from the sides of the
+	// preview's pane, and PaddingY from its top and its foot, in DIPs:
+	// what keeps a note off the edges of the pane it is read in, and off
+	// the line that parts it from the note's own.
+	PaddingX        uint32 `json:"padding_x"`
+	PaddingY        uint32 `json:"padding_y"`
+	MaxWidth        uint32 `json:"max_width"`
+	Density         string `json:"density"`
+	DebugScrollSync bool   `json:"debug_scroll_sync"`
 }
 
 // HighlightConfig is the theme of code blocks.
@@ -177,6 +199,7 @@ func Default() AppConfig {
 			Indent:          IndentConfig{UseTabs: false, TabSize: 4},
 			ShowLineNumbers: false,
 			SoftWrap:        true,
+			PaddingX:        DefaultPaddingX,
 			Font:            monoFont(),
 			Keymap:          map[string]string{},
 			DataFile:        DataFileConfig{Indent: 2, MaxFormatBytes: 1_000_000},
@@ -188,6 +211,8 @@ func Default() AppConfig {
 			LinkOpen:          LinkInApp,
 			SyncScroll:        true,
 			SyncMode:          SyncRatio,
+			PaddingX:          DefaultPaddingX,
+			PaddingY:          DefaultPaddingY,
 			MaxWidth:          0,
 			Density:           DensityNormal,
 			DebugScrollSync:   false,
@@ -365,6 +390,9 @@ func (e *EditorConfig) fillMissing(d EditorConfig) {
 		e.Indent = d.Indent
 	}
 	e.Font.fillMissing(d.Font)
+	if e.PaddingX == 0 {
+		e.PaddingX = d.PaddingX
+	}
 	if e.Keymap == nil {
 		e.Keymap = map[string]string{}
 	}
@@ -392,6 +420,12 @@ func (p *PreviewConfig) fillMissing(d PreviewConfig) {
 	}
 	if p.SyncMode == "" {
 		p.SyncMode = d.SyncMode
+	}
+	if p.PaddingX == 0 {
+		p.PaddingX = d.PaddingX
+	}
+	if p.PaddingY == 0 {
+		p.PaddingY = d.PaddingY
 	}
 	if p.Density == "" {
 		p.Density = d.Density
@@ -452,6 +486,7 @@ func (c *AppConfig) Sanitize() {
 	e := &c.Editor
 	e.AutoSaveDelayMs = clampU64(e.AutoSaveDelayMs, 200, 60000)
 	e.Indent.TabSize = clampU32(e.Indent.TabSize, 1, 16)
+	e.PaddingX = clampU32(e.PaddingX, MinPadding, MaxPadding)
 	e.Font.sanitize(monoFont())
 	// A key that is stored but would not be honoured is not stored.
 	keymap.Sanitize(e.Keymap)
@@ -470,6 +505,8 @@ func (c *AppConfig) Sanitize() {
 	if !oneOf(p.SyncMode, SyncRatio, SyncAnchor, SyncOnStop) {
 		p.SyncMode = SyncRatio
 	}
+	p.PaddingX = clampU32(p.PaddingX, MinPadding, MaxPadding)
+	p.PaddingY = clampU32(p.PaddingY, MinPadding, MaxPadding)
 	p.MaxWidth = minU32(p.MaxWidth, 4096)
 	if !oneOf(p.Density, DensityCompact, DensityNormal, DensityRelaxed) {
 		p.Density = DensityNormal

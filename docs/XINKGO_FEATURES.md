@@ -49,6 +49,7 @@
 | 标签持久化与恢复 | ✅ | `internal/state/state.go:70`、`internal/app/app.go:260` `restore` | 只恢复属于当前库的标签，恢复后写回 |
 | 空白占位页 | ✅ | `internal/view/workspace.go:541` `editor` | |
 | 缩进 / 软换行 / 行号 | ✅ | `internal/view/apply.go:29` `applyEditor` | |
+| 编辑区左右留白（可配置） | ✅ | `internal/view/workspace.go` `editorPadLeft`、`editorPadRight` | 默认 16，范围 4–64；正文到左右边缘等距 |
 | 格式工具栏 | ✅ | `internal/view/workspace.go:404` `toolbar` | 14 个按钮（xink 13 个 + 行内代码） |
 | 格式快捷键 | ✅ | `internal/app/menu.go` `Format`、`internal/keymap/keymap.go:34` | |
 | 编辑区语法高亮 | ✅ | `internal/view/tabs.go:121` | md / json / yaml / toml 按文件名 |
@@ -69,6 +70,7 @@
 | 代码块语法高亮（编辑区与预览同源） | ✅ | `internal/highlight/highlight.go:95` `EditorTheme`、`internal/view/apply.go:63` | |
 | 高亮主题 3 套 | ✅ | `internal/highlight/highlight.go:22` `Presets` | |
 | 滚动同步（双向，三档） | ✅ | `internal/view/scroll.go:19` `followScroll`、`internal/sync/sync.go:94` `BlockSpans` | 方向锁 + 回显吸收 |
+| 预览区留白（左右 / 上下，可配置） | ✅ | `internal/view/workspace.go` `previewPadX`、`previewPadY` | 默认 16 / 12，范围 4–64 |
 | **滚动同步调试数字** | ❌ | `config.go:104` `DebugScrollSync` 有字段 | 无读取点 |
 | 版面密度 / 最大宽度 | ✅ | `internal/view/apply.go:78` `spacing`、`previewWidth:91` | |
 | 链接点击行为 | ✅ | `internal/view/workspace.go:607` `openLink`、`internal/app/web.go:101` | 库内打开笔记；外部链接按设置走系统浏览器或应用内窗口 |

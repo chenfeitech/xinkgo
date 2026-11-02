@@ -172,6 +172,98 @@ func TestSanitize_clampsOutOfRangeValues(t *testing.T) {
 	}
 }
 
+// TestDefault_theTextOfAPaneStandsOffItsEdges checks the room a pane keeps
+// beside what it shows at a first start: the same on both sides of the
+// note, and the same on both sides of the preview, whose top and foot
+// keep a room of their own.
+func TestDefault_theTextOfAPaneStandsOffItsEdges(t *testing.T) {
+	cfg := Default()
+	if cfg.Editor.PaddingX != DefaultPaddingX {
+		t.Errorf("the note's padding is %d, want %d", cfg.Editor.PaddingX,
+			DefaultPaddingX)
+	}
+	if cfg.Preview.PaddingX != DefaultPaddingX {
+		t.Errorf("the preview's padding is %d, want %d",
+			cfg.Preview.PaddingX, DefaultPaddingX)
+	}
+	if cfg.Preview.PaddingY != DefaultPaddingY {
+		t.Errorf("the preview's padding over its top and foot is %d, "+
+			"want %d", cfg.Preview.PaddingY, DefaultPaddingY)
+	}
+}
+
+// TestLoad_aFileThatNamesNoPaddingKeepsTheDefaultRoom checks that a
+// configuration written before the padding was a thing to choose keeps the
+// room a first start gives, and not none at all.
+func TestLoad_aFileThatNamesNoPaddingKeepsTheDefaultRoom(t *testing.T) {
+	cfg := load(t, `{"editor":{"soft_wrap":false},"preview":{"density":"compact"}}`)
+	if cfg.Editor.PaddingX != DefaultPaddingX {
+		t.Errorf("the note's padding is %d, want %d", cfg.Editor.PaddingX,
+			DefaultPaddingX)
+	}
+	if cfg.Preview.PaddingX != DefaultPaddingX ||
+		cfg.Preview.PaddingY != DefaultPaddingY {
+		t.Errorf("the preview's padding is %d by %d, want %d by %d",
+			cfg.Preview.PaddingX, cfg.Preview.PaddingY,
+			DefaultPaddingX, DefaultPaddingY)
+	}
+}
+
+// TestSanitize_thePaddingStaysWithinItsRange checks the limits of the room
+// a pane may keep: a pane whose text touches its edges is not one to read,
+// and one of nothing but room is no pane at all.
+func TestSanitize_thePaddingStaysWithinItsRange(t *testing.T) {
+	cfg := load(t, `{"editor":{"padding_x":1},
+		"preview":{"padding_x":999,"padding_y":999}}`)
+	if cfg.Editor.PaddingX != MinPadding {
+		t.Errorf("the note's padding is %d, want %d", cfg.Editor.PaddingX,
+			MinPadding)
+	}
+	if cfg.Preview.PaddingX != MaxPadding {
+		t.Errorf("the preview's padding is %d, want %d",
+			cfg.Preview.PaddingX, MaxPadding)
+	}
+	if cfg.Preview.PaddingY != MaxPadding {
+		t.Errorf("the preview's padding over its top and foot is %d, "+
+			"want %d", cfg.Preview.PaddingY, MaxPadding)
+	}
+	// A nought is what a file that never named the room has, and is read
+	// as one: it gives the room a first start gives, and not none at
+	// all, as for every other number the configuration keeps.
+	zero := load(t, `{"editor":{"padding_x":0},"preview":{"padding_y":0}}`)
+	if zero.Editor.PaddingX != DefaultPaddingX {
+		t.Errorf("the note's padding is %d, want %d", zero.Editor.PaddingX,
+			DefaultPaddingX)
+	}
+	if zero.Preview.PaddingY != DefaultPaddingY {
+		t.Errorf("the preview's padding over its top and foot is %d, "+
+			"want %d", zero.Preview.PaddingY, DefaultPaddingY)
+	}
+}
+
+// TestSaveLoad_thePaddingComesBack checks that the room a pane keeps is
+// written out and read back, as a choice the user made.
+func TestSaveLoad_thePaddingComesBack(t *testing.T) {
+	dir := t.TempDir()
+	want := Default()
+	want.Editor.PaddingX = 28
+	want.Preview.PaddingX, want.Preview.PaddingY = 40, 8
+	if err := want.Save(dir); err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+	got, err := Load(dir)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if got.Editor.PaddingX != 28 {
+		t.Errorf("the note's padding is %d, want 28", got.Editor.PaddingX)
+	}
+	if got.Preview.PaddingX != 40 || got.Preview.PaddingY != 8 {
+		t.Errorf("the preview's padding is %d by %d, want 40 by 8",
+			got.Preview.PaddingX, got.Preview.PaddingY)
+	}
+}
+
 // TestSanitize_keymapDropsUnusableEntries checks that a key the app would
 // not honour is not kept, as a hand-edited file may well have one.
 func TestSanitize_keymapDropsUnusableEntries(t *testing.T) {

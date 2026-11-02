@@ -5,6 +5,7 @@ import (
 
 	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/config"
+	"github.com/helightxu/xinkgo/internal/locale"
 	"github.com/helightxu/xinkgo/internal/theme"
 	"github.com/helightxu/xinkgo/internal/view"
 )
@@ -18,6 +19,37 @@ func settingsShown(t *testing.T, s *appState) *ui.Tester {
 	s.draft = settings{cfg: s.config, tab: tabBasic}
 	s.draft.read(&s.config)
 	return ui.NewTester(s.settingsView, 820, 680)
+}
+
+// TestSettings_thePaddingOfAPaneIsAKnobOfItsOwn checks that the room a
+// pane keeps beside what it shows is a setting like any other: taken in
+// as the window opens, moved by the knob, and given back to the
+// configuration as a whole number of DIPs.
+func TestSettings_thePaddingOfAPaneIsAKnobOfItsOwn(t *testing.T) {
+	cfg := config.Default()
+	st := &settings{}
+	st.read(&cfg)
+	if st.editorPad != float64(config.DefaultPaddingX) ||
+		st.previewPadX != float64(config.DefaultPaddingX) ||
+		st.previewPadY != float64(config.DefaultPaddingY) {
+		t.Fatalf("the knobs read %v, %v and %v, want %d, %d and %d",
+			st.editorPad, st.previewPadX, st.previewPadY,
+			config.DefaultPaddingX, config.DefaultPaddingX,
+			config.DefaultPaddingY)
+	}
+	st.editorPad, st.previewPadX, st.previewPadY = 24.4, 31.6, 8.2
+	st.write(&cfg)
+	if cfg.Editor.PaddingX != 24 {
+		t.Errorf("the note's padding is %d, want 24", cfg.Editor.PaddingX)
+	}
+	if cfg.Preview.PaddingX != 32 {
+		t.Errorf("the preview's padding is %d, want 32",
+			cfg.Preview.PaddingX)
+	}
+	if cfg.Preview.PaddingY != 8 {
+		t.Errorf("the preview's padding over its top and foot is %d, "+
+			"want 8", cfg.Preview.PaddingY)
+	}
 }
 
 // TestSettingsView_everyGroupIsInTheList checks the window as Obsidian
@@ -72,6 +104,31 @@ func TestSettingsView_theExportStandsWithThePreview(t *testing.T) {
 	}
 	for _, want := range []string{
 		"Export", "Sheet of paper", "A4", "Pictures", "In the page",
+	} {
+		if !tt.HasText(want) {
+			t.Errorf("the preview's rows do not say %q", want)
+		}
+	}
+}
+
+// TestSettingsView_thePaddingOfBothPanesIsAChoice checks that the room a
+// pane keeps beside what it shows is to be chosen where the rest of the
+// pane's settings are: with the note's, and with the preview's.
+func TestSettingsView_thePaddingOfBothPanesIsAChoice(t *testing.T) {
+	s := &appState{}
+	tt := settingsShown(t, s)
+	if err := tt.Click("Editor"); err != nil {
+		t.Fatal(err)
+	}
+	if !tt.HasText(locale.SettingEditorPadding()) {
+		t.Errorf("the note's rows do not say %q",
+			locale.SettingEditorPadding())
+	}
+	if err := tt.Click("Preview"); err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{
+		locale.SettingPreviewPadding(), locale.SettingPreviewPaddingY(),
 	} {
 		if !tt.HasText(want) {
 			t.Errorf("the preview's rows do not say %q", want)

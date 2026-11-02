@@ -216,7 +216,7 @@ func TestZoom_thePreviewSpreadsOverTheNote(t *testing.T) {
 		t.Errorf("what is read begins at %v, want it left of the %v it was",
 			spread.X, read.X)
 	}
-	want := float32(w.Layout.Left) + dividerGrip + previewPadX
+	want := float32(w.Layout.Left) + dividerGrip + w.previewPadX()
 	if d := spread.X - want; d < -8 || d > 8 {
 		t.Errorf("what is read begins at %v, want it beside the tree at %v",
 			spread.X, want)
