@@ -26,6 +26,10 @@ type OpenNote struct {
 	// Version is the buffer's version when it was last looked at, so
 	// that typing is taken in once and not again for the same text.
 	Version uint64
+	// Preview is whether the file is one the app only shows, and never
+	// edits: a picture or a PDF has no text in its editor, and is
+	// never written back.
+	Preview bool
 
 	// saveAt is when the note is to be written, after the user has
 	// stopped typing. The writing itself is done by the frame, and not
@@ -99,7 +103,10 @@ func (t *Tabs) Open(path string) (*OpenNote, error) {
 		tell = true
 		return n, nil
 	}
-	n, err := note.Open(path)
+	// A file the app cannot edit is not read into the editor: it is
+	// shown as it is, and its text, which is not text, is not held.
+	shown := !media.IsEditableText(path)
+	n, err := openFor(path, shown)
 	if err != nil {
 		return nil, err
 	}
@@ -108,12 +115,23 @@ func (t *Tabs) Open(path string) (*OpenNote, error) {
 		Note:    n,
 		Editor:  t.newEditor(path, n.Text),
 		Version: 0,
+		Preview: shown,
 	}
 	t.Notes[key] = open
 	t.Order = append(t.Order, path)
 	t.Active = path
 	tell = true
 	return open, nil
+}
+
+// openFor is the file at path taken in as the app opens it: read whole
+// when it is one the app edits, and only looked at on the disk when it is
+// one the app shows.
+func openFor(path string, shown bool) (*note.Note, error) {
+	if shown {
+		return note.OpenPreview(path)
+	}
+	return note.Open(path)
 }
 
 // newEditor is the editor of a note: the language follows the file's
@@ -154,6 +172,9 @@ func (t *Tabs) Close(path string) {
 	n.saveAt = time.Time{}
 	delete(t.Notes, key)
 	t.Order = withoutPath(t.Order, key)
+	// What the window had made of the file is let go of: a picture
+	// is made again when the file is opened again.
+	forgetShown(n.Path)
 	if session.TabKey(t.Active) == key {
 		t.Active = session.ResolveActive(t.Order, "")
 	}
@@ -182,6 +203,9 @@ func (t *Tabs) Discard(path string) {
 	n.saveAt = time.Time{}
 	delete(t.Notes, key)
 	t.Order = withoutPath(t.Order, key)
+	// What the window had made of the file is let go of: a picture
+	// is made again when the file is opened again.
+	forgetShown(n.Path)
 	if session.TabKey(t.Active) == key {
 		t.Active = session.ResolveActive(t.Order, "")
 	}
@@ -412,10 +436,19 @@ func (t *Tabs) Reload(path string) (bool, bool) {
 	if !ok {
 		return false, false
 	}
+	// A file the app only shows has no text to take in: what the
+	// window had made of it is made again, and that is all.
+	if n.Preview {
+		forgetShown(path)
+		return true, false
+	}
 	if n.Note.Dirty {
 		return false, true // changed on disk, but the user has edits
 	}
 	text, changed := n.Note.TakeExternalText()
+	if changed {
+		forgetShown(path)
+	}
 	if !changed {
 		return false, false
 	}

@@ -15,6 +15,7 @@ import (
 	"github.com/helightxu/xinkgo/internal/highlight"
 	"github.com/helightxu/xinkgo/internal/index"
 	xmd "github.com/helightxu/xinkgo/internal/markdown"
+	"github.com/helightxu/xinkgo/internal/media"
 	"github.com/helightxu/xinkgo/internal/skill"
 	"github.com/helightxu/xinkgo/internal/state"
 	"github.com/helightxu/xinkgo/internal/sync"
@@ -61,6 +62,10 @@ type Workspace struct {
 	// here either.
 	Actions []config.AiAction
 
+	// OnOpenExternally opens a file with the program the machine has
+	// for it, as a PDF is previewed: the window shows it, and does not
+	// pretend to be the editor of it.
+	OnOpenExternally func(path string)
 	// OnOpenVault opens the dialog that chooses a folder, when there is
 	// no vault yet.
 	OnOpenVault func()
@@ -539,9 +544,14 @@ func (w *Workspace) toolbar(c *ui.Context) {
 		return
 	}
 	// A file of data has no use of the buttons that write Markdown: it
-	// is told which it is, and whether it reads.
+	// is told which it is, and whether it reads. Nor has a file the app
+	// only shows, which has nothing to write in at all.
 	if kind := datafile.KindOf(n.Path); kind != datafile.None {
 		w.dataBar(c, n, kind)
+		return
+	}
+	if n.Preview {
+		w.fileBar(c, n)
 		return
 	}
 	// The buttons are as close together as an editor's are, so that
@@ -602,6 +612,11 @@ func (w *Workspace) dataBar(
 // in double brackets made into ones that can be clicked, and a file of
 // data as a block of code, written out evenly when it can be.
 func (w *Workspace) previewText(n *OpenNote) string {
+	// A file the app only shows is not read as Markdown: a picture is
+	// shown as the picture it is, and the rest are said in a line.
+	if n.Preview {
+		return w.previewTextOfFile(n)
+	}
 	kind := datafile.KindOf(n.Path)
 	if kind == datafile.None {
 		return xmd.Links(n.Note.Text, w.resolveLink)
@@ -685,6 +700,12 @@ func (w *Workspace) editor(c *ui.Context) {
 		})
 		return
 	}
+	// A file the app cannot edit is shown and not written in: a picture
+	// as a picture, and anything else as a card saying what it is.
+	if n.Preview {
+		w.filePane(c, n)
+		return
+	}
 	// Take in what was typed since the last frame, once per change, and
 	// tell the editor when what it shows has reached the disk.
 	if w.Tabs.Edited(n) && w.Index != nil {
@@ -722,6 +743,18 @@ func (w *Workspace) previewPanel(c *ui.Context) {
 			})
 		})
 	})
+}
+
+// previewTextOfFile is what the preview is given of a file the app only
+// shows: the picture itself, whose name the preview reads as one of the
+// note's own, or a line saying what the file is.
+func (w *Workspace) previewTextOfFile(n *OpenNote) string {
+	switch {
+	case media.IsImage(n.Path):
+		return "![<" + PathOf(n.Path) + ">](<" + PathOf(n.Path) + ">)"
+	default:
+		return "_" + w.sayOfFile(n) + "_"
+	}
 }
 
 // markdownOptions is how the preview reads the note: its pictures come

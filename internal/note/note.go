@@ -46,6 +46,20 @@ func Open(path string) (*Note, error) {
 	return n, nil
 }
 
+// OpenPreview reads the file at path as one the app only shows: what is
+// known of it on the disk, and none of its text. A picture or a PDF is
+// not read into an editor, which would hold a hundred megabytes of bytes
+// no one can edit, and could not be written back as they were.
+func OpenPreview(path string) (*Note, error) {
+	info, err := os.Stat(path)
+	if err != nil {
+		return nil, fmt.Errorf("stat %s: %w", path, err)
+	}
+	n := &Note{Path: path}
+	n.remember(info)
+	return n, nil
+}
+
 // SetText is what the user typed. Text that did not change gives no new
 // version, so nothing downstream is needlessly done again.
 func (n *Note) SetText(text string) {

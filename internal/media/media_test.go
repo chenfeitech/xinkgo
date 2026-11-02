@@ -106,3 +106,38 @@ func TestKind_string(t *testing.T) {
 		t.Errorf("kinds are named %q and %q", KindMarkdown, KindDir)
 	}
 }
+
+// TestKindOf_aPdfIsAKindOfItsOwn checks the file the app has no renderer
+// for, and so shows as the machine does: it is told from the rest, for
+// what is done with it is not what is done with any of them.
+func TestKindOf_aPdfIsAKindOfItsOwn(t *testing.T) {
+	if got := KindOf("/vault/paper.pdf"); got != KindPDF {
+		t.Errorf("kind = %v, want pdf", got)
+	}
+	if !IsPDF("/vault/paper.PDF") {
+		t.Error("a PDF written in capitals was not known for one")
+	}
+	if IsPDF("/vault/paper.png") {
+		t.Error("a picture was taken for a PDF")
+	}
+}
+
+// TestIsEditableText_whatTheEditorIsFor checks the line the window draws
+// between what it edits and what it only shows: a note, a text and the
+// files of data, and none of the pictures, the PDFs or the archives.
+func TestIsEditableText_whatTheEditorIsFor(t *testing.T) {
+	editable := []string{"a.md", "a.markdown", "a.txt", "a.log",
+		"a.json", "a.yaml", "a.toml", "a.go", "a.py"}
+	for _, name := range editable {
+		if !IsEditableText(name) {
+			t.Errorf("%v is not opened in the editor", name)
+		}
+	}
+	shown := []string{"a.png", "a.jpg", "a.svg", "a.pdf", "a.zip",
+		"a.mp4", "a.mp3", "a.xlsx"}
+	for _, name := range shown {
+		if IsEditableText(name) {
+			t.Errorf("%v was opened in the editor", name)
+		}
+	}
+}

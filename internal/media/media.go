@@ -20,6 +20,7 @@ const (
 	KindDir Kind = iota
 	KindMarkdown
 	KindImage
+	KindPDF
 	KindCode
 	KindData
 	KindArchive
@@ -38,6 +39,8 @@ func (k Kind) String() string {
 		return "markdown"
 	case KindImage:
 		return "image"
+	case KindPDF:
+		return "pdf"
 	case KindCode:
 		return "code"
 	case KindData:
@@ -114,6 +117,8 @@ func KindOf(path string) Kind {
 		return KindMarkdown
 	case imageExts[ext]:
 		return KindImage
+	case ext == ".pdf":
+		return KindPDF
 	case dataExts[ext] != "":
 		return KindData
 	case codeExts[ext] != "":
@@ -134,6 +139,13 @@ func KindOf(path string) Kind {
 // IsImage reports whether the file is a picture the preview can show.
 func IsImage(path string) bool {
 	return imageExts[strings.ToLower(filepath.Ext(path))]
+}
+
+// IsPDF reports whether the file is one the system's own viewer shows:
+// the app has no renderer of its own for them, so a PDF is previewed by
+// the program the machine opens it with.
+func IsPDF(path string) bool {
+	return strings.ToLower(filepath.Ext(path)) == ".pdf"
 }
 
 // IsEditableText reports whether the app opens the file in the editor:

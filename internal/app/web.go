@@ -118,3 +118,13 @@ func (s *appState) openOutside(address string) {
 			"err", err)
 	}
 }
+
+// openExternally is a file the app cannot edit opened by the program the
+// machine has for it: a PDF is previewed so, and so is anything else the
+// window can only say what it is.
+func (s *appState) openExternally(path string) {
+	if err := mygo.Shell.OpenPath(path); err != nil {
+		slog.Warn("the file could not be opened", "path", path, "err", err)
+		s.ws.Say("the file could not be opened by the machine")
+	}
+}

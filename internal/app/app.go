@@ -260,6 +260,10 @@ func boot(app *mygo.Application) (*appState, error) {
 	// A link that is not a note is opened by the app: it is the app
 	// that knows where the user wants such links to go.
 	ws.OnOpenOutside = st.openOutside
+	// A file the app cannot edit is opened by the program the machine
+	// has for it, as a PDF is previewed: the file itself, and not a
+	// window of this app's.
+	ws.OnOpenExternally = st.openExternally
 	ws.Tabs.OnSave = func(path string) {
 		slog.Debug("saved", "path", path)
 	}

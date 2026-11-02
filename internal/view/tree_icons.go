@@ -59,6 +59,8 @@ func iconOf(e *vault.Entry, open bool) *ui.SVG {
 		return iconFileText
 	case media.KindImage:
 		return iconImage
+	case media.KindPDF:
+		return iconFileText
 	case media.KindCode:
 		return iconCode
 	case media.KindData:
