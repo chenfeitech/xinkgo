@@ -64,6 +64,12 @@ type Tree struct {
 	Renaming string
 	Name     string
 
+	// revealPath is the file the tree is to bring into view when next it
+	// draws. What was asked for while the tree was not being drawn at
+	// all, as when its panel stands shut, is not forgotten: it is shown
+	// when the tree comes back.
+	revealPath string
+
 	refreshed time.Time
 	list      ui.ListState
 }
@@ -192,6 +198,7 @@ func (t *Tree) counts() string {
 // a file with the icon of what it is, and the one that is open marked.
 func (t *Tree) View(c *ui.Context) {
 	rows := t.Rows()
+	t.bringIntoView(rows)
 	tree := ui.Column(c).Fill()
 	defer func() { t.takeDrop(tree) }()
 	tree.Children(func() {
@@ -577,11 +584,14 @@ func (t *Tree) choose(e *vault.Entry) {
 	}
 }
 
-// Reveal opens the directories above path, so that the file the user is
-// editing is visible in the tree.
-func (t *Tree) Reveal(path string) {
+// Reveal opens the directories above path and chooses the file, so that
+// the note the user is editing is seen where it stands in the vault, and
+// asks for it to be brought into view. It says whether the vault holds
+// the file: one it does not, as a note of another vault, is not in the
+// tree to be shown, and what the tree had chosen is left alone.
+func (t *Tree) Reveal(path string) bool {
 	if t.Root == nil {
-		return
+		return false
 	}
 	var open func(e *vault.Entry, above []string) bool
 	open = func(e *vault.Entry, above []string) bool {
@@ -591,6 +601,7 @@ func (t *Tree) Reveal(path string) {
 					t.Open[a] = true
 				}
 				t.Selected = path
+				t.revealPath = path
 				return true
 			}
 			if c.IsDir {
@@ -601,7 +612,24 @@ func (t *Tree) Reveal(path string) {
 		}
 		return false
 	}
-	open(t.Root, nil)
+	return open(t.Root, nil)
+}
+
+// bringIntoView scrolls the tree to the file it was last asked to reveal.
+// The list is told before it is built, for it plans its rows around the
+// one it is to show: a file far down a long vault is drawn at once, and
+// not left below the fold until the user scrolls to it.
+func (t *Tree) bringIntoView(rows []row) {
+	if t.revealPath == "" {
+		return
+	}
+	for i, r := range rows {
+		if r.Entry.Path == t.revealPath {
+			t.list.ScrollIntoView(i)
+			break
+		}
+	}
+	t.revealPath = ""
 }
 
 // PathOf is the last part of a path, for a name the tree shows.

@@ -1,6 +1,9 @@
 package view
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -361,4 +364,146 @@ func TestTreeVaultSwitch_aVaultThatCannotBeOpenedSaysSo(t *testing.T) {
 	}
 	t.Errorf("the menu holds %q, want the vault that is gone to say so",
 		te.Menu())
+}
+
+// deepRoot is a vault of many notes, and a folder at its foot with one
+// note in it: a note far enough down the tree that no line is drawn for
+// it until the tree is scrolled to it.
+func deepRoot() *vault.Entry {
+	children := make([]*vault.Entry, 0, 41)
+	for i := range 40 {
+		children = append(children, &vault.Entry{
+			Name: fmt.Sprintf("note-%02d.md", i),
+			Path: fmt.Sprintf("/vault/note-%02d.md", i),
+		})
+	}
+	children = append(children, &vault.Entry{
+		Name: "notes", Path: "/vault/notes", IsDir: true,
+		Children: []*vault.Entry{
+			{Name: "last.md", Path: "/vault/notes/last.md"},
+		}})
+	return &vault.Entry{
+		Name: "vault", Path: "/vault", IsDir: true, Children: children,
+	}
+}
+
+// TestTreeReveal_saysWhetherTheVaultHoldsIt checks that revealing tells
+// what came of it, so that what asks knows whether the tree has the file
+// to show.
+func TestTreeReveal_saysWhetherTheVaultHoldsIt(t *testing.T) {
+	tr := NewTree()
+	tr.SetRoot(treeRoot())
+	if !tr.Reveal("/vault/notes/b.md") {
+		t.Error("a note the vault holds was not found")
+	}
+	if tr.Reveal("/vault/notes/gone.md") {
+		t.Error("a note the vault does not hold was found")
+	}
+}
+
+// TestTreeReveal_bringsTheNoteIntoView checks that a note revealed far
+// down a long vault is drawn where the eye is, and not left below the
+// fold for the user to scroll to.
+func TestTreeReveal_bringsTheNoteIntoView(t *testing.T) {
+	tr := NewTree()
+	tr.SetRoot(deepRoot())
+	if !tr.Reveal("/vault/notes/last.md") {
+		t.Fatal("the note of the folder at the foot was not found")
+	}
+	tt := treeTester(t, tr)
+	tt.Frame()
+	line, ok := tt.Find("last.md")
+	if !ok {
+		t.Fatal("the tree draws no line for the note it was told to reveal")
+	}
+	if line.Y < 0 || line.Y+line.H > 600 {
+		t.Errorf("the line stands at %.1f+%.1f, outside the 600 the tree "+
+			"was given", line.Y, line.H)
+	}
+}
+
+// followedWorkspace is a window with a vault's tree read from the disk
+// and two notes open in it: one at the root of the vault, which is the
+// one on show, and one in a folder, which the tree draws no line for
+// while that folder stands shut.
+func followedWorkspace(t *testing.T) (*Workspace, string, string) {
+	t.Helper()
+	root := t.TempDir()
+	sub := filepath.Join(root, "sub")
+	if err := os.MkdirAll(sub, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	one := filepath.Join(root, "one.md")
+	two := filepath.Join(sub, "two.md")
+	for _, path := range []string{one, two} {
+		if err := os.WriteFile(path, []byte("# note\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	scanned, err := vault.Scan(root, false)
+	if err != nil {
+		t.Fatalf("Scan: %v", err)
+	}
+	w := NewWorkspace(config.Default())
+	w.Tree.SetRoot(scanned)
+	for _, path := range []string{one, two} {
+		if _, err := w.Tabs.Open(path); err != nil {
+			t.Fatalf("Open %s: %v", path, err)
+		}
+	}
+	w.Tabs.Activate(one)
+	return w, one, two
+}
+
+// TestWorkspace_theTreeFollowsTheNoteOnShow checks what a click on a tab
+// does to the tree: the folder holding the note opens, and the note is
+// chosen there, so that what is being edited is seen where it stands.
+func TestWorkspace_theTreeFollowsTheNoteOnShow(t *testing.T) {
+	w, one, two := followedWorkspace(t)
+	tt := ui.NewTester(w.View, 900, 600)
+	tt.Frame()
+	if w.Tree.Selected != one {
+		t.Fatalf("selected %q, want the note that is on show",
+			w.Tree.Selected)
+	}
+	if w.Tree.Open[filepath.Dir(two)] {
+		t.Fatal("the folder was open before the note in it was shown")
+	}
+	// The tree draws no line for the note in the folder: the click lands
+	// on its tab, and on nothing else. The tree follows in the frames the
+	// click itself asks for, there being no more to wait for.
+	if err := tt.Click("two.md"); err != nil {
+		t.Fatalf("Click: %v", err)
+	}
+	if !w.Tabs.IsActive(two) {
+		t.Fatalf("%q is not the note on show", PathOf(w.Tabs.Active))
+	}
+	if !w.Tree.Open[filepath.Dir(two)] {
+		t.Error("the folder above the note stayed shut")
+	}
+	if w.Tree.Selected != two {
+		t.Errorf("selected %q, want the note that is on show",
+			w.Tree.Selected)
+	}
+}
+
+// TestWorkspace_aNoteTheVaultDoesNotHoldIsNotShown checks a note opened
+// from outside the vault: there is no line for it in the tree, so the
+// tree keeps what it had chosen rather than choosing nothing.
+func TestWorkspace_aNoteTheVaultDoesNotHoldIsNotShown(t *testing.T) {
+	w, one, _ := followedWorkspace(t)
+	tt := ui.NewTester(w.View, 900, 600)
+	tt.Frame()
+	outside := filepath.Join(t.TempDir(), "outside.md")
+	if err := os.WriteFile(outside, []byte("# outside\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := w.Tabs.Open(outside); err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	tt.Frame()
+	if w.Tree.Selected != one {
+		t.Errorf("selected %q, want the note of the vault that was on show",
+			w.Tree.Selected)
+	}
 }

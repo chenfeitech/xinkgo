@@ -31,7 +31,7 @@
 | 右键菜单 | ⚠️ | `internal/view/file_tree.go:347` `menu` | 5 项：新建笔记/新建文件夹/重命名/移动到…/删除。缺「复制相对路径」「复制为 Markdown 链接」「插入到当前笔记」「粘贴到此目录」 |
 | 目录树自动刷新 | ✅ | `internal/app/watch.go:67` `handleEvents` | 仅结构变化才重扫 + 重建索引 |
 | 保状态合并刷新 | ⚠️ | `internal/view/file_tree.go:112` `SetRoot` | 展开态与选中保留；滚动位置未显式保存/恢复（依赖 `ui.ListState`） |
-| 切换笔记后定位 | ✅ | `internal/view/file_tree.go:474` `Reveal` | |
+| 切换笔记后定位 | ✅ | `internal/view/file_tree.go:592` `Reveal`、`internal/view/workspace.go:400` `followActiveNote` | 每帧认「当前笔记」：点标签页 / 跟双链 / 命令面板 / 重启恢复都展开祖先、选中并滚入视口 |
 | 库选择器（树底部） | ❌ | — | 切换库只走菜单 `Vault` 与设置 ▸ Vault |
 
 ## 2. 笔记编辑

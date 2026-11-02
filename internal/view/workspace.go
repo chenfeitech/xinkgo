@@ -165,6 +165,13 @@ type Workspace struct {
 	// all of them.
 	tagOpen string
 
+	// treeFollowed is the note the tree was last made to show. Another
+	// coming on show makes the tree open the way to it and choose it,
+	// whichever way the note came to be on show: a tab clicked, a link
+	// followed, a note found in the palette, or the notes of the last
+	// run come back.
+	treeFollowed string
+
 	// The completion of a link: whether it is open, where the brackets
 	// stand, and which of the names offered is chosen.
 	completeOpen   bool
@@ -219,6 +226,10 @@ func (w *Workspace) View(c *ui.Context) {
 	// The colors the window is drawn in, before anything is drawn: the
 	// scheme the user chose, in the appearance the window has.
 	theme.Apply(c, w.Config.Basic.Theme)
+	// The tree is told what is on show before it is drawn, so that the
+	// note the user has just brought forward is seen in it as soon as it
+	// is drawn again.
+	w.followActiveNote()
 	// What the user stopped typing is written now, and not by a timer of
 	// its own: only this thread may touch a note. A revision standing
 	// before the user is not written over the top of: what stands in
@@ -382,6 +393,24 @@ func (w *Workspace) sidebar(c *ui.Context) {
 		}
 		w.Tree.View(c)
 	})
+}
+
+// followActiveNote is the tree showing the note that is on show: the
+// folders above it are opened, it is chosen, and the tree is scrolled to
+// it. Every way of showing a note comes through here, for what is on show
+// and what the tree shows are one question, whatever answered it.
+//
+// A note the vault has not been read into yet is asked for again in the
+// next frame, rather than left unshown for want of a tree to show it in.
+// One the vault does not hold is asked for once: there is no row to bring
+// into view, and the tree keeps what it had chosen.
+func (w *Workspace) followActiveNote() {
+	n := w.Tabs.ActiveNote()
+	if n == nil || n.Path == w.treeFollowed || w.Tree.Root == nil {
+		return
+	}
+	w.Tree.Reveal(n.Path)
+	w.treeFollowed = n.Path
 }
 
 // center is the tabs and the editor.

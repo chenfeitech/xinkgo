@@ -13,6 +13,7 @@
 | [design/xink-port.md](design/xink-port.md) | 复刻的技术设计（底座核查、数据模型、流程、风险） | 动手前 |
 | [design/ai-assist.md](design/ai-assist.md) | AI 编辑辅助：菜单/工具条入口 + 编辑区下方对话条（草案，待拍板） | 加 AI 入口前 |
 | [design/themes.md](design/themes.md) | 系统多主题：明暗 × 配色方案的分工、五套方案、配置迁移与生效路径 | 加/改配色方案前 |
+| [design/tree-follows-note.md](design/tree-follows-note.md) | 目录树跟随当前笔记：谁触发、展开+选中+滚动怎么落地、边界与取舍 | 动目录树定位前 |
 | [exec-plans/xinkgo-port.md](exec-plans/xinkgo-port.md) | 研发计划与状态（T-1 ~ T-46） | 接着做、看进度 |
 | [../README.md](../README.md) | 仓库首页：三步跑起来 + 文档入口 | — |
 | [../AGENTS.md](../AGENTS.md) | AI / 新人的操作地图与技术铁律 | 交给 AI 任务时 |
@@ -30,6 +31,9 @@
 - **P1（R-8、R-9）**：完成。索引 / 双链补全 / 反链 / 标签 / 全文搜索 / 大纲 /
   命令面板 / 设置窗口 / 库管理 / 数据文件（JSON 校验与格式化）。验收项 B1 ~ B8、
   C1 ~ C9。
+- **目录树跟随当前笔记**：完成（2026-11-02）。编辑区显示哪一篇，目录树就展开
+  祖先目录、选中它并滚到它——点标签页、跟双链、命令面板、重启恢复都算。设计见
+  [design/tree-follows-note.md](design/tree-follows-note.md)，验收项 G1。
 - **多主题**：完成（2026-11-02）。`internal/theme` 五套方案（xink / ocean /
   moss / plum / sepia），明暗与方案两个设置项，设置里色卡即点即换，代码预设跟随。
   设计见 [design/themes.md](design/themes.md)，验收项 F1 ~ F4。
