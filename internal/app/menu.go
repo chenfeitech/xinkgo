@@ -217,7 +217,7 @@ func mainMenu(bound []keymap.Resolved, vaults vault.Registry) *mygo.Menu {
 					Accelerator: key("ToggleTheme"),
 					Click: func(*mygo.MenuItem, *mygo.Window) {
 						if current != nil {
-							current.toggleTheme()
+							current.toggleAppearance()
 						}
 					}},
 			},
