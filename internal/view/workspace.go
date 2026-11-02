@@ -515,8 +515,16 @@ func (w *Workspace) followActiveNote() {
 // center is the tabs and the editor.
 func (w *Workspace) center(c *ui.Context) {
 	// What the side panels leave is the note's: widening the window
-	// gives the text room, not the panels.
-	ui.Column(c).Grow(1).FillHeight().Children(func() {
+	// gives the text room, not the panels. A note that ends at the
+	// window's own right edge — the preview standing down, or given
+	// over to the note — keeps the rail's strip besides: what is
+	// written there is written under the rail's buttons, and its
+	// padding with it.
+	note := ui.Column(c).Grow(1).FillHeight()
+	if w.previewPaneWidth() <= 0 {
+		note.Padding(0, railStrip, 0, 0)
+	}
+	note.Children(func() {
 		w.tabBar(c)
 		w.toolbar(c)
 		w.centerBody(c)
@@ -632,7 +640,7 @@ func (w *Workspace) previewPaneWidth() float32 {
 // railBand is how much room the rail takes at the right edge of the
 // window: its own, and its drawer's when one is open.
 func (w *Workspace) railBand() float32 {
-	band := railWidth + railGap + 2
+	band := railStrip
 	if w.drawer != "" {
 		band += drawerWidth + 2
 	}
@@ -1089,7 +1097,7 @@ func (w *Workspace) previewPanel(c *ui.Context, width float32) {
 	// As the tree's panel: a note is read from its first line, and not
 	// from the middle of the window. A width of none is the whole
 	// window, which is what the pane is given when it is maximized.
-	pane := ui.Column(c).FillHeight()
+	pane := ui.Column(c).FillHeight().Padding(0, railStrip, 0, 0)
 	if width > 0 {
 		pane.Width(width)
 	} else {
@@ -1117,7 +1125,7 @@ func (w *Workspace) previewPanel(c *ui.Context, width float32) {
 			// edge. In its own pane it is that pane's width already.
 			if width <= 0 {
 				ui.Row(c).FillWidth().Justify(ui.Center).Children(func() {
-					ui.Box(c).Width(w.previewWidth(room)).
+					ui.Box(c).FillWidth().MaxWidth(w.previewWidth(room)).
 						Padding(w.previewPadY(), w.previewPadX()).
 						Children(func() {
 							markdown.View(c, w.previewText(n), opts)
@@ -1262,7 +1270,7 @@ func (w *Workspace) spreadButton(c *ui.Context) {
 // instead, which is smaller and stands at the other end.
 func (w *Workspace) previewBar(c *ui.Context) {
 	ui.Row(c).FillWidth().AlignItems(ui.Center).Gap(4).
-		Padding(4, 6).PaddingEnd(w.railBand() + 6).
+		Padding(4, 6).PaddingEnd(w.railBand() - railStrip + 6).
 		Children(func() {
 			ui.Box(c).Grow(1)
 			w.zoomButton(c, "zoom-back", zoomPreview, iconZoomPreview,

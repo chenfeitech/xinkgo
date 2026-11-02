@@ -22,6 +22,13 @@ const (
 	drawerFoot          = railGap
 	railWidth   float32 = 34
 	railGap     float32 = 6
+	// railStrip is the room the rail's own buttons take at the right
+	// edge of the window: the strip no pane writes in, for the buttons
+	// have no background of their own and what is written under them is
+	// lost. The drawer beside them is a panel of its own, with a
+	// background and a shadow, and covers what it covers: it is not
+	// counted here, so that opening it does not move what is written.
+	railStrip = railWidth + railGap + 2
 )
 
 // How a link in the drawer says which line of which note it goes to, and

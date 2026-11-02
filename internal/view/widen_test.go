@@ -50,10 +50,13 @@ func TestWiden_theNoteStretchesOverThePreview(t *testing.T) {
 		t.Errorf("the note is %v wide, want it wider than the %v it was",
 			wide.W, ed.W)
 	}
-	// It reaches the window's edge, but for the rail that hangs over it.
-	if end := wide.X + wide.W; end < float32(width)-w.railBand()-1 {
-		t.Errorf("the note ends at %v, want it at the window's edge, "+
-			"but for the rail", end)
+	// It reaches the rail: the pane ends where the rail's strip begins,
+	// and the text the room the user chose inside that, less what the
+	// editor keeps beside its lines of its own.
+	if end := wide.X + wide.W; end < float32(width)-railStrip-
+		w.editorPadRight()-1 {
+		t.Errorf("the note ends at %v, want it at the rail's strip, "+
+			"but for the padding", end)
 	}
 }
 
