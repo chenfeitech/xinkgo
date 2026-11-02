@@ -23,7 +23,11 @@ const scrollMoved = 0.5
 // wrote is known again for what it is when it is read back.
 func (w *Workspace) followScroll(c *ui.Context) {
 	n := w.Tabs.ActiveNote()
-	if n == nil || w.Layout.Right <= 0 || !w.Config.Preview.SyncScroll {
+	// The preview is not there to follow the note when the note has been
+	// given the whole window: it is not drawn, and what it would say is
+	// not said.
+	if n == nil || w.previewPaneWidth() <= 0 ||
+		!w.Config.Preview.SyncScroll {
 		return
 	}
 	now := c.Now()

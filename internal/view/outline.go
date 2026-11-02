@@ -66,6 +66,16 @@ func (w *Workspace) rail(c *ui.Context) {
 			w.railButton(c, drawerLinks, "⇄",
 				locale.DrawerLinksLabel())
 			w.railButton(c, drawerTags, "＃", locale.DrawerTagsLabel())
+			// The two panes given the whole window: they stand on the
+			// rail, which is the window's own and hangs over every
+			// pane, so that the way out is there whichever pane has
+			// the window, and so that taking a pane out of the layout
+			// costs the note none of the room of its toolbar.
+			ui.Box(c).Height(railGap * 2)
+			w.zoomButton(c, "zoom-editor", zoomEditor, iconZoomEditor,
+				locale.ZoomEditor(), locale.ZoomEditorTooltip())
+			w.zoomButton(c, "zoom-preview", zoomPreview, iconZoomPreview,
+				locale.ZoomPreview(), locale.ZoomPreviewTooltip())
 		})
 	})
 }

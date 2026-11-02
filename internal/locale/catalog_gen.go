@@ -2150,6 +2150,66 @@ func (msgs Messages) DrawerTagsLabel() string {
 	return Catalog.Format(msgs.locale, "drawerTagsLabel", nil)
 }
 
+// ZoomEditor says "Maximize the note"
+// in the language the app shows.
+func ZoomEditor() string { return In(i18n.Locale()).ZoomEditor() }
+
+// ZoomEditor says "Maximize the note"
+// in the language of msgs.
+func (msgs Messages) ZoomEditor() string {
+	return Catalog.Format(msgs.locale, "zoomEditor", nil)
+}
+
+// ZoomEditorTooltip says "Maximize the note: the whole window, and no panel beside it"
+// in the language the app shows.
+func ZoomEditorTooltip() string { return In(i18n.Locale()).ZoomEditorTooltip() }
+
+// ZoomEditorTooltip says "Maximize the note: the whole window, and no panel beside it"
+// in the language of msgs.
+func (msgs Messages) ZoomEditorTooltip() string {
+	return Catalog.Format(msgs.locale, "zoomEditorTooltip", nil)
+}
+
+// ZoomPreview says "Maximize the preview"
+// in the language the app shows.
+func ZoomPreview() string { return In(i18n.Locale()).ZoomPreview() }
+
+// ZoomPreview says "Maximize the preview"
+// in the language of msgs.
+func (msgs Messages) ZoomPreview() string {
+	return Catalog.Format(msgs.locale, "zoomPreview", nil)
+}
+
+// ZoomPreviewTooltip says "Maximize the preview: the whole window, for reading"
+// in the language the app shows.
+func ZoomPreviewTooltip() string { return In(i18n.Locale()).ZoomPreviewTooltip() }
+
+// ZoomPreviewTooltip says "Maximize the preview: the whole window, for reading"
+// in the language of msgs.
+func (msgs Messages) ZoomPreviewTooltip() string {
+	return Catalog.Format(msgs.locale, "zoomPreviewTooltip", nil)
+}
+
+// ZoomBack says "Give the room back"
+// in the language the app shows.
+func ZoomBack() string { return In(i18n.Locale()).ZoomBack() }
+
+// ZoomBack says "Give the room back"
+// in the language of msgs.
+func (msgs Messages) ZoomBack() string {
+	return Catalog.Format(msgs.locale, "zoomBack", nil)
+}
+
+// ZoomBackTooltip says "Give the tree and the preview their room back"
+// in the language the app shows.
+func ZoomBackTooltip() string { return In(i18n.Locale()).ZoomBackTooltip() }
+
+// ZoomBackTooltip says "Give the tree and the preview their room back"
+// in the language of msgs.
+func (msgs Messages) ZoomBackTooltip() string {
+	return Catalog.Format(msgs.locale, "zoomBackTooltip", nil)
+}
+
 // OutlineNoHeadings says "no headings in this note"
 // in the language the app shows.
 func OutlineNoHeadings() string { return In(i18n.Locale()).OutlineNoHeadings() }

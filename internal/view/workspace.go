@@ -40,6 +40,21 @@ const (
 	layoutSettle = 400 * time.Millisecond
 )
 
+// zoom is which pane has been given the whole window: the note's or the
+// preview's. zoomNone is the usual, in which every panel keeps the room
+// the user gave it.
+type zoom int
+
+const (
+	zoomNone zoom = iota
+	// zoomEditor is the note's: the tree and the preview are not drawn,
+	// and the note is as wide as the window.
+	zoomEditor
+	// zoomPreview is the preview's, for reading: the note's own pane is
+	// not drawn, and the preview is as wide as the window.
+	zoomPreview
+)
+
 // Workspace is the window: the vault's tree on the left, the notes in the
 // middle, and what a note looks like on the right.
 type Workspace struct {
@@ -156,6 +171,11 @@ type Workspace struct {
 	// drawer is which panel the buttons on the rail have open beside
 	// the note, empty for none.
 	drawer string
+	// zoom is which pane has been given the whole window, and none for
+	// the usual, in which the panels stand as the user left them. It is
+	// not written down: a run of the app starts in the shape it was
+	// left in, and not in a pane given the window.
+	zoom zoom
 	// outlineHeadings are the headings of the note that is open, read
 	// again when its text has changed.
 	outlineHeadings []xmd.Heading
@@ -245,16 +265,26 @@ func (w *Workspace) View(c *ui.Context) {
 	w.aiReviewDone()
 	ui.Column(c).Fill().Children(func() {
 		ui.Row(c).Fill().Children(func() {
-			// A panel of no width is one the user closed: it is drawn
-			// with no line to drag it back by.
-			if w.Layout.Left > 0 {
-				w.sidebar(c)
-				w.divider(c, "divider-tree", &w.Layout.Left, 1)
-			}
-			w.center(c)
-			if w.Layout.Right > 0 {
-				w.divider(c, "divider-preview", &w.Layout.Right, -1)
-				w.previewPanel(c)
+			switch w.zoom {
+			case zoomEditor:
+				// The note takes the window: the tree and the preview
+				// are left out, without giving up the width they
+				// were given, so that they come back as they were.
+				w.center(c)
+			case zoomPreview:
+				w.previewPanel(c, 0)
+			default:
+				// A panel of no width is one the user closed: it is
+				// drawn with no line to drag it back by.
+				if w.Layout.Left > 0 {
+					w.sidebar(c)
+					w.divider(c, "divider-tree", &w.Layout.Left, 1)
+				}
+				w.center(c)
+				if w.Layout.Right > 0 {
+					w.divider(c, "divider-preview", &w.Layout.Right, -1)
+					w.previewPanel(c, w.Layout.Right)
+				}
 			}
 			// The rail and its drawer hang over the panels, within the
 			// row that holds them: the bottom of the row is where they
@@ -468,6 +498,16 @@ const (
 	tabNameMax float32 = 142
 )
 
+// previewPaneWidth is how wide the preview stands: nothing when the note
+// has been given the whole window, for then the preview is not drawn,
+// and the rows that run the width of the window run under the rail.
+func (w *Workspace) previewPaneWidth() float32 {
+	if w.zoom == zoomEditor {
+		return 0
+	}
+	return w.Layout.Right
+}
+
 // railBand is how much room the rail takes at the right edge of the
 // window: its own, and its drawer's when one is open.
 func (w *Workspace) railBand() float32 {
@@ -485,7 +525,7 @@ func (w *Workspace) railBand() float32 {
 // own edge, is not in the way: what it leaves of the band is what a row
 // beside it gives up.
 func (w *Workspace) railClear() float32 {
-	clear := w.railBand() - w.Layout.Right
+	clear := w.railBand() - w.previewPaneWidth()
 	if clear < 0 {
 		return 0
 	}
@@ -638,6 +678,52 @@ func (w *Workspace) toolbar(c *ui.Context) {
 	})
 }
 
+// zoomButton is one button that gives a pane the whole window: the note's
+// at the end of the Markdown toolbar, the preview's at the top of its
+// pane. Pressed again it gives the room back, and while the pane has the
+// window the button stands lit, as the way to the model does.
+func (w *Workspace) zoomButton(
+	c *ui.Context, key string, pane zoom, icon *ui.SVG, label, tip string,
+) {
+	// A pane that has the window is one this button takes it from, and
+	// so it says the way back: the picture of a pane giving up the room
+	// it took, and what the press will do.
+	if w.zoom == pane {
+		icon = iconZoomBack
+	}
+	button := ui.Button(c.Key(key), "").
+		Label(label).Tooltip(w.zoomTip(pane, tip)).
+		Padding(4, 5).
+		Children(func() {
+			ui.Icon(c, icon).Size(iconSize, iconSize)
+		})
+	if w.zoom == pane {
+		button.Selected(true)
+	}
+	if button.Clicked() {
+		w.setZoom(pane)
+	}
+}
+
+// zoomTip is what the button says when the pointer rests on it: what the
+// press will do, which is the room given back when the pane has it.
+func (w *Workspace) zoomTip(pane zoom, tip string) string {
+	if w.zoom == pane {
+		return locale.ZoomBackTooltip()
+	}
+	return tip
+}
+
+// setZoom gives pane the whole window, or gives the room back when it has
+// it already: one button, and the same one out again.
+func (w *Workspace) setZoom(pane zoom) {
+	if w.zoom == pane {
+		w.zoom = zoomNone
+		return
+	}
+	w.zoom = pane
+}
+
 // markdownWidth is how wide the row of the Markdown buttons may be: what
 // the panels leave, less the room the way to the model takes beside it, so
 // that it stands beside the row and not under the rail.
@@ -684,7 +770,12 @@ func (w *Workspace) toolbarDivider(c *ui.Context) {
 // rail and its drawer leave of it besides.
 func (w *Workspace) editorWidth(c *ui.Context) float32 {
 	width, _ := c.Size()
-	return max(width-w.Layout.Left-w.Layout.Right-w.railClear(), 0)
+	// Given the whole window, the note is as wide as it, less what the
+	// rail and its drawer keep to themselves.
+	if w.zoom == zoomEditor {
+		return max(width-w.railClear(), 0)
+	}
+	return max(width-w.Layout.Left-w.previewPaneWidth()-w.railClear(), 0)
 }
 
 // dataBar is what the toolbar says of a file of data: which of the three
@@ -822,18 +913,42 @@ func (w *Workspace) editor(c *ui.Context) {
 }
 
 // previewPanel is what the note looks like, on the right.
-func (w *Workspace) previewPanel(c *ui.Context) {
+func (w *Workspace) previewPanel(c *ui.Context, width float32) {
 	// As the tree's panel: a note is read from its first line, and not
-	// from the middle of the window.
-	ui.Column(c).Width(w.Layout.Right).FillHeight().Children(func() {
+	// from the middle of the window. A width of none is the whole
+	// window, which is what the pane is given when it is maximized.
+	pane := ui.Column(c).FillHeight()
+	if width > 0 {
+		pane.Width(width)
+	} else {
+		pane.Grow(1)
+	}
+	pane.Children(func() {
+		if width <= 0 {
+			w.previewBar(c)
+		}
 		n := w.Tabs.ActiveNote()
 		if n == nil {
 			return
 		}
 		opts := w.markdownOptions(c, n.Path)
 		ui.Scroll(c).TrackScroll(&w.previewScroll).Fill().Children(func() {
-			width, _ := c.Size()
-			ui.Box(c).MaxWidth(w.previewWidth(width)).
+			room, _ := c.Size()
+			// Given the whole window, what is read is given the width
+			// it is allowed and stands in the middle of what is left:
+			// a column to read, and not a line against the window's
+			// edge. In its own pane it is that pane's width already.
+			if width <= 0 {
+				ui.Row(c).FillWidth().Justify(ui.Center).Children(func() {
+					ui.Box(c).Width(w.previewWidth(room)).
+						Padding(previewPadY, previewPadX).
+						Children(func() {
+							markdown.View(c, w.previewText(n), opts)
+						})
+				})
+				return
+			}
+			ui.Box(c).MaxWidth(w.previewWidth(room)).
 				Padding(previewPadY, previewPadX).Children(func() {
 				markdown.View(c, w.previewText(n), opts)
 			})
@@ -860,7 +975,10 @@ const (
 // nothing in it to write out, and gets no button.
 func (w *Workspace) exportBar(c *ui.Context) {
 	n := w.Tabs.ActiveNote()
-	if n == nil || n.Preview || w.Layout.Right <= 0 {
+	// What is written out is what the preview reads, so there is no
+	// writing out where the preview does not stand: not when its pane
+	// is shut, and not when the note has been given the whole window.
+	if n == nil || n.Preview || w.previewPaneWidth() <= 0 {
 		return
 	}
 	// The corner it hangs in is the foot of the preview: the top of it
@@ -894,6 +1012,22 @@ func (w *Workspace) ExportText() (path, text string, ok bool) {
 		return "", "", false
 	}
 	return n.Path, w.previewText(n), true
+}
+
+// previewBar is the row at the top of the preview when the preview has
+// the whole window: the button that takes it away again, which is the way
+// out of a pane the note's toolbar is not drawn in. It stands at the
+// pane's own end, clear of the rail, whose buttons hang over it. A
+// preview in its own pane has no such row: what a panel shows begins at
+// its top, and a bar above it would push the note down.
+func (w *Workspace) previewBar(c *ui.Context) {
+	ui.Row(c).FillWidth().AlignItems(ui.Center).Gap(4).
+		Padding(4, 6).PaddingEnd(w.railBand() + 6).
+		Children(func() {
+			ui.Box(c).Grow(1)
+			w.zoomButton(c, "zoom-back", zoomPreview, iconZoomPreview,
+				locale.ZoomBack(), locale.ZoomBackTooltip())
+		})
 }
 
 // previewTextOfFile is what the preview is given of a file the app only
