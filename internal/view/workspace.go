@@ -30,11 +30,15 @@ const (
 	MaxPanelWidth    float32 = 900
 	dividerGrip      float32 = 5
 	dividerThickness float32 = 1
-	// previewPad is how far the preview's text stands from the edges of
-	// its panel: the note is read from the top of it, and not from
-	// against the window's frame.
-	previewPadX float32 = 16
-	previewPadY float32 = 12
+	// What the editor keeps to its own text, whatever the room its pane
+	// is given: four, and four more when there is no gutter beside the
+	// lines, to the left of them, and the scroll bar's own room and four
+	// to the right of them. They come off the padding the note is given,
+	// so that it is the text, and not the editor, that stands that far
+	// from the edges of the pane — and as far from one as from the
+	// other, which is what the padding is for.
+	editorInsetLeft  float32 = 8
+	editorInsetRight float32 = 14
 	// layoutSettle is how long the panels stay as they were dragged
 	// before what the user chose is written down.
 	layoutSettle = 400 * time.Millisecond
@@ -539,6 +543,39 @@ const (
 	tabNameMax float32 = 142
 )
 
+// editorPadX is how far the note's text stands from the sides of its
+// pane, as the user chose.
+func (w *Workspace) editorPadX() float32 {
+	return float32(w.Config.Editor.PaddingX)
+}
+
+// editorPadLeft and editorPadRight are how much room the pane keeps
+// beside the editor, which is not the same on the two sides: the editor
+// keeps a room of its own beside its lines, wider on one side than on the
+// other, and it is the text that is to stand the padding away from either
+// edge. A pane given less padding than the editor keeps of its own keeps
+// none: what is left is the editor's own room.
+func (w *Workspace) editorPadLeft() float32 {
+	return max(w.editorPadX()-editorInsetLeft, 0)
+}
+
+func (w *Workspace) editorPadRight() float32 {
+	return max(w.editorPadX()-editorInsetRight, 0)
+}
+
+// previewPadX is how far what the preview reads stands from the sides of
+// its pane, and previewPadY from the top of it and the foot of it, as the
+// user chose: the note is read from the top of the pane, and not from
+// against the window's frame nor the line that parts it from the note's
+// own.
+func (w *Workspace) previewPadX() float32 {
+	return float32(w.Config.Preview.PaddingX)
+}
+
+func (w *Workspace) previewPadY() float32 {
+	return float32(w.Config.Preview.PaddingY)
+}
+
 // previewPaneWidth is how wide the preview stands: nothing when the note
 // has been given the whole window, for then the preview is not drawn,
 // and the rows that run the width of the window run under the rail; and
@@ -994,9 +1031,16 @@ func (w *Workspace) editor(c *ui.Context) {
 	n.Editor.Theme = w.codeThemeFor(c)
 	w.applyEditor(n)
 	w.dataDiagnostics(n)
-	ed := editor.View(c, n.Editor).Fill()
-	// While a link is being written, what it may name is offered.
-	w.completion(c, ed, n)
+	// The room the note's text stands off the edges of its pane: the
+	// padding the user chose, less what the editor keeps of its own.
+	ui.Box(c).Fill().
+		Padding(0, w.editorPadRight(), 0, w.editorPadLeft()).
+		Children(func() {
+			ed := editor.View(c, n.Editor).Fill()
+			// While a link is being written, what it may name is
+			// offered.
+			w.completion(c, ed, n)
+		})
 }
 
 // previewPanel is what the note looks like, on the right.
@@ -1028,7 +1072,7 @@ func (w *Workspace) previewPanel(c *ui.Context, width float32) {
 			if width <= 0 {
 				ui.Row(c).FillWidth().Justify(ui.Center).Children(func() {
 					ui.Box(c).Width(w.previewWidth(room)).
-						Padding(previewPadY, previewPadX).
+						Padding(w.previewPadY(), w.previewPadX()).
 						Children(func() {
 							markdown.View(c, w.previewText(n), opts)
 						})
@@ -1036,9 +1080,10 @@ func (w *Workspace) previewPanel(c *ui.Context, width float32) {
 				return
 			}
 			ui.Box(c).MaxWidth(w.previewWidth(room)).
-				Padding(previewPadY, previewPadX).Children(func() {
-				markdown.View(c, w.previewText(n), opts)
-			})
+				Padding(w.previewPadY(), w.previewPadX()).
+				Children(func() {
+					markdown.View(c, w.previewText(n), opts)
+				})
 		})
 	})
 }
@@ -1071,8 +1116,8 @@ func (w *Workspace) exportBar(c *ui.Context) {
 	// The corner it hangs in is the foot of the preview: the top of it
 	// belongs to the tab bar, whose button that makes a note stands at
 	// the end of the row the preview begins in.
-	ui.Row(c).Absolute().Right(w.railBand() + previewPadX/2).
-		Bottom(previewPadY / 2).AlignItems(ui.Center).
+	ui.Row(c).Absolute().Right(w.railBand() + w.previewPadX()/2).
+		Bottom(w.previewPadY() / 2).AlignItems(ui.Center).
 		Children(func() {
 			ui.MenuButton(c, locale.PreviewExport(), func(m *ui.Menu) {
 				if m.Item(locale.MenuExportPage()).Chosen() {

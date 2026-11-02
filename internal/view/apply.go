@@ -42,6 +42,11 @@ func (w *Workspace) applyEditor(n *OpenNote) {
 		ed.LineNumbers = editor.LineNumbersOff
 	}
 	ed.TabSize = int(w.Config.Editor.Indent.TabSize)
+	// Nothing here folds a note: the marks of folding stand in a gutter
+	// of their own beside the lines, which takes the room the note's
+	// padding gives it on that side and on that side only, and left the
+	// note standing nearer one edge of its pane than the other.
+	ed.NoFolding = true
 	if w.Config.Editor.Indent.UseTabs {
 		ed.Indent = editor.IndentTabs
 		return

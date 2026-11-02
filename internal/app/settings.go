@@ -61,6 +61,9 @@ type settings struct {
 	size, lineHeight, treeSize float64
 	imageWidth, width, delay   float64
 	indent                     float64
+	// How far the text of a pane stands from its edges: the note's own,
+	// and the preview's, whose foot and top are a knob of their own.
+	editorPad, previewPadX, previewPadY float64
 	// The knobs of asking a model: how long it may take, how often it
 	// is tried again, how much of a note it is shown, and how much a
 	// tool may answer.
@@ -365,6 +368,9 @@ func (s *appState) editorSettings(c *ui.Context) {
 		&s.draft.size, 10, 24)
 	slider(c, locale.SettingLineHeight(), locale.SettingLineHeightNote(),
 		&s.draft.lineHeight, 1.2, 2.2)
+	slider(c, locale.SettingEditorPadding(),
+		locale.SettingEditorPaddingNote(), &s.draft.editorPad,
+		float64(config.MinPadding), float64(config.MaxPadding))
 	choiceNamed(c, locale.SettingCodeTheme(),
 		locale.SettingCodeThemeNote(), &s.draft.cfg.Highlight.Theme,
 		highlightThemes, highlightName)
@@ -384,6 +390,12 @@ func (s *appState) previewSettings(c *ui.Context) {
 		&s.draft.cfg.Preview.LinkOpen, linkOpens, linkOpenName)
 	slider(c, locale.SettingMaxWidth(), locale.SettingMaxWidthNote(),
 		&s.draft.width, 400, 1400)
+	slider(c, locale.SettingPreviewPadding(),
+		locale.SettingPreviewPaddingNote(), &s.draft.previewPadX,
+		float64(config.MinPadding), float64(config.MaxPadding))
+	slider(c, locale.SettingPreviewPaddingY(),
+		locale.SettingPreviewPaddingYNote(), &s.draft.previewPadY,
+		float64(config.MinPadding), float64(config.MaxPadding))
 	choiceNamed(c, locale.SettingDensity(), locale.SettingDensityNote(),
 		&s.draft.cfg.Preview.Density, densities, densityName)
 	group(c, locale.GroupExport(), func() {
@@ -483,6 +495,9 @@ func (st *settings) read(c *config.AppConfig) {
 	st.width = float64(c.Preview.MaxWidth)
 	st.delay = float64(c.Editor.AutoSaveDelayMs)
 	st.indent = float64(c.Editor.Indent.TabSize)
+	st.editorPad = float64(c.Editor.PaddingX)
+	st.previewPadX = float64(c.Preview.PaddingX)
+	st.previewPadY = float64(c.Preview.PaddingY)
 	st.timeout = float64(c.Ai.TimeoutSecs)
 	st.firstByte = float64(c.Ai.FirstByteTimeoutSecs)
 	st.tries = float64(c.Ai.Retry.MaxAttempts)
@@ -500,6 +515,9 @@ func (st *settings) write(c *config.AppConfig) {
 	c.Preview.MaxWidth = uint32(st.width)
 	c.Editor.AutoSaveDelayMs = uint64(st.delay)
 	c.Editor.Indent.TabSize = uint32(st.indent)
+	c.Editor.PaddingX = whole32(st.editorPad)
+	c.Preview.PaddingX = whole32(st.previewPadX)
+	c.Preview.PaddingY = whole32(st.previewPadY)
 	c.Ai.TimeoutSecs = whole(st.timeout)
 	c.Ai.FirstByteTimeoutSecs = whole(st.firstByte)
 	c.Ai.Retry.MaxAttempts = uint8(whole(st.tries))
@@ -514,6 +532,10 @@ func (st *settings) write(c *config.AppConfig) {
 func whole(v float64) uint64 {
 	return uint64(math.Round(v))
 }
+
+// whole32 is a number of DIPs as a whole one: a pane's padding counts in
+// them, and the nearest one is the one meant.
+func whole32(v float64) uint32 { return uint32(math.Round(v)) }
 
 // window is which of the panels stand: a panel shut is given no width,
 // and opening it again gives back the width it had.

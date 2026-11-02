@@ -974,6 +974,26 @@ func (msgs Messages) SettingLineHeightNote() string {
 	return Catalog.Format(msgs.locale, "settingLineHeightNote", nil)
 }
 
+// SettingEditorPadding says "Padding"
+// in the language the app shows.
+func SettingEditorPadding() string { return In(i18n.Locale()).SettingEditorPadding() }
+
+// SettingEditorPadding says "Padding"
+// in the language of msgs.
+func (msgs Messages) SettingEditorPadding() string {
+	return Catalog.Format(msgs.locale, "settingEditorPadding", nil)
+}
+
+// SettingEditorPaddingNote says "How far the note stands from the sides of its pane"
+// in the language the app shows.
+func SettingEditorPaddingNote() string { return In(i18n.Locale()).SettingEditorPaddingNote() }
+
+// SettingEditorPaddingNote says "How far the note stands from the sides of its pane"
+// in the language of msgs.
+func (msgs Messages) SettingEditorPaddingNote() string {
+	return Catalog.Format(msgs.locale, "settingEditorPaddingNote", nil)
+}
+
 // SettingCodeTheme says "Code theme"
 // in the language the app shows.
 func SettingCodeTheme() string { return In(i18n.Locale()).SettingCodeTheme() }
@@ -992,6 +1012,46 @@ func SettingCodeThemeNote() string { return In(i18n.Locale()).SettingCodeThemeNo
 // in the language of msgs.
 func (msgs Messages) SettingCodeThemeNote() string {
 	return Catalog.Format(msgs.locale, "settingCodeThemeNote", nil)
+}
+
+// SettingPreviewPadding says "Padding"
+// in the language the app shows.
+func SettingPreviewPadding() string { return In(i18n.Locale()).SettingPreviewPadding() }
+
+// SettingPreviewPadding says "Padding"
+// in the language of msgs.
+func (msgs Messages) SettingPreviewPadding() string {
+	return Catalog.Format(msgs.locale, "settingPreviewPadding", nil)
+}
+
+// SettingPreviewPaddingNote says "How far what is read stands from the sides of the preview"
+// in the language the app shows.
+func SettingPreviewPaddingNote() string { return In(i18n.Locale()).SettingPreviewPaddingNote() }
+
+// SettingPreviewPaddingNote says "How far what is read stands from the sides of the preview"
+// in the language of msgs.
+func (msgs Messages) SettingPreviewPaddingNote() string {
+	return Catalog.Format(msgs.locale, "settingPreviewPaddingNote", nil)
+}
+
+// SettingPreviewPaddingY says "Padding, top and foot"
+// in the language the app shows.
+func SettingPreviewPaddingY() string { return In(i18n.Locale()).SettingPreviewPaddingY() }
+
+// SettingPreviewPaddingY says "Padding, top and foot"
+// in the language of msgs.
+func (msgs Messages) SettingPreviewPaddingY() string {
+	return Catalog.Format(msgs.locale, "settingPreviewPaddingY", nil)
+}
+
+// SettingPreviewPaddingYNote says "How far what is read stands from the top of the preview and the foot of it"
+// in the language the app shows.
+func SettingPreviewPaddingYNote() string { return In(i18n.Locale()).SettingPreviewPaddingYNote() }
+
+// SettingPreviewPaddingYNote says "How far what is read stands from the top of the preview and the foot of it"
+// in the language of msgs.
+func (msgs Messages) SettingPreviewPaddingYNote() string {
+	return Catalog.Format(msgs.locale, "settingPreviewPaddingYNote", nil)
 }
 
 // SettingSyncScroll says "Follow where the note is"
