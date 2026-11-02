@@ -70,6 +70,20 @@ func TestSettingsView_everyGroupIsInTheList(t *testing.T) {
 	}
 }
 
+// TestSettingsView_everyGroupHasAPicture checks the list of the groups
+// as it stands now: each of them is drawn by a picture of its own, so
+// that the group one is looking for is told by its shape as well as by
+// its name.
+func TestSettingsView_everyGroupHasAPicture(t *testing.T) {
+	s := &appState{}
+	s.config = config.Default()
+	for _, tab := range s.settingsTabs() {
+		if tab.Icon == nil {
+			t.Errorf("the group %q has no picture", tab.ID)
+		}
+	}
+}
+
 // TestSettingsView_choosingAGroupShowsOnlyItsRows checks that the list
 // chooses what is drawn: the rows of another group are not on show, so
 // that a group is not drawn for nothing.
