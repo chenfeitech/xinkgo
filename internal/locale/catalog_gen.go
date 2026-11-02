@@ -2240,6 +2240,46 @@ func (msgs Messages) WidenBackTooltip() string {
 	return Catalog.Format(msgs.locale, "widenBackTooltip", nil)
 }
 
+// SpreadPreview says "Spread the preview over the note"
+// in the language the app shows.
+func SpreadPreview() string { return In(i18n.Locale()).SpreadPreview() }
+
+// SpreadPreview says "Spread the preview over the note"
+// in the language of msgs.
+func (msgs Messages) SpreadPreview() string {
+	return Catalog.Format(msgs.locale, "spreadPreview", nil)
+}
+
+// SpreadPreviewTooltip says "Spread the preview over the note: as far as the tree, which keeps its room"
+// in the language the app shows.
+func SpreadPreviewTooltip() string { return In(i18n.Locale()).SpreadPreviewTooltip() }
+
+// SpreadPreviewTooltip says "Spread the preview over the note: as far as the tree, which keeps its room"
+// in the language of msgs.
+func (msgs Messages) SpreadPreviewTooltip() string {
+	return Catalog.Format(msgs.locale, "spreadPreviewTooltip", nil)
+}
+
+// SpreadPreviewBack says "Give the note back"
+// in the language the app shows.
+func SpreadPreviewBack() string { return In(i18n.Locale()).SpreadPreviewBack() }
+
+// SpreadPreviewBack says "Give the note back"
+// in the language of msgs.
+func (msgs Messages) SpreadPreviewBack() string {
+	return Catalog.Format(msgs.locale, "spreadPreviewBack", nil)
+}
+
+// SpreadPreviewBackTooltip says "Give the note its room back, and the preview its pane"
+// in the language the app shows.
+func SpreadPreviewBackTooltip() string { return In(i18n.Locale()).SpreadPreviewBackTooltip() }
+
+// SpreadPreviewBackTooltip says "Give the note its room back, and the preview its pane"
+// in the language of msgs.
+func (msgs Messages) SpreadPreviewBackTooltip() string {
+	return Catalog.Format(msgs.locale, "spreadPreviewBackTooltip", nil)
+}
+
 // OutlineNoHeadings says "no headings in this note"
 // in the language the app shows.
 func OutlineNoHeadings() string { return In(i18n.Locale()).OutlineNoHeadings() }

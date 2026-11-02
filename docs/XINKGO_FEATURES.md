@@ -64,7 +64,8 @@
 | 图片缓存 | ➖ | 框架内 | 无自研指纹缓存，无 5MB 上限 |
 | 图片显示方式（适应宽度 / 隐藏） | ✅ | 同上（`ImageDisplay`） | |
 | **图片宽度百分比 20–100** | ❌ | `internal/config/config.go:98` 有字段 | 设置里有滑块，但 preview 无读取点 → 不生效 |
-| **图片点击放大 / 向左伸展** | ❌ | — | 两项都未做 |
+| **图片点击放大** | ❌ | — | 未做 |
+| 预览向左伸展（盖住编辑区） | ✅ | `internal/view/workspace.go` `spreadButton` | 预览面板左上角按钮；不落盘，编辑区宽度保留，再点还原 |
 | 代码块语法高亮（编辑区与预览同源） | ✅ | `internal/highlight/highlight.go:95` `EditorTheme`、`internal/view/apply.go:63` | |
 | 高亮主题 3 套 | ✅ | `internal/highlight/highlight.go:22` `Presets` | |
 | 滚动同步（双向，三档） | ✅ | `internal/view/scroll.go:19` `followScroll`、`internal/sync/sync.go:94` `BlockSpans` | 方向锁 + 回显吸收 |
@@ -143,6 +144,7 @@
 | **目录树图标尺寸（12–48px）** | ❌ | `config.go:68` `IconSize` 有字段 | 无读取点，视图用固定 14px |
 | 面板显隐（树 / 预览） | ✅ | `internal/app/settings.go:301` `window` | xink 没有的额外项 |
 | 编辑区向右伸展（盖住预览） | ✅ | `internal/view/workspace.go` `widenButton` | 标签栏末端按钮；不落盘，预览宽度保留，再点还原 |
+| 预览向左伸展（盖住编辑区） | ✅ | `internal/view/workspace.go` `spreadButton` | 预览面板左上角按钮；不落盘，编辑区宽度保留，再点还原 |
 
 ## 8. 设置
 
@@ -205,7 +207,7 @@
 7. 右键菜单补齐：复制相对路径、复制为 Markdown 链接、插入到当前笔记、粘贴到此目录。
 8. 库选择器（树底部）或等价入口。
 9. 「放弃改动并重新加载」入口（外部改动冲突时的第三个选项）。
-10. 图片点击放大 / 预览向左伸展。
+10. 图片点击放大。
 11. 编辑区 Markdown 装饰（行首标记淡化、链接文字着色）。
 12. AI：密钥只支持明文 → 补环境变量 / Keychain 两条来源。
 13. AI：场景路由 `Ai.Route` 接线（现在只按默认模型）。

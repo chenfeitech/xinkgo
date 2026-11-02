@@ -129,8 +129,9 @@ func windowDrawn(t *testing.T, height int) (*Workspace, *ui.Tester) {
 // middle of it, which is where a row leaves a panel of no height.
 func TestPanels_theTreeAndThePreviewStartAtTheTop(t *testing.T) {
 	// What stands in the tree's head, and no more: a row is under it.
-	// The preview's first line is a padding below the top of the panel.
-	const underHead, underTop = 80, 24
+	// The preview's first line stands under the row of its own corner,
+	// which is the button that spreads the preview over the note.
+	const underHead, underTop = 80, 48
 	for _, height := range []int{400, 900} {
 		_, te := windowDrawn(t, height)
 		for _, want := range []struct {

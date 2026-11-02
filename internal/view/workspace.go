@@ -61,6 +61,12 @@ const (
 	// zoomPreview is the preview's, for reading: the note's own pane is
 	// not drawn, and the preview is as wide as the window.
 	zoomPreview
+	// zoomPreviewSpread is the preview's over the note alone: the
+	// preview reaches left as far as the tree, and the tree keeps the
+	// room it was given, so that another note may be chosen in it while
+	// one is read. It is what the button in the preview's own corner
+	// gives, and not the whole window, which is the rail's button.
+	zoomPreviewSpread
 )
 
 // Workspace is the window: the vault's tree on the left, the notes in the
@@ -305,6 +311,19 @@ func (w *Workspace) View(c *ui.Context) {
 				w.center(c)
 			case zoomPreview:
 				w.previewPanel(c, 0)
+			case zoomPreviewSpread:
+				// The preview reaches over the note to the tree, which
+				// keeps its place: what is read is read beside the
+				// tree, and not over it, so that the note to read next
+				// may be chosen without giving the room back first.
+				// The note's own pane is not drawn at all, and, as when
+				// the note takes the window, the widths are kept, so
+				// that everything comes back as it was.
+				if w.Layout.Left > 0 {
+					w.sidebar(c)
+					w.divider(c, "divider-tree", &w.Layout.Left, 1)
+				}
+				w.previewPanel(c, 0)
 			default:
 				// A panel of no width is one the user closed: it is
 				// drawn with no line to drag it back by.
@@ -351,13 +370,18 @@ func (w *Workspace) SetTreeShown(shown bool) {
 }
 
 // SetPreviewShown opens the preview, or shuts it. Opening it gives back
-// the width it had when it was shut. A preview that stands down takes the
-// note's stretch with it: there is no room left for the note to stand
-// over, nor a button to say the way back.
+// the width it had when it was shut. A preview that stands down takes
+// the note's stretch with it: there is no room left for the note to
+// stand over, nor a button to say the way back; and one that was spread
+// over the note gives the note its room back, for there is no pane left
+// to spread.
 func (w *Workspace) SetPreviewShown(shown bool) {
 	w.setShown(shown, &w.Layout.Right, &w.Layout.LastRight)
 	if !shown {
 		w.stretched = false
+		if w.zoom == zoomPreviewSpread {
+			w.zoom = zoomNone
+		}
 	}
 }
 
@@ -547,6 +571,11 @@ const (
 func (w *Workspace) previewPaneWidth() float32 {
 	if w.zoom == zoomEditor {
 		return 0
+	}
+	// Spread over the note, the preview stands as wide as it was given:
+	// what the note stretched over of it is the preview's own again.
+	if w.zoom == zoomPreviewSpread {
+		return w.Layout.Right
 	}
 	return w.Layout.Right * (1 - w.stretch)
 }
@@ -1011,8 +1040,13 @@ func (w *Workspace) previewPanel(c *ui.Context, width float32) {
 		pane.Grow(1)
 	}
 	pane.Children(func() {
-		if width <= 0 {
+		// A preview given the whole window keeps the bar that is its
+		// way back. One in a pane of its own — spread over the note,
+		// or not — keeps the button of its corner instead.
+		if w.zoom == zoomPreview {
 			w.previewBar(c)
+		} else {
+			w.previewHead(c)
 		}
 		n := w.Tabs.ActiveNote()
 		if n == nil {
@@ -1101,12 +1135,69 @@ func (w *Workspace) ExportText() (path, text string, ok bool) {
 	return n.Path, w.previewText(n), true
 }
 
+// previewHead is the row at the top of the preview's own pane: the button
+// that spreads the preview over the note. It stands in the corner the
+// note's toolbar is not in, and the room it takes is the pane's own top,
+// so that what is read begins under it and is never under the button
+// itself. What the window shows and does not read — a picture, a PDF —
+// is spread as much as a note is: it is the same pane, read wider.
+func (w *Workspace) previewHead(c *ui.Context) {
+	if w.Tabs.ActiveNote() == nil {
+		return
+	}
+	ui.Row(c).FillWidth().AlignItems(ui.Center).Gap(4).
+		Padding(2, 6).Children(func() {
+		w.spreadButton(c)
+		ui.Box(c).Grow(1)
+	})
+}
+
+// spreadButton is the button in the corner of the preview's pane, which is
+// the pane's own top: pressed, the preview is spread over the note, out as
+// far as the tree, and the tree keeps the room it was given. Pressed again
+// the note comes back as wide as it was. It is the other half of the one
+// at the end of the tab bar, which stretches the note over the preview.
+func (w *Workspace) spreadButton(c *ui.Context) {
+	spread := w.zoom == zoomPreviewSpread
+	// A preview standing over the note is one this button takes it from,
+	// and so it says the way back: the arrow turned round, and the press
+	// named for what it does.
+	icon, label, tip := iconSpreadPreview, locale.SpreadPreview(),
+		locale.SpreadPreviewTooltip()
+	if spread {
+		icon, label, tip = iconSpreadPreviewBack, locale.SpreadPreviewBack(),
+			locale.SpreadPreviewBackTooltip()
+	}
+	// A button of no look, as the one that widens the note is: the picture
+	// alone, standing in the pane's head as what is read does, and not in
+	// a box of its own. Nothing is filled in behind it — not when the
+	// pointer rests on it, and not while the preview stands over the note,
+	// for the arrow turned round is what says so. Only the picture changes:
+	// it is quiet until the pointer comes to it, or until the preview has
+	// the room. What it does, and whether it is pressed, are still said to
+	// the keys and to what reads the window aloud, which is what the box
+	// was for.
+	button := ui.ButtonBase(c.Key("preview-spread")).
+		Label(label).Tooltip(tip).
+		Role(ui.RoleToggleButton).Checked(spread).
+		Padding(4, 5)
+	button.Children(func() {
+		glyph := ui.Icon(c, icon).Size(iconSize, iconSize)
+		if !spread && !button.Hovered() {
+			glyph.TextColor(c.Theme().TextMuted)
+		}
+	})
+	if button.Clicked() {
+		w.setZoom(zoomPreviewSpread)
+	}
+}
+
 // previewBar is the row at the top of the preview when the preview has
 // the whole window: the button that takes it away again, which is the way
 // out of a pane the note's toolbar is not drawn in. It stands at the
 // pane's own end, clear of the rail, whose buttons hang over it. A
-// preview in its own pane has no such row: what a panel shows begins at
-// its top, and a bar above it would push the note down.
+// preview in a pane of its own has the button of its corner there
+// instead, which is smaller and stands at the other end.
 func (w *Workspace) previewBar(c *ui.Context) {
 	ui.Row(c).FillWidth().AlignItems(ui.Center).Gap(4).
 		Padding(4, 6).PaddingEnd(w.railBand() + 6).
