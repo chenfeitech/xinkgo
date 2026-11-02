@@ -565,6 +565,12 @@ const (
 	// of tabMaxWidth once its padding, its close button and the room
 	// between the two are taken out.
 	tabNameMax float32 = 142
+	// cornerGap is the room a corner button keeps from the edge of the
+	// pane it stands in: the button at the end of the tab bar and the
+	// one in the preview's head stand as far from the line that parts
+	// the panes — which is drawn down the middle of its grip — as one
+	// another, so that the two are read as one row across it.
+	cornerGap float32 = 6
 	// headHeight is how tall the row at the top of a pane stands: the
 	// tab bar's, which is the note's own top, and the preview's head.
 	// Each of the two carries a button in its corner, and the two are
@@ -654,20 +660,20 @@ func (w *Workspace) railClear() float32 {
 // outside what is scrolled, so that it is always there.
 func (w *Workspace) tabBar(c *ui.Context) {
 	paths := w.Tabs.Paths()
-	ui.Row(c).AlignItems(ui.Center).PaddingEnd(w.railClear()).
-		Children(func() {
-			ui.ScrollHorizontal(c).Grow(1).Height(headHeight).
-				Children(func() {
-					ui.Row(c).Gap(2).Padding(4).AlignItems(ui.Center).
-						Children(func() {
-							for _, path := range paths {
-								path := path
-								w.tab(c, path)
-							}
-						})
-				})
-			w.widenButton(c)
-		})
+	ui.Row(c).AlignItems(ui.Center).
+		PaddingEnd(w.railClear() + cornerGap).Children(func() {
+		ui.ScrollHorizontal(c).Grow(1).Height(headHeight).
+			Children(func() {
+				ui.Row(c).Gap(2).Padding(4).AlignItems(ui.Center).
+					Children(func() {
+						for _, path := range paths {
+							path := path
+							w.tab(c, path)
+						}
+					})
+			})
+		w.widenButton(c)
+	})
 }
 
 // tab is one open note: its name, marked when it has changes the disk
@@ -1192,7 +1198,9 @@ func (w *Workspace) ExportText() (path, text string, ok bool) {
 // so that what is read begins under it and is never under the button
 // itself. The row is as tall as the tab bar's, which stands level with it
 // across the window: the button of one corner and the button of the other
-// are then drawn on one line. What the window shows and does not read —
+// are then drawn on one line, each keeping cornerGap from the edge of
+// its own pane, so that the two stand as far from the line that parts
+// the panes as one another. What the window shows and does not read —
 // a picture, a PDF — is spread as much as a note is: it is the same
 // pane, read wider.
 func (w *Workspace) previewHead(c *ui.Context) {
@@ -1200,7 +1208,7 @@ func (w *Workspace) previewHead(c *ui.Context) {
 		return
 	}
 	ui.Row(c).FillWidth().Height(headHeight).AlignItems(ui.Center).
-		Gap(4).Padding(0, 6).Children(func() {
+		Gap(4).Padding(0, cornerGap).Children(func() {
 		w.spreadButton(c)
 		ui.Box(c).Grow(1)
 	})
