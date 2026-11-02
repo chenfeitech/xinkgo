@@ -8,6 +8,7 @@ import (
 
 	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/config"
+	"github.com/helightxu/xinkgo/internal/locale"
 	"github.com/helightxu/xinkgo/internal/session"
 )
 
@@ -547,42 +548,41 @@ func TestTabs_theCloseClosesAndTheNameShows(t *testing.T) {
 	}
 }
 
-// madeNote is how many notes the button at the end of the tab bar made
-// when it was clicked, in a window of the width given, with the preview
-// as wide as the preview says and the drawer named open, or none of them
-// when it is named "".
-func madeNote(
+// widened is whether the note was stretched over the preview by clicking
+// the button at the end of the tab bar, in a window of the width given,
+// with the preview as wide as the preview says and the drawer named open,
+// or none of them when it is named "".
+func widened(
 	t *testing.T, width, preview float32, drawer string,
-) int {
+) bool {
 	t.Helper()
 	w, _, _ := shownWorkspace(t)
 	w.Layout.Right = preview
 	w.Tree.SetRoot(treeRoot())
-	made := 0
-	w.OnNewNote = func() { made++ }
 	w.drawer = drawer
 	tt := ui.NewTester(w.View, int(width), 600)
 	tt.Frame()
-	if err := tt.Click("+"); err != nil {
+	if err := tt.Click(locale.WidenNote()); err != nil {
 		t.Fatalf("Click: %v", err)
 	}
+	tt.Advance(widenAnim.Duration)
 	tt.Frame()
-	return made
+	return w.stretched
 }
 
-// TestTabs_theNewNoteStandsClearOfTheRail checks that the button that
-// makes a note is never under what hangs over the window's right edge:
-// the rail hangs from the top of the window, and its drawer beside it
-// when one is open, over the end of the tab bar, so the bar gives the
-// room they take up.
-func TestTabs_theNewNoteStandsClearOfTheRail(t *testing.T) {
+// TestTabs_theWidenButtonStandsClearOfTheRail checks that the button at
+// the end of the tab bar is never under what hangs over the window's
+// right edge: the rail hangs from the top of the window, and its drawer
+// beside it when one is open, over the end of the tab bar, so the bar
+// gives the room they take up.
+func TestTabs_theWidenButtonStandsClearOfTheRail(t *testing.T) {
 	const width = float32(1000)
 	for _, drawer := range []string{"", drawerOutline} {
-		for _, preview := range []float32{0, 100, 320} {
-			if made := madeNote(t, width, preview, drawer); made != 1 {
+		for _, preview := range []float32{100, 320} {
+			if !widened(t, width, preview, drawer) {
 				t.Errorf("with the preview %.0f wide and the drawer %q, "+
-					"clicking the button made %d notes, want one",
-					preview, drawer, made)
+					"clicking the button did not widen the note",
+					preview, drawer)
 			}
 		}
 	}

@@ -40,6 +40,14 @@ const (
 	layoutSettle = 400 * time.Millisecond
 )
 
+// widenAnim is how the note goes over the preview's room, and back: a
+// curve rather than a spring, so that it neither overshoots the window's
+// edge nor keeps going after the pointer has left the button.
+var widenAnim = ui.Animation{
+	Duration: 180 * time.Millisecond,
+	Ease:     ui.EaseInOut,
+}
+
 // zoom is which pane has been given the whole window: the note's or the
 // preview's. zoomNone is the usual, in which every panel keeps the room
 // the user gave it.
@@ -99,8 +107,6 @@ type Workspace struct {
 	// OnOpenVault opens the dialog that chooses a folder, when there is
 	// no vault yet.
 	OnOpenVault func()
-	// OnNewNote makes a note in the vault.
-	OnNewNote func()
 	// OnStatus is told what the window says at the bottom, such as that
 	// a file changed outside the app.
 	OnStatus func(text string)
@@ -176,6 +182,17 @@ type Workspace struct {
 	// not written down: a run of the app starts in the shape it was
 	// left in, and not in a pane given the window.
 	zoom zoom
+	// stretched is whether the note has been given the preview's room:
+	// it stands over the preview, out to the window's right edge, and
+	// the tree keeps the room it was given. It is not written down
+	// either, and what the preview was given is left alone, so that it
+	// comes back as wide as it was.
+	stretched bool
+	// stretch is how far the note has gone over that room in the frame
+	// being drawn, 0 to 1: it follows stretched by an animation, so
+	// that the note is seen to stretch over the preview rather than to
+	// jump over it.
+	stretch float32
 	// outlineHeadings are the headings of the note that is open, read
 	// again when its text has changed.
 	outlineHeadings []xmd.Heading
@@ -269,7 +286,17 @@ func (w *Workspace) View(c *ui.Context) {
 	// note's own editor, and only this thread may touch that.
 	w.aiReviewDone()
 	ui.Column(c).Fill().Children(func() {
-		ui.Row(c).Fill().Children(func() {
+		// How far the note has gone over the preview's room, read from
+		// the animation before the panels are laid out from it: the
+		// value is the row's own, and frames keep coming while it
+		// moves.
+		panels := ui.Row(c).Key("panels").Fill()
+		target := float32(0)
+		if w.stretched {
+			target = 1
+		}
+		w.stretch = panels.AnimateTo("stretch", target, widenAnim)
+		panels.Children(func() {
 			switch w.zoom {
 			case zoomEditor:
 				// The note takes the window: the tree and the preview
@@ -286,9 +313,12 @@ func (w *Workspace) View(c *ui.Context) {
 					w.divider(c, "divider-tree", &w.Layout.Left, 1)
 				}
 				w.center(c)
-				if w.Layout.Right > 0 {
+				// The preview stands as wide as the user left it,
+				// less what the note has stretched over of it: that
+				// room is the preview's still, and comes back whole.
+				if right := w.previewPaneWidth(); right >= 1 {
 					w.divider(c, "divider-preview", &w.Layout.Right, -1)
-					w.previewPanel(c, w.Layout.Right)
+					w.previewPanel(c, right)
 				}
 			}
 			// The rail and its drawer hang over the panels, within the
@@ -320,9 +350,15 @@ func (w *Workspace) SetTreeShown(shown bool) {
 	w.setShown(shown, &w.Layout.Left, &w.Layout.LastLeft)
 }
 
-// SetPreviewShown opens the preview, or shuts it.
+// SetPreviewShown opens the preview, or shuts it. Opening it gives back
+// the width it had when it was shut. A preview that stands down takes the
+// note's stretch with it: there is no room left for the note to stand
+// over, nor a button to say the way back.
 func (w *Workspace) SetPreviewShown(shown bool) {
 	w.setShown(shown, &w.Layout.Right, &w.Layout.LastRight)
+	if !shown {
+		w.stretched = false
+	}
 }
 
 // setShown is one panel opened or shut. What it was is kept when it is
@@ -505,12 +541,14 @@ const (
 
 // previewPaneWidth is how wide the preview stands: nothing when the note
 // has been given the whole window, for then the preview is not drawn,
-// and the rows that run the width of the window run under the rail.
+// and the rows that run the width of the window run under the rail; and
+// what the note has not stretched over of it, once it has been given the
+// preview's room.
 func (w *Workspace) previewPaneWidth() float32 {
 	if w.zoom == zoomEditor {
 		return 0
 	}
-	return w.Layout.Right
+	return w.Layout.Right * (1 - w.stretch)
 }
 
 // railBand is how much room the rail takes at the right edge of the
@@ -556,12 +594,7 @@ func (w *Workspace) tabBar(c *ui.Context) {
 							}
 						})
 				})
-			if w.OnNewNote != nil && w.Tree.Root != nil {
-				if ui.Button(c.Key("new"), "+").
-					Label(locale.NewNoteLabel()).Clicked() {
-					w.OnNewNote()
-				}
-			}
+			w.widenButton(c)
 		})
 }
 
@@ -629,6 +662,55 @@ func (w *Workspace) tabClose(c *ui.Context, path string, on bool) {
 		w.Tabs.Close(path)
 		w.status = ""
 	}
+}
+
+// widenButton is the button at the end of the tab bar, which is the
+// note's own top corner: pressed, the note is stretched over the preview,
+// out to the window's right edge, and the tree keeps the room it was
+// given. Pressed again the preview comes back as wide as it was. It is
+// not drawn while the preview stands shut, for then there is no room of
+// its for the note to stretch into.
+func (w *Workspace) widenButton(c *ui.Context) {
+	if !w.widenOffered() {
+		return
+	}
+	// A note standing over the preview is one this button takes it from,
+	// and so it says the way back: the arrow turned round, and the press
+	// named for what it does.
+	icon, label, tip := iconWiden, locale.WidenNote(), locale.WidenNoteTooltip()
+	if w.stretched {
+		icon, label, tip = iconWidenBack, locale.WidenBack(),
+			locale.WidenBackTooltip()
+	}
+	// A button of no look: the picture alone, standing on the bar as the
+	// words of the tabs do, and not in a box of its own. Nothing is
+	// filled in behind it — not when the pointer rests on it, and not
+	// while the note stands over the preview, for the arrow turned round
+	// is what says so. Only the picture changes: it is quiet until the
+	// pointer comes to it, or until the note has the room. What it does,
+	// and whether it is pressed, are still said to the keys and to what
+	// reads the window aloud, which is what the box was for.
+	button := ui.ButtonBase(c.Key("widen")).
+		Label(label).Tooltip(tip).
+		Role(ui.RoleToggleButton).Checked(w.stretched).
+		Padding(4, 5)
+	button.Children(func() {
+		glyph := ui.Icon(c, icon).Size(iconSize, iconSize)
+		if !w.stretched && !button.Hovered() {
+			glyph.TextColor(c.Theme().TextMuted)
+		}
+	})
+	if button.Clicked() {
+		w.stretched = !w.stretched
+	}
+}
+
+// widenOffered is whether the button that widens the note is drawn: it
+// takes the preview's room, so there is nothing for it to do where the
+// preview stands shut — unless the note stands over that room now, and
+// has to be given the way back.
+func (w *Workspace) widenOffered() bool {
+	return w.stretched || w.Layout.Right > 0
 }
 
 // toolbar is the row of buttons that write Markdown for the user: one

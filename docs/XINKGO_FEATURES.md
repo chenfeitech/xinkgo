@@ -142,6 +142,7 @@
 | 目录树 / 编辑区 / 预览区字体 | ⚠️ | `internal/app/settings.go:128` `editorSettings` 等 | 只可设**字号与行高**；字族、字重无 UI（配置有字段） |
 | **目录树图标尺寸（12–48px）** | ❌ | `config.go:68` `IconSize` 有字段 | 无读取点，视图用固定 14px |
 | 面板显隐（树 / 预览） | ✅ | `internal/app/settings.go:301` `window` | xink 没有的额外项 |
+| 编辑区向右伸展（盖住预览） | ✅ | `internal/view/workspace.go` `widenButton` | 标签栏末端按钮；不落盘，预览宽度保留，再点还原 |
 
 ## 8. 设置
 

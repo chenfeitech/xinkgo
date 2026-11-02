@@ -37,6 +37,12 @@ var (
 	// which is the same picture as Lucide's "minimize".
 	iconZoomBack = svgIcon(`<path d="M4 14h6v6"/><path d="M20 10h-6V4"/><path d="M14 10l7-7"/><path d="M3 21l7-7"/>`)
 
+	// The note stretched over the preview, and back: the same frame with
+	// its two panes, and an arrow in the note's pane saying which way its
+	// edge goes — out to the window's edge, over the preview, and back.
+	iconWiden     = svgIcon(`<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/><path d="m8 9 4 3-4 3"/>`)
+	iconWidenBack = svgIcon(`<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/><path d="m12 9-4 3 4 3"/>`)
+
 	// A spark, as the others are: the picture of what a model is asked
 	// for, which is not a talk but a favour. Lucide's "sparkles".
 	iconAi = svgIcon(`<path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/>`)

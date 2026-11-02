@@ -1434,16 +1434,6 @@ func (msgs Messages) OpenFolder() string {
 	return Catalog.Format(msgs.locale, "openFolder", nil)
 }
 
-// NewNoteLabel says "New note"
-// in the language the app shows.
-func NewNoteLabel() string { return In(i18n.Locale()).NewNoteLabel() }
-
-// NewNoteLabel says "New note"
-// in the language of msgs.
-func (msgs Messages) NewNoteLabel() string {
-	return Catalog.Format(msgs.locale, "newNoteLabel", nil)
-}
-
 // TabCloseLabel says "close {name}"
 // in the language the app shows.
 func TabCloseLabel(name string) string { return In(i18n.Locale()).TabCloseLabel(name) }
@@ -2208,6 +2198,46 @@ func ZoomBackTooltip() string { return In(i18n.Locale()).ZoomBackTooltip() }
 // in the language of msgs.
 func (msgs Messages) ZoomBackTooltip() string {
 	return Catalog.Format(msgs.locale, "zoomBackTooltip", nil)
+}
+
+// WidenNote says "Widen the note"
+// in the language the app shows.
+func WidenNote() string { return In(i18n.Locale()).WidenNote() }
+
+// WidenNote says "Widen the note"
+// in the language of msgs.
+func (msgs Messages) WidenNote() string {
+	return Catalog.Format(msgs.locale, "widenNote", nil)
+}
+
+// WidenNoteTooltip says "Widen the note: it is stretched over the preview, to the window's edge, and the tree keeps its room"
+// in the language the app shows.
+func WidenNoteTooltip() string { return In(i18n.Locale()).WidenNoteTooltip() }
+
+// WidenNoteTooltip says "Widen the note: it is stretched over the preview, to the window's edge, and the tree keeps its room"
+// in the language of msgs.
+func (msgs Messages) WidenNoteTooltip() string {
+	return Catalog.Format(msgs.locale, "widenNoteTooltip", nil)
+}
+
+// WidenBack says "Give the preview back"
+// in the language the app shows.
+func WidenBack() string { return In(i18n.Locale()).WidenBack() }
+
+// WidenBack says "Give the preview back"
+// in the language of msgs.
+func (msgs Messages) WidenBack() string {
+	return Catalog.Format(msgs.locale, "widenBack", nil)
+}
+
+// WidenBackTooltip says "Give the preview its room back, as wide as it was"
+// in the language the app shows.
+func WidenBackTooltip() string { return In(i18n.Locale()).WidenBackTooltip() }
+
+// WidenBackTooltip says "Give the preview its room back, as wide as it was"
+// in the language of msgs.
+func (msgs Messages) WidenBackTooltip() string {
+	return Catalog.Format(msgs.locale, "widenBackTooltip", nil)
 }
 
 // OutlineNoHeadings says "no headings in this note"
@@ -3434,11 +3464,11 @@ func (msgs Messages) AiQuickGroup() string {
 	return Catalog.Format(msgs.locale, "aiQuickGroup", nil)
 }
 
-// AiQuickGroupNote says "A word stands for something you ask a model to do to a note often. They stand in a row above the place to ask: press one, or type / and then the word."
+// AiQuickGroupNote says "A word stands for something you ask a model to do to a note often. They stand in a row above the place to ask: press …"
 // in the language the app shows.
 func AiQuickGroupNote() string { return In(i18n.Locale()).AiQuickGroupNote() }
 
-// AiQuickGroupNote says "A word stands for something you ask a model to do to a note often. They stand in a row above the place to ask: press one, or type / and then the word."
+// AiQuickGroupNote says "A word stands for something you ask a model to do to a note often. They stand in a row above the place to ask: press …"
 // in the language of msgs.
 func (msgs Messages) AiQuickGroupNote() string {
 	return Catalog.Format(msgs.locale, "aiQuickGroupNote", nil)
