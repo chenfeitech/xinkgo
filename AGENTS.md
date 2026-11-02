@@ -21,12 +21,15 @@
    都在这里；视图只画界面。
 4. **应用目录只能在 `WhenReady` 里取**，且必须先 `mygo.App.SetName`（名字决定
    用户数据目录）。
-5. **主线程**：MyGo 回调与窗口方法在主线程。视图函数每帧执行，不做阻塞 I/O。
-6. **版本两处一致**：`mygo.json` 的 `version` 与 `internal/app/app.go` 的
+5. **界面文案进 catalog**：用户看得见的字不写死在 Go 里，写
+   `internal/locale/en.json`（源语言）与各语言的 JSON，用生成的 `locale.Xxx()`
+   取；切语言时菜单靠 `OnLocaleChanged` 重建，界面靠每帧重画自动生效。
+6. **主线程**：MyGo 回调与窗口方法在主线程。视图函数每帧执行，不做阻塞 I/O。
+7. **版本两处一致**：`mygo.json` 的 `version` 与 `internal/app/app.go` 的
    `const Version`，由 `scripts/*.sh` 校验。
-7. **不得自行合并到 `main`**：在 `feature/*` 或 `bugfix/*` 分支上开发并提交，
+8. **不得自行合并到 `main`**：在 `feature/*` 或 `bugfix/*` 分支上开发并提交，
    完成后报告分支名，等用户拍板再合并。
-8. **macOS 优先**：改构建、依赖或打包配置时，先保证 macOS（P0）的构建、依赖
+9. **macOS 优先**：改构建、依赖或打包配置时，先保证 macOS（P0）的构建、依赖
    与产物无误，再验证 Windows（P1）与 Linux（P2）。
 
 ## 命令
@@ -63,6 +66,7 @@ make doctor         # 环境自检
 | 要做的事 | 改哪 |
 |---|---|
 | 加一个窗口或界面 | `internal/view` 加视图；`internal/app` 加打开入口与菜单项 |
+| 加界面文案 / 加一门语言 | `internal/locale`：en.json 加键（+ zh-Hans.json），`go tool mygo generate`，代码调 `locale.Xxx()`；见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) 第 6 节 |
 | 加配置项 | `internal/config`（字段 + 默认值 + 校验 + 测试） |
 | 加 Web 窗口 / 前端 | `internal/app/web.go` 的绑定服务，`mygo generate` 生成 TS 客户端 |
 | 加平台差异行为 | `internal/app/platform_<goos>.go` |

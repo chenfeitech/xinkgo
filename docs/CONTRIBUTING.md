@@ -63,8 +63,10 @@ Windows/arm64 与 Linux/amd64 为 P2。体现为：`make build` / `make package`
   文件不重复写包注释。
 - 复杂算法、平台差异、绕过某处的行为，必须写清原因与出处；临时方案写
   `// TODO(姓名): 原因与预期移除时间`，并在提交说明里提一句。
-- 界面文案与日志用英文（与 MyGo 生态一致，便于 i18n 目录接入）；面向用户的
-  中文界面在 `locales/` 接入后再定，不要硬编码中文到视图里。
+- 界面文案不写死在 Go 里：用户看得见的字（菜单、设置、按钮、提示、对话框、
+  域内的 `Status.String()`/`Kind.Label()` 等）进 `internal/locale` 的 catalog，
+  英文写在 `en.json`，代码调生成的 `locale.Xxx()`；日志仍用英文（见
+  [ARCHITECTURE.md](ARCHITECTURE.md) 第 6 节）。
 
 ### 1.4 错误处理
 

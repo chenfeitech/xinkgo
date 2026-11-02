@@ -24,6 +24,13 @@ make dev            # 或：live reload，改 .go 自动重建重启
 第一次跑没有库：用 `Open Vault…` 选一个文件夹，或者像 xink 那样把库路径写进
 `vaults.json`。
 
+## 界面语言
+
+菜单、设置与应用自己的文字有**中文**与**英文**两版，在「设置 ▸ 基本 ▸ 语言」里
+切换，即刻生效（不用重启）。默认「跟随系统」：按系统的语言顺序挑一个应用会说的
+语言。文案都在 `internal/locale` 的 catalog 里（`en.json` 是源语言，
+`zh-Hans.json` 是中文），改完跑 `go tool mygo generate` 重新生成取文案的函数。
+
 ## 构建与打包
 
 ```sh
