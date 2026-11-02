@@ -1,6 +1,8 @@
 package view
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -109,5 +111,120 @@ func TestToolbar_pressingAPictureWritesTheMarks(t *testing.T) {
 	}
 	if got := n.Editor.Buffer.String(); got != "hello **world**" {
 		t.Errorf("note = %q, want %q", got, "hello **world**")
+	}
+}
+
+// TestToolbar_theWayToTheModelStandsAtItsEnd checks where the button that
+// opens the conversation is: at the end of the row that writes Markdown,
+// outside the row itself, so that a window too narrow for every button
+// does not hide it in the menu at the row's end.
+func TestToolbar_theWayToTheModelStandsAtItsEnd(t *testing.T) {
+	for _, width := range []int{220, 320, 520, 1100} {
+		tt := toolbarTester(t, width)
+		bar, ok := tt.Find("Markdown")
+		if !ok {
+			t.Fatalf("no toolbar in a window %d wide", width)
+		}
+		ai, ok := tt.Find("AI 辅助")
+		if !ok {
+			t.Fatalf("no way to the model in a window %d wide: %v",
+				width, tt.Texts())
+		}
+		if ai.X < bar.X+bar.W {
+			t.Errorf("at %d wide the button stands at %v, want it after "+
+				"the row that ends at %v", width, ai.X, bar.X+bar.W)
+		}
+		if end := ai.X + ai.W; end > float32(width) {
+			t.Errorf("at %d wide the button ends at %v, want it in the "+
+				"window", width, end)
+		}
+	}
+}
+
+// TestToolbar_theWayToTheModelIsAPicture checks that the button is drawn
+// as the others are: a picture, and not the word it stands for.
+func TestToolbar_theWayToTheModelIsAPicture(t *testing.T) {
+	tt := toolbarTester(t, 1100)
+	ai, ok := tt.Find("AI 辅助")
+	if !ok {
+		t.Fatalf("no way to the model: %v", tt.Texts())
+	}
+	if ai.W > 3*iconSize {
+		t.Errorf("the button is %v wide, want no more than %v", ai.W,
+			3*iconSize)
+	}
+}
+
+// TestToolbar_clickingItOpensTheConversation checks what a click on it
+// does: the conversation under the note is opened, and clicking again
+// hides it, which is all the button is for.
+func TestToolbar_clickingItOpensTheConversation(t *testing.T) {
+	_, a, _ := vaultWithNotes(t)
+	w := NewWorkspace(config.Default())
+	if _, err := w.Tabs.Open(a); err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	w.Layout.Left, w.Layout.Right = 0, 0
+	tt := ui.NewTester(w.View, 1100, 320)
+	ai, ok := tt.Find("AI 辅助")
+	if !ok {
+		t.Fatalf("no way to the model: %v", tt.Texts())
+	}
+	click := func() {
+		tt.ClickAt(ai.X+ai.W/2, ai.Y+ai.H/2)
+		tt.Frame()
+	}
+	click()
+	if !w.aiOpen(a) {
+		t.Fatalf("the conversation did not open")
+	}
+	click()
+	if w.aiOpen(a) {
+		t.Errorf("the conversation is still open, want it hidden")
+	}
+}
+
+// TestToolbar_aFileOfDataHasNoUseOfIt checks a file the toolbar says the
+// kind of, rather than writing Markdown into: there is no way to the
+// model beside it, for there is nothing to ask about.
+func TestToolbar_aFileOfDataHasNoUseOfIt(t *testing.T) {
+	root, _, _ := vaultWithNotes(t)
+	data := filepath.Join(root, "d.json")
+	if err := os.WriteFile(data, []byte("{}"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	w := NewWorkspace(config.Default())
+	if _, err := w.Tabs.Open(data); err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	w.Layout.Left, w.Layout.Right = 0, 0
+	tt := ui.NewTester(w.View, 1100, 320)
+	if _, ok := tt.Find("AI 辅助"); ok {
+		t.Errorf("a file of data is offered the model: %v", tt.Texts())
+	}
+}
+
+// TestToolbar_theButtonStandsClearOfTheRail checks the case the others
+// leave out: the panels open, when the room the note has is the window's
+// less the tree, the preview and the rail that hangs over them. The
+// button is made to keep clear of the rail, and not to stand under it.
+func TestToolbar_theButtonStandsClearOfTheRail(t *testing.T) {
+	_, a, _ := vaultWithNotes(t)
+	w := NewWorkspace(config.Default())
+	if _, err := w.Tabs.Open(a); err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	tt := ui.NewTester(w.View, 1000, 600)
+	ai, ok := tt.Find("AI 辅助")
+	if !ok {
+		t.Fatalf("no way to the model: %v", tt.Texts())
+	}
+	rail, ok := tt.Find("大纲")
+	if !ok {
+		t.Fatalf("no rail in the window: %v", tt.Texts())
+	}
+	if end := ai.X + ai.W; end > rail.X {
+		t.Errorf("the button ends at %v, under the rail that starts at %v",
+			end, rail.X)
 	}
 }

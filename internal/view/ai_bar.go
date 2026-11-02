@@ -109,6 +109,20 @@ func (w *Workspace) ToggleAI() {
 	}
 }
 
+// aiBand is the room the way to the model takes in the toolbar's row: its
+// own button, the line before it and the room between. The row of the
+// Markdown buttons is made that much narrower, so that the button stands
+// beside it and not under the rail.
+const aiBand float32 = 40
+
+// aiOpen is whether the note's conversation stands open, and nothing
+// more: the button that opens it asks this every frame, and so must not
+// make a conversation that is not there yet.
+func (w *Workspace) aiOpen(path string) bool {
+	s, ok := w.ai[path]
+	return ok && s.Open
+}
+
 // aiOf is the note's conversation, made the first time it is asked for:
 // what was said about it before is read back then, and not every frame.
 func (w *Workspace) aiOf(path string) *aiSession {
