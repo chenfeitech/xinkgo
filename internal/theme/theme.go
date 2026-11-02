@@ -65,28 +65,35 @@ type Palette struct {
 }
 
 // build is the palette as one of MyGo's themes, in the appearance dark
-// asks for.
+// asks for: the palette's colors over the theme MyGo draws that
+// appearance with, so that what a palette says nothing of — the size of
+// the text above all, and the room between things, the width of a scroll
+// bar, the family of the letters — is as MyGo has it and not nothing. A
+// theme made from nothing leaves FontSize at 0, and a window whose text
+// is asked for at no size draws its headings too small to read.
 func (p Palette) build(dark bool) *ui.Theme {
-	t := &ui.Theme{
-		Dark:           dark,
-		Background:     p.Background,
-		Surface:        p.Surface,
-		SurfaceHover:   p.SurfaceHover,
-		SurfacePressed: p.SurfacePressed,
-		Border:         p.Border,
-		Text:           p.Text,
-		TextMuted:      p.TextMuted,
-		Accent:         p.Accent,
-		AccentHover:    p.AccentHover,
-		AccentPressed:  p.AccentPressed,
-		AccentText:     p.AccentText,
-		Danger:         p.Danger,
-		Warning:        p.Warning,
-		Success:        p.Success,
-		Scrollbar:      p.Scrollbar,
-		Radius:         6,
-		Spacing:        4,
+	t := ui.LightTheme()
+	if dark {
+		t = ui.DarkTheme()
 	}
+	t.Dark = dark
+	t.Background = p.Background
+	t.Surface = p.Surface
+	t.SurfaceHover = p.SurfaceHover
+	t.SurfacePressed = p.SurfacePressed
+	t.Border = p.Border
+	t.Text = p.Text
+	t.TextMuted = p.TextMuted
+	t.Accent = p.Accent
+	t.AccentHover = p.AccentHover
+	t.AccentPressed = p.AccentPressed
+	t.AccentText = p.AccentText
+	t.Danger = p.Danger
+	t.Warning = p.Warning
+	t.Success = p.Success
+	t.Scrollbar = p.Scrollbar
+	t.Radius = 6
+	t.Spacing = 4
 	// Selected text and the focus ring are the accent over what is
 	// behind it, and text under them must still be read: less of the
 	// accent in a dark appearance, where the accent is brighter.

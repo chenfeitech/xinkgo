@@ -7,6 +7,31 @@ import (
 	"github.com/egoist/mygo/ui"
 )
 
+// TestEveryScheme_keepsTheSizeOfTheText checks that a palette's colors
+// do not take the size of the text with them: a theme made out of
+// nothing leaves FontSize at 0, and a window whose text is asked for at
+// no size draws its headings — the name of a group of the settings, say —
+// too small to read, which is what they were.
+func TestEveryScheme_keepsTheSizeOfTheText(t *testing.T) {
+	want := ui.LightTheme().FontSize
+	for _, s := range All() {
+		for _, c := range []struct {
+			what  string
+			theme *ui.Theme
+		}{{"light", s.Of(false)}, {"dark", s.Of(true)}} {
+			if c.theme.FontSize != want {
+				t.Errorf("scheme %q %s: the text is drawn at %v, "+
+					"want %v, as MyGo has it",
+					s.ID, c.what, c.theme.FontSize, want)
+			}
+			if c.theme.Spacing <= 0 {
+				t.Errorf("scheme %q %s: the room between things is %v",
+					s.ID, c.what, c.theme.Spacing)
+			}
+		}
+	}
+}
+
 // TestEveryScheme_hasBothAppearances checks that a scheme added later is
 // whole: two palettes that are not the same, and a code preset that is
 // one of the three the app has.
