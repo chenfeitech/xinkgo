@@ -232,3 +232,128 @@ func TestRailView_aButtonOpensItsDrawer(t *testing.T) {
 		t.Errorf("the drawer is %q, want it shut again", w.drawer)
 	}
 }
+
+// drawerClick is a click on a link in the drawer: a link is only as wide
+// as what it says, and the rest of the line is the panel's, so the click
+// goes to its left end and not to the middle of the line.
+func drawerClick(t *testing.T, tt *ui.Tester, s string) {
+	t.Helper()
+	r, ok := tt.Find(s)
+	if !ok {
+		t.Fatalf("the drawer shows no %q: %v", s, tt.Texts())
+	}
+	tt.ClickAt(r.X+8, r.Y+r.H/2)
+	tt.Frame()
+}
+
+// TestDrawerOutline_theHeadingsReadAsAList checks how the drawer shows
+// the outline: as Markdown, a list of links, as the note beside it is
+// read, and not as a column of buttons.
+func TestDrawerOutline_theHeadingsReadAsAList(t *testing.T) {
+	w, _ := workspaceShown(t)
+	// No preview: with one open the note is read twice over, once in the
+	// panel and once in the drawer, and the test could not tell which of
+	// the two it had found.
+	w.Layout.Right = 0
+	n := w.Tabs.ActiveNote()
+	n.Editor.Buffer.Set("one\ntwo\nthree\n# a heading\n")
+	w.drawer = drawerOutline
+	tt := ui.NewTester(w.View, 1000, 600)
+	tt.Frame()
+	if _, ok := tt.Find("•"); !ok {
+		t.Fatalf("the outline is no list: %v", tt.Texts())
+	}
+	drawerClick(t, tt, "a heading")
+	line := n.Editor.Buffer.Pos(n.Editor.Cursor()).Line
+	if line != 3 {
+		t.Fatalf("the caret is on line %d, want the 3 the heading is on",
+			line)
+	}
+}
+
+// TestDrawerTags_theTagsReadAsAList checks the same of the tags: a list
+// of links, and a click on one opens the notes that carry it.
+func TestDrawerTags_theTagsReadAsAList(t *testing.T) {
+	w, a, _ := windowWithTwoNotes(t)
+	w.Layout.Right = 0
+	w.Index.Put(a, "# a\n\n#work\n")
+	w.drawer = drawerTags
+	tt := ui.NewTester(w.View, 1000, 600)
+	tt.Frame()
+	if _, ok := tt.Find("•"); !ok {
+		t.Fatalf("the tags are no list: %v", tt.Texts())
+	}
+	drawerClick(t, tt, "work")
+	if w.tagOpen != "work" {
+		t.Fatalf("the tag open is %q, want the one that was clicked",
+			w.tagOpen)
+	}
+}
+
+// TestDrawerLinks_theBacklinksReadAsAList checks the same of the notes
+// that name this one: a list of links, and a click on one opens the note
+// at the line it was named on.
+func TestDrawerLinks_theBacklinksReadAsAList(t *testing.T) {
+	w, a, b := windowWithTwoNotes(t)
+	w.Layout.Right = 0
+	w.Index.Put(a, "# a\n\nsee [[b]] here\n")
+	if _, err := w.Tabs.Open(b); err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	w.drawer = drawerLinks
+	tt := ui.NewTester(w.View, 1000, 600)
+	tt.Frame()
+	drawerClick(t, tt, "a.md")
+	if got := w.Tabs.ActiveNote().Path; got != a {
+		t.Fatalf("the note open is %q, want the one that was clicked %q",
+			got, a)
+	}
+}
+
+// TestDrawerLineHref_whatADestinationNames checks the round trip of a
+// link of the drawer's own: which note, and which line of it.
+func TestDrawerLineHref_whatADestinationNames(t *testing.T) {
+	for _, want := range []struct {
+		path string
+		line int
+	}{{"", 3}, {"/vault/a.md", 12}, {"/vault/a b.md", 0}} {
+		path, line, ok := drawerLineTarget(drawerLineHref(want.path,
+			want.line))
+		if !ok {
+			t.Fatalf("%v is no destination of the drawer's", want)
+		}
+		if path != want.path || line != want.line {
+			t.Errorf("got %q line %d, want %q line %d", path, line,
+				want.path, want.line)
+		}
+	}
+}
+
+// TestDrawerTagHref_whatADestinationNames checks the same of a link to a
+// tag, empty for all of them again.
+func TestDrawerTagHref_whatADestinationNames(t *testing.T) {
+	name, ok := drawerTagTarget(drawerTagHref("work"))
+	if !ok || name != "work" {
+		t.Fatalf("got %q (%v), want the tag that was written", name, ok)
+	}
+	name, ok = drawerTagTarget(drawerTagHref(""))
+	if !ok || name != "" {
+		t.Fatalf("got %q (%v), want every tag of the vault", name, ok)
+	}
+}
+
+// TestMdPlain_whatIsWrittenIsWhatIsRead checks that what the drawer
+// shows of a note - its name, and a line of it - is read as it stands,
+// and not as marks of Markdown.
+func TestMdPlain_whatIsWrittenIsWhatIsRead(t *testing.T) {
+	for _, s := range []string{"a [b] c", "*stars*", "1. two", "# head",
+		"a `tick`"} {
+		got := mdPlain(s)
+		if got == s {
+			t.Errorf("%q is written as it stands, want it escaped", s)
+		}
+	}
+	if got := mdPlain("one\ntwo"); strings.Contains(got, "\n") {
+		t.Errorf("%q still breaks a line", got)
+	}
+}
