@@ -94,6 +94,7 @@ make package-macos                               # macOS 两个架构
 scripts/package.sh darwin/universal              # macOS 通用包（一个 .app 含两架构）
 PLATFORMS="windows/amd64" make package           # Windows x64
 scripts/package.sh windows/amd64 windows/arm64   # Windows 两个架构
+make icon                                        # icon.png 从 xink.icns 重新导出
 ```
 
 `mygo build` 做的事：编译（注入 `mygo.json` 的名字、标识符、版本）、把
@@ -101,20 +102,28 @@ scripts/package.sh windows/amd64 windows/arm64   # Windows 两个架构
 资源（图标与版本信息，`mygo_windows_*.syso`，已 gitignore）并在可用时生成
 安装器。
 
+应用图标在 `mygo.json` 里配两处：`macos.icon` 指向 `assets/xink.icns`，macOS
+把它原样作为 `.app` 的图标；`icon` 指向 `assets/icon.png`，Windows 的图标资源
+与 Linux 桌面项的图标由它渲染。改了 `.icns` 就在 Mac 上跑 `make icon`
+（`scripts/icon.sh`）重新导出 PNG，别让两份素材走散。
+
+两份素材放在 `assets/` 而不是 `resources/`：后者会被整目录拷进产物，前者不会。
+产物里只剩真正用到的图标——macOS 的 `AppIcon.icns`、Windows `.exe` 内嵌的图标
+资源，源图不跟着发出去（`assets/` 两图约 2.7 MB）。
+
 macOS 产物（`build/darwin-arm64/`，已在本机验证）：
 
 ```
 build/darwin-arm64/
-├── Xinkgo.app                12.4 MB   已签名
-└── xinkgo-0.1.0-arm64.dmg     3.9 MB
+├── Xinkgo.app                18.0 MB   已签名（含 AppIcon.icns）
+└── xinkgo-0.1.0-arm64.dmg     7.6 MB
 ```
 
 Windows 产物（`build/windows-amd64/`）：
 
 ```
 build/windows-amd64/
-├── Xinkgo.exe        13.0 MB
-└── icon.png
+└── Xinkgo.exe        17.9 MB   图标已嵌入可执行文件
 ```
 
 - **安装器**：Windows 需要 NSIS。在 macOS 上会打印
