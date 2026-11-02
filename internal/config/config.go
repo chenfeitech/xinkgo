@@ -49,6 +49,16 @@ const (
 	HighlightOcean     = "ocean"
 	HighlightSolarized = "solarized"
 
+	// The sheets of paper a note may be written out on.
+	ExportPageA4     = "a4"
+	ExportPageLetter = "letter"
+
+	// What an export does with the pictures a note names: written into
+	// the page, put beside it, or left out.
+	ExportImagesEmbed = "embed"
+	ExportImagesCopy  = "copy"
+	ExportImagesNone  = "none"
+
 	// The languages the app speaks. A language is a BCP 47 tag, as
 	// MyGo's locales name them, but for LanguageSystem, which follows
 	// the languages the machine reads.
@@ -123,12 +133,30 @@ type HighlightConfig struct {
 	Theme string `json:"theme"`
 }
 
+// ExportConfig is how a note is written out: on which sheet of paper,
+// and what becomes of the pictures it names.
+type ExportConfig struct {
+	PageSize string `json:"page_size"`
+	Images   string `json:"images"`
+}
+
+// fillMissing gives the fields the file left out their defaults.
+func (x *ExportConfig) fillMissing(d ExportConfig) {
+	if x.PageSize == "" {
+		x.PageSize = d.PageSize
+	}
+	if x.Images == "" {
+		x.Images = d.Images
+	}
+}
+
 // AppConfig is the whole configuration.
 type AppConfig struct {
 	Basic     BasicConfig     `json:"basic"`
 	Editor    EditorConfig    `json:"editor"`
 	Preview   PreviewConfig   `json:"preview"`
 	Highlight HighlightConfig `json:"highlight"`
+	Export    ExportConfig    `json:"export"`
 	Ai        AiConfig        `json:"ai"`
 }
 
@@ -165,7 +193,11 @@ func Default() AppConfig {
 			DebugScrollSync:   false,
 		},
 		Highlight: HighlightConfig{Theme: HighlightXink},
-		Ai:        DefaultAi(),
+		Export: ExportConfig{
+			PageSize: ExportPageA4,
+			Images:   ExportImagesEmbed,
+		},
+		Ai: DefaultAi(),
 	}
 }
 
@@ -233,6 +265,7 @@ type fileConfig struct {
 	Editor    *EditorConfig    `json:"editor"`
 	Preview   *PreviewConfig   `json:"preview"`
 	Highlight *HighlightConfig `json:"highlight"`
+	Export    *ExportConfig    `json:"export"`
 	Ai        *AiConfig        `json:"ai"`
 }
 
@@ -258,6 +291,10 @@ func fromFile(f fileConfig) AppConfig {
 		if cfg.Highlight.Theme == "" {
 			cfg.Highlight.Theme = d.Highlight.Theme
 		}
+	}
+	if f.Export != nil {
+		cfg.Export = *f.Export
+		cfg.Export.fillMissing(d.Export)
 	}
 	if f.Ai != nil {
 		cfg.Ai = *f.Ai
@@ -441,6 +478,15 @@ func (c *AppConfig) Sanitize() {
 	if !oneOf(c.Highlight.Theme, HighlightXink, HighlightOcean,
 		HighlightSolarized) {
 		c.Highlight.Theme = HighlightXink
+	}
+
+	x := &c.Export
+	if !oneOf(x.PageSize, ExportPageA4, ExportPageLetter) {
+		x.PageSize = ExportPageA4
+	}
+	if !oneOf(x.Images, ExportImagesEmbed, ExportImagesCopy,
+		ExportImagesNone) {
+		x.Images = ExportImagesEmbed
 	}
 
 	c.Ai.Sanitize()

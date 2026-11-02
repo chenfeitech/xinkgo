@@ -128,13 +128,14 @@ Makefile             开发入口（构建/运行/测试/调试）
 **依赖方向只允许单向**，不允许反向或循环：
 
 ```
-cmd/xinkgo  →  internal/app  →  internal/{view,config,logging,sysinfo}
+cmd/xinkgo  →  internal/app  →  internal/{view,config,logging,sysinfo,export}
                                     └── internal/view → internal/sysinfo
                                     └── internal/logging → internal/config
+                                    └── internal/export → internal/theme
 ```
 
-- `internal/view`、`internal/config`、`internal/sysinfo` **不得** import
-  `internal/app`：它们必须能在没有运行中的应用时被测试。
+- `internal/view`、`internal/config`、`internal/sysinfo`、`internal/export`
+  **不得** import `internal/app`：它们必须能在没有运行中的应用时被测试。
 - `internal/app` 是唯一知道应用生命周期（启动、退出、窗口、菜单）的包。
 - 新增 `internal/xxx` 包时同步更新本表与 [PROJECT.md](PROJECT.md) 的目录树。
 

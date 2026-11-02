@@ -6,6 +6,7 @@ import (
 	"github.com/helightxu/xinkgo/internal/locale"
 	xmd "github.com/helightxu/xinkgo/internal/markdown"
 	"github.com/helightxu/xinkgo/internal/vault"
+	"github.com/helightxu/xinkgo/internal/view"
 )
 
 // mainMenu is the application's menu bar: the platform's own menus where
@@ -129,6 +130,20 @@ func mainMenu(bound []keymap.Resolved, vaults vault.Registry) *mygo.Menu {
 						current.ws.ToggleAI()
 					}
 				}},
+			{Label: locale.MenuExportAs(), Submenu: []*mygo.MenuItem{
+				{Label: locale.MenuExportPage(),
+					Click: func(*mygo.MenuItem, *mygo.Window) {
+						if current != nil {
+							current.exportNote(view.ExportPage)
+						}
+					}},
+				{Label: locale.MenuExportPdf(),
+					Click: func(*mygo.MenuItem, *mygo.Window) {
+						if current != nil {
+							current.exportNote(view.ExportPDF)
+						}
+					}},
+			}},
 			{Label: locale.MenuSettings(), Accelerator: fileSettingsKey,
 				Hidden: isMacOS(), Click: openSettings},
 			{Label: locale.MenuLibraryTasks(),

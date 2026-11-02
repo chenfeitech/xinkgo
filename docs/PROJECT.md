@@ -60,6 +60,7 @@ xinkgo/
 │   │   └── platform_darwin.go / platform_other.go   平台差异（退出行为）
 │   ├── view/                窗口界面：由状态绘制（home.go + home_test.go）
 │   ├── config/              用户配置：读 / 写 / 校验（config.json）
+│   ├── export/              导出：把笔记写成自成一页的 HTML（PDF 由它打印）
 │   ├── theme/               配色方案表：每套方案明暗两套取色（纯数据 + ui）
 │   ├── logging/             slog 初始化（开发到终端，安装版到文件）
 │   └── sysinfo/             版本与运行环境信息（纯数据）
@@ -83,13 +84,15 @@ xinkgo/
 **分层与依赖方向**（只能单向，不得反向或循环）：
 
 ```
-cmd/xinkgo  →  internal/app  →  internal/{view, config, logging, sysinfo, theme}
+cmd/xinkgo  →  internal/app  →  internal/{view, config, logging, sysinfo,
+                                            export, theme}
                                    view   → sysinfo, theme
                                    logging → config
                                    config  → theme
+                                   export  → theme
 ```
 
-- `internal/view`、`config`、`sysinfo` **不 import `internal/app`**：它们必须在
+- `internal/view`、`config`、`sysinfo`、`export` **不 import `internal/app`**：它们必须在
   没有运行中的应用时可测。
 - `internal/app` 是唯一知道应用生命周期的包（启动、退出、窗口、菜单、IPC）。
 - 平台差异用文件名后缀（`xxx_windows.go`），不用运行时 `switch`。

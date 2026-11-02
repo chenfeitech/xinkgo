@@ -174,6 +174,36 @@ func (msgs Messages) MenuSnapshots() string {
 	return Catalog.Format(msgs.locale, "menuSnapshots", nil)
 }
 
+// MenuExportAs says "Export as…"
+// in the language the app shows.
+func MenuExportAs() string { return In(i18n.Locale()).MenuExportAs() }
+
+// MenuExportAs says "Export as…"
+// in the language of msgs.
+func (msgs Messages) MenuExportAs() string {
+	return Catalog.Format(msgs.locale, "menuExportAs", nil)
+}
+
+// MenuExportPage says "A page of HTML…"
+// in the language the app shows.
+func MenuExportPage() string { return In(i18n.Locale()).MenuExportPage() }
+
+// MenuExportPage says "A page of HTML…"
+// in the language of msgs.
+func (msgs Messages) MenuExportPage() string {
+	return Catalog.Format(msgs.locale, "menuExportPage", nil)
+}
+
+// MenuExportPdf says "A PDF…"
+// in the language the app shows.
+func MenuExportPdf() string { return In(i18n.Locale()).MenuExportPdf() }
+
+// MenuExportPdf says "A PDF…"
+// in the language of msgs.
+func (msgs Messages) MenuExportPdf() string {
+	return Catalog.Format(msgs.locale, "menuExportPdf", nil)
+}
+
 // MenuSave says "Save"
 // in the language the app shows.
 func MenuSave() string { return In(i18n.Locale()).MenuSave() }
@@ -422,6 +452,166 @@ func SettingsTabPreviewNote() string { return In(i18n.Locale()).SettingsTabPrevi
 // in the language of msgs.
 func (msgs Messages) SettingsTabPreviewNote() string {
 	return Catalog.Format(msgs.locale, "settingsTabPreviewNote", nil)
+}
+
+// GroupExport says "Export"
+// in the language the app shows.
+func GroupExport() string { return In(i18n.Locale()).GroupExport() }
+
+// GroupExport says "Export"
+// in the language of msgs.
+func (msgs Messages) GroupExport() string {
+	return Catalog.Format(msgs.locale, "groupExport", nil)
+}
+
+// ExportPageSize says "Sheet of paper"
+// in the language the app shows.
+func ExportPageSize() string { return In(i18n.Locale()).ExportPageSize() }
+
+// ExportPageSize says "Sheet of paper"
+// in the language of msgs.
+func (msgs Messages) ExportPageSize() string {
+	return Catalog.Format(msgs.locale, "exportPageSize", nil)
+}
+
+// ExportPageSizeNote says "What a note is written out on"
+// in the language the app shows.
+func ExportPageSizeNote() string { return In(i18n.Locale()).ExportPageSizeNote() }
+
+// ExportPageSizeNote says "What a note is written out on"
+// in the language of msgs.
+func (msgs Messages) ExportPageSizeNote() string {
+	return Catalog.Format(msgs.locale, "exportPageSizeNote", nil)
+}
+
+// ExportPageA4 says "A4"
+// in the language the app shows.
+func ExportPageA4() string { return In(i18n.Locale()).ExportPageA4() }
+
+// ExportPageA4 says "A4"
+// in the language of msgs.
+func (msgs Messages) ExportPageA4() string {
+	return Catalog.Format(msgs.locale, "exportPageA4", nil)
+}
+
+// ExportPageLetter says "Letter"
+// in the language the app shows.
+func ExportPageLetter() string { return In(i18n.Locale()).ExportPageLetter() }
+
+// ExportPageLetter says "Letter"
+// in the language of msgs.
+func (msgs Messages) ExportPageLetter() string {
+	return Catalog.Format(msgs.locale, "exportPageLetter", nil)
+}
+
+// ExportImages says "Pictures"
+// in the language the app shows.
+func ExportImages() string { return In(i18n.Locale()).ExportImages() }
+
+// ExportImages says "Pictures"
+// in the language of msgs.
+func (msgs Messages) ExportImages() string {
+	return Catalog.Format(msgs.locale, "exportImages", nil)
+}
+
+// ExportImagesNote says "Written into the page, put beside it, or left out"
+// in the language the app shows.
+func ExportImagesNote() string { return In(i18n.Locale()).ExportImagesNote() }
+
+// ExportImagesNote says "Written into the page, put beside it, or left out"
+// in the language of msgs.
+func (msgs Messages) ExportImagesNote() string {
+	return Catalog.Format(msgs.locale, "exportImagesNote", nil)
+}
+
+// ExportImagesEmbed says "In the page"
+// in the language the app shows.
+func ExportImagesEmbed() string { return In(i18n.Locale()).ExportImagesEmbed() }
+
+// ExportImagesEmbed says "In the page"
+// in the language of msgs.
+func (msgs Messages) ExportImagesEmbed() string {
+	return Catalog.Format(msgs.locale, "exportImagesEmbed", nil)
+}
+
+// ExportImagesCopy says "Beside the page"
+// in the language the app shows.
+func ExportImagesCopy() string { return In(i18n.Locale()).ExportImagesCopy() }
+
+// ExportImagesCopy says "Beside the page"
+// in the language of msgs.
+func (msgs Messages) ExportImagesCopy() string {
+	return Catalog.Format(msgs.locale, "exportImagesCopy", nil)
+}
+
+// ExportImagesNone says "Left out"
+// in the language the app shows.
+func ExportImagesNone() string { return In(i18n.Locale()).ExportImagesNone() }
+
+// ExportImagesNone says "Left out"
+// in the language of msgs.
+func (msgs Messages) ExportImagesNone() string {
+	return Catalog.Format(msgs.locale, "exportImagesNone", nil)
+}
+
+// PreviewExport says "Export"
+// in the language the app shows.
+func PreviewExport() string { return In(i18n.Locale()).PreviewExport() }
+
+// PreviewExport says "Export"
+// in the language of msgs.
+func (msgs Messages) PreviewExport() string {
+	return Catalog.Format(msgs.locale, "previewExport", nil)
+}
+
+// PreviewExportLabel says "Write this note out as a page of HTML, or as a PDF"
+// in the language the app shows.
+func PreviewExportLabel() string { return In(i18n.Locale()).PreviewExportLabel() }
+
+// PreviewExportLabel says "Write this note out as a page of HTML, or as a PDF"
+// in the language of msgs.
+func (msgs Messages) PreviewExportLabel() string {
+	return Catalog.Format(msgs.locale, "previewExportLabel", nil)
+}
+
+// SayExportWritten says "written out to {name}"
+// in the language the app shows.
+func SayExportWritten(name string) string { return In(i18n.Locale()).SayExportWritten(name) }
+
+// SayExportWritten says "written out to {name}"
+// in the language of msgs.
+func (msgs Messages) SayExportWritten(name string) string {
+	return Catalog.Format(msgs.locale, "sayExportWritten", map[string]any{"name": name})
+}
+
+// SayExportFailed says "it could not be written out"
+// in the language the app shows.
+func SayExportFailed() string { return In(i18n.Locale()).SayExportFailed() }
+
+// SayExportFailed says "it could not be written out"
+// in the language of msgs.
+func (msgs Messages) SayExportFailed() string {
+	return Catalog.Format(msgs.locale, "sayExportFailed", nil)
+}
+
+// SayExportNoNote says "no note is open to write out"
+// in the language the app shows.
+func SayExportNoNote() string { return In(i18n.Locale()).SayExportNoNote() }
+
+// SayExportNoNote says "no note is open to write out"
+// in the language of msgs.
+func (msgs Messages) SayExportNoNote() string {
+	return Catalog.Format(msgs.locale, "sayExportNoNote", nil)
+}
+
+// SayExportNoWebView says "a PDF needs the webview of this machine, which is not there"
+// in the language the app shows.
+func SayExportNoWebView() string { return In(i18n.Locale()).SayExportNoWebView() }
+
+// SayExportNoWebView says "a PDF needs the webview of this machine, which is not there"
+// in the language of msgs.
+func (msgs Messages) SayExportNoWebView() string {
+	return Catalog.Format(msgs.locale, "sayExportNoWebView", nil)
 }
 
 // SettingsTabAi says "AI"
@@ -1152,6 +1342,26 @@ func DialogOpenVault() string { return In(i18n.Locale()).DialogOpenVault() }
 // in the language of msgs.
 func (msgs Messages) DialogOpenVault() string {
 	return Catalog.Format(msgs.locale, "dialogOpenVault", nil)
+}
+
+// DialogSavePage says "Write the note out as a page"
+// in the language the app shows.
+func DialogSavePage() string { return In(i18n.Locale()).DialogSavePage() }
+
+// DialogSavePage says "Write the note out as a page"
+// in the language of msgs.
+func (msgs Messages) DialogSavePage() string {
+	return Catalog.Format(msgs.locale, "dialogSavePage", nil)
+}
+
+// DialogSavePdf says "Write the note out as a PDF"
+// in the language the app shows.
+func DialogSavePdf() string { return In(i18n.Locale()).DialogSavePdf() }
+
+// DialogSavePdf says "Write the note out as a PDF"
+// in the language of msgs.
+func (msgs Messages) DialogSavePdf() string {
+	return Catalog.Format(msgs.locale, "dialogSavePdf", nil)
 }
 
 // DialogSaveSettings says "Save the settings"
