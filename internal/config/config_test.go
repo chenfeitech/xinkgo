@@ -368,3 +368,63 @@ func TestModelEntry_cloneKeepsANameOfItsOwn(t *testing.T) {
 		t.Fatalf("label = %q, want the one the user wrote", got)
 	}
 }
+
+// TestSanitize_modelsWithoutASourceAreToldApart checks that models that
+// stood in the settings before the two kinds were told apart are put on
+// the right side of the line: one that speaks to a local Ollama and names
+// no address of its own is one of the machine's, and the rest are the
+// user's own.
+func TestSanitize_modelsWithoutASourceAreToldApart(t *testing.T) {
+	cfg := Default()
+	cfg.Ai.Models = []ModelEntry{
+		{ID: "local", Kind: ModelOllama, Enabled: true},
+		{ID: "far", Kind: ModelOllama, BaseURL: "http://elsewhere:11434",
+			Enabled: true},
+		{ID: "cloud", Kind: ModelOpenAICompatible, Enabled: true},
+	}
+	cfg.Sanitize()
+	want := map[string]string{
+		"local": ModelSourceOllama,
+		"far":   ModelSourceCustom,
+		"cloud": ModelSourceCustom,
+	}
+	if len(cfg.Ai.Models) != 3 {
+		t.Fatalf("models = %d, want three", len(cfg.Ai.Models))
+	}
+	for _, m := range cfg.Ai.Models {
+		if m.Source != want[m.ID] {
+			t.Errorf("%q source = %q, want %q", m.ID, m.Source,
+				want[m.ID])
+		}
+	}
+	// What the user said is what is believed, and is not overwritten.
+	cfg.Ai.Models[0].Source = ModelSourceCustom
+	cfg.Sanitize()
+	if cfg.Ai.Models[0].Source != ModelSourceCustom {
+		t.Fatalf("source = %q, want the user's kept",
+			cfg.Ai.Models[0].Source)
+	}
+}
+
+// TestSanitize_aKeyIsEitherWrittenOutOrNamed checks the two places a key
+// may come from: one written out here, or one the machine keeps under a
+// name. There is no third, and a key that cannot be found is worse than
+// one that was written out.
+func TestSanitize_aKeyIsEitherWrittenOutOrNamed(t *testing.T) {
+	cfg := Default()
+	cfg.Ai.Models = []ModelEntry{
+		{ID: "a", Enabled: true},
+		{ID: "b", Enabled: true, ApiKeySource: KeyKeychain},
+		{ID: "c", Enabled: true, ApiKeySource: KeyEnv},
+	}
+	cfg.Sanitize()
+	want := map[string]string{
+		"a": KeyPlain, "b": KeyPlain, "c": KeyEnv,
+	}
+	for _, m := range cfg.Ai.Models {
+		if m.ApiKeySource != want[m.ID] {
+			t.Errorf("%q key from = %q, want %q", m.ID,
+				m.ApiKeySource, want[m.ID])
+		}
+	}
+}

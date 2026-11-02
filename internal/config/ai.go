@@ -4,8 +4,12 @@ import "strings"
 
 // Model kinds, and where a model's key comes from.
 const (
-	ModelOllama            = "ollama"
-	ModelOpenAICompatible  = "open_ai_compatible"
+	ModelOllama           = "ollama"
+	ModelOpenAICompatible = "open_ai_compatible"
+	// Where a model came from: one the machine was asked for and gave
+	// back, or one the user wrote in by hand.
+	ModelSourceOllama      = "ollama"
+	ModelSourceCustom      = "custom"
 	KeyKeychain            = "keychain"
 	KeyEnv                 = "env"
 	KeyPlain               = "plain"
@@ -79,7 +83,13 @@ type AiRouteConfig struct {
 
 // ModelEntry is one model the user can pick.
 type ModelEntry struct {
-	ID                 string        `json:"id"`
+	ID string `json:"id"`
+	// Source is where it came from: ModelSourceOllama for one found on
+	// the machine by asking the local Ollama what it holds, and
+	// ModelSourceCustom for one the user wrote in by hand. The two are
+	// kept apart in the settings window: the first is asked for, the
+	// second is filled in.
+	Source             string        `json:"source"`
 	Kind               string        `json:"kind"`
 	Label              string        `json:"label"`
 	BaseURL            string        `json:"base_url"`
@@ -92,6 +102,13 @@ type ModelEntry struct {
 	ToolsEnabled       bool          `json:"tools_enabled"`
 	Enabled            bool          `json:"enabled"`
 	LastCheckedMs      uint64        `json:"last_checked_ms"`
+}
+
+// FromOllama is whether it was found on the machine by asking the local
+// Ollama what it holds, rather than written in by hand: the two are kept
+// apart in the settings window, and only the first is asked for.
+func (m ModelEntry) FromOllama() bool {
+	return m.Source == ModelSourceOllama
 }
 
 // Clone is the same model under another name.
@@ -295,8 +312,23 @@ func (a *AiConfig) Sanitize() {
 		if !oneOf(m.Kind, ModelOllama, ModelOpenAICompatible) {
 			m.Kind = ModelOllama
 		}
-		if !oneOf(m.ApiKeySource, KeyKeychain, KeyEnv, KeyPlain) {
-			m.ApiKeySource = KeyKeychain
+		// A key is either written out or named after a name the
+		// machine keeps one under: there is no third place it is
+		// taken from, and a key that cannot be found is worse than
+		// one that was written out.
+		if !oneOf(m.ApiKeySource, KeyEnv, KeyPlain) {
+			m.ApiKeySource = KeyPlain
+		}
+		// A model that stood in the settings before the two kinds
+		// were told apart: one that speaks to a local Ollama and
+		// names no address of its own is one of the local ones.
+		if !oneOf(m.Source, ModelSourceOllama, ModelSourceCustom) {
+			if m.Kind == ModelOllama &&
+				strings.TrimSpace(m.BaseURL) == "" {
+				m.Source = ModelSourceOllama
+			} else {
+				m.Source = ModelSourceCustom
+			}
 		}
 		m.sanitizeParams(a.Ollama.NumCtx)
 		known[m.ID] = true
