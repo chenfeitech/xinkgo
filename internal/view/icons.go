@@ -28,6 +28,15 @@ var (
 	iconCodeBlock = svgIcon(`<path d="m10 9-3 3 3 3"/><path d="m14 15 3-3-3-3"/><rect x="3" y="3" width="18" height="18" rx="2"/>`)
 	iconLink      = svgIcon(`<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>`)
 	iconRule      = svgIcon(`<path d="M5 12h14"/>`)
+	// The two panes given the whole window: a frame with the pane that
+	// takes it, and an arrow saying which way it grows. Their shapes are
+	// Lucide's "maximize" and "minimize", turned to say which pane.
+	iconZoomEditor  = svgIcon(`<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M13 4v16"/><path d="m10 9-4 3 4 3"/>`)
+	iconZoomPreview = svgIcon(`<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M11 4v16"/><path d="m14 9 4 3-4 3"/>`)
+	// The way back: a pane given the whole window gives it up again,
+	// which is the same picture as Lucide's "minimize".
+	iconZoomBack = svgIcon(`<path d="M4 14h6v6"/><path d="M20 10h-6V4"/><path d="M14 10l7-7"/><path d="M3 21l7-7"/>`)
+
 	// A spark, as the others are: the picture of what a model is asked
 	// for, which is not a talk but a favour. Lucide's "sparkles".
 	iconAi = svgIcon(`<path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/>`)
