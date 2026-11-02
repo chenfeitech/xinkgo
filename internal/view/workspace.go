@@ -53,6 +53,12 @@ const (
 	// zoomPreview is the preview's, for reading: the note's own pane is
 	// not drawn, and the preview is as wide as the window.
 	zoomPreview
+	// zoomPreviewSpread is the preview's over the note alone: the
+	// preview reaches left as far as the tree, and the tree keeps the
+	// room it was given, so that another note may be chosen in it while
+	// one is read. It is what the button in the preview's own corner
+	// gives, and not the whole window, which is the rail's button.
+	zoomPreviewSpread
 )
 
 // Workspace is the window: the vault's tree on the left, the notes in the
@@ -278,6 +284,19 @@ func (w *Workspace) View(c *ui.Context) {
 				w.center(c)
 			case zoomPreview:
 				w.previewPanel(c, 0)
+			case zoomPreviewSpread:
+				// The preview reaches over the note to the tree, which
+				// keeps its place: what is read is read beside the
+				// tree, and not over it, so that the note to read next
+				// may be chosen without giving the room back first.
+				// The note's own pane is not drawn at all, and, as when
+				// the note takes the window, the widths are kept, so
+				// that everything comes back as it was.
+				if w.Layout.Left > 0 {
+					w.sidebar(c)
+					w.divider(c, "divider-tree", &w.Layout.Left, 1)
+				}
+				w.previewPanel(c, 0)
 			default:
 				// A panel of no width is one the user closed: it is
 				// drawn with no line to drag it back by.
@@ -320,8 +339,13 @@ func (w *Workspace) SetTreeShown(shown bool) {
 	w.setShown(shown, &w.Layout.Left, &w.Layout.LastLeft)
 }
 
-// SetPreviewShown opens the preview, or shuts it.
+// SetPreviewShown opens the preview, or shuts it. One that was spread
+// over the note gives the note its room back as it is shut: there is no
+// pane left to spread.
 func (w *Workspace) SetPreviewShown(shown bool) {
+	if !shown && w.zoom == zoomPreviewSpread {
+		w.zoom = zoomNone
+	}
 	w.setShown(shown, &w.Layout.Right, &w.Layout.LastRight)
 }
 
@@ -683,21 +707,24 @@ func (w *Workspace) toolbar(c *ui.Context) {
 	})
 }
 
-// zoomButton is one button that gives a pane the whole window: the note's
-// at the end of the Markdown toolbar, the preview's at the top of its
-// pane. Pressed again it gives the room back, and while the pane has the
-// window the button stands lit, as the way to the model does.
+// zoomButton is one button that gives a pane room that is not its own:
+// the note's at the end of the Markdown toolbar, the preview's on the
+// rail, and the preview's over the note in the corner of the preview's
+// own pane. Pressed again it gives the room back, and while the pane has
+// it the button stands lit, as the way to the model does. back is what
+// the button says when that is what the press will do.
 func (w *Workspace) zoomButton(
-	c *ui.Context, key string, pane zoom, icon *ui.SVG, label, tip string,
+	c *ui.Context, key string, pane zoom, icon *ui.SVG,
+	label, tip, back string,
 ) {
-	// A pane that has the window is one this button takes it from, and
-	// so it says the way back: the picture of a pane giving up the room
-	// it took, and what the press will do.
+	// A pane that has the room is one this button takes it from, and so
+	// it says the way back: the picture of a pane giving up the room it
+	// took, and what the press will do.
 	if w.zoom == pane {
 		icon = iconZoomBack
 	}
 	button := ui.Button(c.Key(key), "").
-		Label(label).Tooltip(w.zoomTip(pane, tip)).
+		Label(label).Tooltip(w.zoomTip(pane, tip, back)).
 		Padding(4, 5).
 		Children(func() {
 			ui.Icon(c, icon).Size(iconSize, iconSize)
@@ -712,9 +739,9 @@ func (w *Workspace) zoomButton(
 
 // zoomTip is what the button says when the pointer rests on it: what the
 // press will do, which is the room given back when the pane has it.
-func (w *Workspace) zoomTip(pane zoom, tip string) string {
+func (w *Workspace) zoomTip(pane zoom, tip, back string) string {
 	if w.zoom == pane {
-		return locale.ZoomBackTooltip()
+		return back
 	}
 	return tip
 }
@@ -929,8 +956,13 @@ func (w *Workspace) previewPanel(c *ui.Context, width float32) {
 		pane.Grow(1)
 	}
 	pane.Children(func() {
-		if width <= 0 {
+		// A preview given the whole window keeps the bar that is its
+		// way back. One in a pane of its own — spread over the note,
+		// or not — keeps the button of its corner instead.
+		if w.zoom == zoomPreview {
 			w.previewBar(c)
+		} else {
+			w.previewHead(c)
 		}
 		n := w.Tabs.ActiveNote()
 		if n == nil {
@@ -1019,19 +1051,41 @@ func (w *Workspace) ExportText() (path, text string, ok bool) {
 	return n.Path, w.previewText(n), true
 }
 
+// previewHead is the row at the top of the preview's own pane: the button
+// that spreads the preview over the note, which is the same button that
+// gives the room back once it has been spread. It stands in the corner
+// the note's toolbar is not in, and the room it takes is the pane's own
+// top, so that what is read begins under it and is never under the
+// button itself. What the window shows and does not read — a picture, a
+// PDF — is spread as much as a note is: it is the same pane, read wider.
+func (w *Workspace) previewHead(c *ui.Context) {
+	if w.Tabs.ActiveNote() == nil {
+		return
+	}
+	ui.Row(c).FillWidth().AlignItems(ui.Center).Gap(4).
+		Padding(2, 6).Children(func() {
+		w.zoomButton(c, "preview-spread", zoomPreviewSpread,
+			iconPreviewSpread, locale.ZoomPreviewSpread(),
+			locale.ZoomPreviewSpreadTooltip(),
+			locale.ZoomPreviewSpreadBackTooltip())
+		ui.Box(c).Grow(1)
+	})
+}
+
 // previewBar is the row at the top of the preview when the preview has
 // the whole window: the button that takes it away again, which is the way
 // out of a pane the note's toolbar is not drawn in. It stands at the
 // pane's own end, clear of the rail, whose buttons hang over it. A
-// preview in its own pane has no such row: what a panel shows begins at
-// its top, and a bar above it would push the note down.
+// preview in a pane of its own has the button of its corner there
+// instead, which is smaller and stands at the other end.
 func (w *Workspace) previewBar(c *ui.Context) {
 	ui.Row(c).FillWidth().AlignItems(ui.Center).Gap(4).
 		Padding(4, 6).PaddingEnd(w.railBand() + 6).
 		Children(func() {
 			ui.Box(c).Grow(1)
 			w.zoomButton(c, "zoom-back", zoomPreview, iconZoomPreview,
-				locale.ZoomBack(), locale.ZoomBackTooltip())
+				locale.ZoomBack(), locale.ZoomBackTooltip(),
+				locale.ZoomBackTooltip())
 		})
 }
 

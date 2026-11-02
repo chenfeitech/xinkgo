@@ -33,6 +33,10 @@ var (
 	// Lucide's "maximize" and "minimize", turned to say which pane.
 	iconZoomEditor  = svgIcon(`<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M13 4v16"/><path d="m10 9-4 3 4 3"/>`)
 	iconZoomPreview = svgIcon(`<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M11 4v16"/><path d="m14 9 4 3-4 3"/>`)
+	// The preview spread over the note: a frame whose right pane is the
+	// preview, and an arrow from it pointing left, into the room the
+	// note's pane gives up.
+	iconPreviewSpread = svgIcon(`<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/><path d="m12 8-4 4 4 4"/>`)
 	// The way back: a pane given the whole window gives it up again,
 	// which is the same picture as Lucide's "minimize".
 	iconZoomBack = svgIcon(`<path d="M4 14h6v6"/><path d="M20 10h-6V4"/><path d="M14 10l7-7"/><path d="M3 21l7-7"/>`)

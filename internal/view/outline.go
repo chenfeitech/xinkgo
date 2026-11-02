@@ -73,9 +73,11 @@ func (w *Workspace) rail(c *ui.Context) {
 			// costs the note none of the room of its toolbar.
 			ui.Box(c).Height(railGap * 2)
 			w.zoomButton(c, "zoom-editor", zoomEditor, iconZoomEditor,
-				locale.ZoomEditor(), locale.ZoomEditorTooltip())
+				locale.ZoomEditor(), locale.ZoomEditorTooltip(),
+				locale.ZoomBackTooltip())
 			w.zoomButton(c, "zoom-preview", zoomPreview, iconZoomPreview,
-				locale.ZoomPreview(), locale.ZoomPreviewTooltip())
+				locale.ZoomPreview(), locale.ZoomPreviewTooltip(),
+				locale.ZoomBackTooltip())
 		})
 	})
 }

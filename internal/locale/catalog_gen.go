@@ -2210,6 +2210,36 @@ func (msgs Messages) ZoomBackTooltip() string {
 	return Catalog.Format(msgs.locale, "zoomBackTooltip", nil)
 }
 
+// ZoomPreviewSpread says "Spread the preview over the note"
+// in the language the app shows.
+func ZoomPreviewSpread() string { return In(i18n.Locale()).ZoomPreviewSpread() }
+
+// ZoomPreviewSpread says "Spread the preview over the note"
+// in the language of msgs.
+func (msgs Messages) ZoomPreviewSpread() string {
+	return Catalog.Format(msgs.locale, "zoomPreviewSpread", nil)
+}
+
+// ZoomPreviewSpreadTooltip says "Spread the preview over the note: as far as the tree, which keeps its place"
+// in the language the app shows.
+func ZoomPreviewSpreadTooltip() string { return In(i18n.Locale()).ZoomPreviewSpreadTooltip() }
+
+// ZoomPreviewSpreadTooltip says "Spread the preview over the note: as far as the tree, which keeps its place"
+// in the language of msgs.
+func (msgs Messages) ZoomPreviewSpreadTooltip() string {
+	return Catalog.Format(msgs.locale, "zoomPreviewSpreadTooltip", nil)
+}
+
+// ZoomPreviewSpreadBackTooltip says "Give the note its room back, and the preview its pane"
+// in the language the app shows.
+func ZoomPreviewSpreadBackTooltip() string { return In(i18n.Locale()).ZoomPreviewSpreadBackTooltip() }
+
+// ZoomPreviewSpreadBackTooltip says "Give the note its room back, and the preview its pane"
+// in the language of msgs.
+func (msgs Messages) ZoomPreviewSpreadBackTooltip() string {
+	return Catalog.Format(msgs.locale, "zoomPreviewSpreadBackTooltip", nil)
+}
+
 // OutlineNoHeadings says "no headings in this note"
 // in the language the app shows.
 func OutlineNoHeadings() string { return In(i18n.Locale()).OutlineNoHeadings() }
@@ -3434,11 +3464,11 @@ func (msgs Messages) AiQuickGroup() string {
 	return Catalog.Format(msgs.locale, "aiQuickGroup", nil)
 }
 
-// AiQuickGroupNote says "A word stands for something you ask a model to do to a note often. They stand in a row above the place to ask: press one, or type / and then the word."
+// AiQuickGroupNote says "A word stands for something you ask a model to do to a note often. They stand in a row above the place to ask: press …"
 // in the language the app shows.
 func AiQuickGroupNote() string { return In(i18n.Locale()).AiQuickGroupNote() }
 
-// AiQuickGroupNote says "A word stands for something you ask a model to do to a note often. They stand in a row above the place to ask: press one, or type / and then the word."
+// AiQuickGroupNote says "A word stands for something you ask a model to do to a note often. They stand in a row above the place to ask: press …"
 // in the language of msgs.
 func (msgs Messages) AiQuickGroupNote() string {
 	return Catalog.Format(msgs.locale, "aiQuickGroupNote", nil)

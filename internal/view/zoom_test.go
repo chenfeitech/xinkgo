@@ -147,11 +147,175 @@ func TestZoom_onePaneAtATime(t *testing.T) {
 func TestZoom_theButtonSaysWhatItWillDo(t *testing.T) {
 	w, _ := zoomTester(t, 900)
 	label := locale.ZoomEditorTooltip()
-	if got := w.zoomTip(zoomEditor, label); got != label {
+	if got := w.zoomTip(zoomEditor, label,
+		locale.ZoomBackTooltip()); got != label {
 		t.Fatalf("tip = %q, want %q", got, label)
 	}
 	w.setZoom(zoomEditor)
-	if got := w.zoomTip(zoomEditor, label); got != locale.ZoomBackTooltip() {
+	back := locale.ZoomBackTooltip()
+	if got := w.zoomTip(zoomEditor, label, back); got != back {
 		t.Fatalf("tip = %q, want the way back", got)
+	}
+}
+
+// spreadTester is a window with one note open in it, the tree on its left
+// and the preview on its right, drawn as wide as told. The note is written
+// so that what the note says and what the preview reads of it are two
+// different things to look for.
+func spreadTester(t *testing.T, width int) (*Workspace, *ui.Tester) {
+	t.Helper()
+	_, a, _ := vaultWithNotes(t)
+	w := NewWorkspace(config.Default())
+	w.Tree.SetRoot(treeRoot())
+	n, err := w.Tabs.Open(a)
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	n.Editor.Buffer.Set("# head\n\nsome words\n")
+	return w, ui.NewTester(w.View, width, 320)
+}
+
+// TestZoom_thePreviewSpreadsOverTheNote checks the button in the corner of
+// the preview's pane: the preview reaches left over the note, and the tree
+// keeps the room it was given, so that what is read is read beside the
+// tree and not over it.
+func TestZoom_thePreviewSpreadsOverTheNote(t *testing.T) {
+	w, tt := spreadTester(t, 1100)
+	before := w.Layout
+	read, ok := tt.Find("head")
+	if !ok {
+		t.Fatal("the note is not read in the preview")
+	}
+	if err := tt.Click(locale.ZoomPreviewSpread()); err != nil {
+		t.Fatalf("Click: %v", err)
+	}
+	if w.zoom != zoomPreviewSpread {
+		t.Fatalf("zoom = %v, want the preview spread over the note", w.zoom)
+	}
+	// What the panels were given is kept here too: the preview is given
+	// the note's room over it, and not instead of its own.
+	if w.Layout != before {
+		t.Fatalf("layout = %+v, want the %+v it was", w.Layout, before)
+	}
+	// The note is not drawn: what is read stands over the room it had.
+	if _, ok := tt.Find(editorLabel); ok {
+		t.Error("the note is still drawn, want it standing down")
+	}
+	// The tree is the point of spreading rather than taking the window:
+	// it keeps its place, so that the note to read next is chosen in it
+	// while this one is read.
+	if _, ok := tt.Find("a.md"); !ok {
+		t.Error("the tree is not drawn, want it where it stood")
+	}
+	// What is read begins beside the tree now, and not at the window's
+	// own end.
+	spread, ok := tt.Find("head")
+	if !ok {
+		t.Fatal("the note is not read in the preview")
+	}
+	t.Logf("read at %v, spread at %v", read.X, spread.X)
+	if spread.X >= read.X {
+		t.Errorf("what is read begins at %v, want it left of the %v it was",
+			spread.X, read.X)
+	}
+	want := float32(w.Layout.Left) + dividerGrip + previewPadX
+	if d := spread.X - want; d < -8 || d > 8 {
+		t.Errorf("what is read begins at %v, want it beside the tree at %v",
+			spread.X, want)
+	}
+}
+
+// TestZoom_theSpreadButtonGivesTheRoomBack checks that the button of the
+// corner is the way out of a spread preview, as the buttons of the rail
+// are: pressed again, the note comes back as it was.
+func TestZoom_theSpreadButtonGivesTheRoomBack(t *testing.T) {
+	w, tt := spreadTester(t, 1100)
+	before := w.Layout
+	for i := 0; i < 2; i++ {
+		if err := tt.Click(locale.ZoomPreviewSpread()); err != nil {
+			t.Fatalf("Click: %v", err)
+		}
+	}
+	if w.zoom != zoomNone {
+		t.Fatalf("zoom = %v, want the panels as they were", w.zoom)
+	}
+	if w.Layout != before {
+		t.Fatalf("layout = %+v, want the %+v it was", w.Layout, before)
+	}
+	if _, ok := tt.Find(editorLabel); !ok {
+		t.Error("the note did not come back")
+	}
+	if _, ok := tt.Find("head"); !ok {
+		t.Error("the preview did not come back")
+	}
+}
+
+// TestZoom_theCornerButtonStandsWithItsPane checks that the button of the
+// corner is drawn with the pane it spreads, and not without it: not when
+// the preview is shut, and not when the preview has the whole window,
+// which keeps a bar of its own.
+func TestZoom_theCornerButtonStandsWithItsPane(t *testing.T) {
+	w, tt := spreadTester(t, 1100)
+	w.SetPreviewShown(false)
+	tt.Frame()
+	if _, ok := tt.Find(locale.ZoomPreviewSpread()); ok {
+		t.Error("the button is drawn with the preview shut")
+	}
+	w.SetPreviewShown(true)
+	w.setZoom(zoomPreview)
+	tt.Frame()
+	if _, ok := tt.Find(locale.ZoomPreviewSpread()); ok {
+		t.Error("the button of the corner is drawn over the bar of the" +
+			" whole window")
+	}
+	if _, ok := tt.Find(locale.ZoomBack()); !ok {
+		t.Error("the bar of the whole window is not drawn")
+	}
+}
+
+// TestZoom_theSpreadButtonSaysWhatItWillDo checks that the button of the
+// corner says the note's room will be given back once the preview has it,
+// and not that it will be taken again.
+func TestZoom_theSpreadButtonSaysWhatItWillDo(t *testing.T) {
+	w, _ := spreadTester(t, 1100)
+	tip := locale.ZoomPreviewSpreadTooltip()
+	back := locale.ZoomPreviewSpreadBackTooltip()
+	if got := w.zoomTip(zoomPreviewSpread, tip, back); got != tip {
+		t.Fatalf("tip = %q, want %q", got, tip)
+	}
+	w.setZoom(zoomPreviewSpread)
+	if got := w.zoomTip(zoomPreviewSpread, tip, back); got != back {
+		t.Fatalf("tip = %q, want %q", got, back)
+	}
+}
+
+// TestZoom_theSpreadIsOneShapeAtATime checks that spreading the preview
+// and giving the note the whole window cannot both stand: the one takes
+// the room from the other.
+func TestZoom_theSpreadIsOneShapeAtATime(t *testing.T) {
+	w, _ := spreadTester(t, 1100)
+	w.setZoom(zoomPreviewSpread)
+	w.setZoom(zoomEditor)
+	if w.zoom != zoomEditor {
+		t.Fatalf("zoom = %v, want the note, and not both", w.zoom)
+	}
+}
+
+// TestZoom_aSpreadPreviewShutGivesTheRoomBack checks that a preview shut
+// while it is spread over the note does not stay over it: there is no pane
+// left to spread, so the note comes back.
+func TestZoom_aSpreadPreviewShutGivesTheRoomBack(t *testing.T) {
+	w, tt := spreadTester(t, 1100)
+	w.setZoom(zoomPreviewSpread)
+	w.SetPreviewShown(false)
+	tt.Frame()
+	if w.zoom != zoomNone {
+		t.Fatalf("zoom = %v, want the note back", w.zoom)
+	}
+	if _, ok := tt.Find(editorLabel); !ok {
+		t.Error("the note did not come back")
+	}
+	if _, ok := tt.Find("head"); ok {
+		t.Error("the preview is still drawn, want it shut")
 	}
 }
