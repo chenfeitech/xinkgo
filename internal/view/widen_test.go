@@ -1,0 +1,161 @@
+package view
+
+import (
+	"testing"
+
+	"github.com/helightxu/xinkgo/internal/locale"
+)
+
+// TestWiden_theNoteStretchesOverThePreview checks what the button at the
+// end of the tab bar is for: the note is drawn over the preview, out to
+// the window's right edge, and the tree keeps the room it was given.
+func TestWiden_theNoteStretchesOverThePreview(t *testing.T) {
+	const width = 900
+	w, tt := zoomTester(t, width)
+	before := w.Layout
+	ed, ok := tt.Find(editorLabel)
+	if !ok {
+		t.Fatal("the note is not drawn")
+	}
+	if _, ok := tt.Find("head"); !ok {
+		t.Fatal("the note is not read in the preview")
+	}
+	if err := tt.Click(locale.WidenNote()); err != nil {
+		t.Fatalf("Click: %v", err)
+	}
+	tt.Advance(widenAnim.Duration)
+	tt.Frame()
+	if !w.stretched {
+		t.Fatal("the button did not widen the note")
+	}
+	// What the panels were given is kept: the note is stretched over the
+	// preview, and not given its room instead.
+	if w.Layout != before {
+		t.Fatalf("layout = %+v, want the %+v it was", w.Layout, before)
+	}
+	if _, ok := tt.Find("head"); ok {
+		t.Error("the preview is still drawn, want it under the note")
+	}
+	wide, ok := tt.Find(editorLabel)
+	if !ok {
+		t.Fatal("the note went away with the preview")
+	}
+	// The tree keeps its room: the note begins where it began, and it is
+	// its right edge that has gone out over the preview.
+	if wide.X != ed.X {
+		t.Errorf("the note begins at %v, want the %v it began at",
+			wide.X, ed.X)
+	}
+	if wide.W <= ed.W {
+		t.Errorf("the note is %v wide, want it wider than the %v it was",
+			wide.W, ed.W)
+	}
+	// It reaches the window's edge, but for the rail that hangs over it.
+	if end := wide.X + wide.W; end < float32(width)-w.railBand()-1 {
+		t.Errorf("the note ends at %v, want it at the window's edge, "+
+			"but for the rail", end)
+	}
+}
+
+// TestWiden_theNoteStretchesRatherThanJumps checks that the note is seen
+// to go over the preview, and not to be over it between two frames: the
+// room it takes grows over the animation's own time, and only once the
+// window's clock has gone on.
+func TestWiden_theNoteStretchesRatherThanJumps(t *testing.T) {
+	w, tt := zoomTester(t, 900)
+	ed, ok := tt.Find(editorLabel)
+	if !ok {
+		t.Fatal("the note is not drawn")
+	}
+	if err := tt.Click(locale.WidenNote()); err != nil {
+		t.Fatalf("Click: %v", err)
+	}
+	// The click is taken in, but the window's clock has not gone on:
+	// nothing has moved yet.
+	tt.Frame()
+	if now, _ := tt.Find(editorLabel); now.W != ed.W {
+		t.Fatalf("the note is %v wide at once, want the %v it was",
+			now.W, ed.W)
+	}
+	tt.Advance(widenAnim.Duration / 2)
+	tt.Frame()
+	half, ok := tt.Find(editorLabel)
+	if !ok {
+		t.Fatal("the note is gone from the window")
+	}
+	if half.W <= ed.W || half.W >= ed.W+w.Layout.Right {
+		t.Errorf("half way the note is %v wide, want it between the %v "+
+			"it was and the %v of the preview's room",
+			half.W, ed.W, w.Layout.Right)
+	}
+	tt.Advance(widenAnim.Duration)
+	tt.Frame()
+	over, _ := tt.Find(editorLabel)
+	if over.W <= half.W {
+		t.Errorf("the note stopped at %v wide, want it wider than the "+
+			"%v it was half way", over.W, half.W)
+	}
+	if _, ok := tt.Find("head"); ok {
+		t.Error("the preview is still drawn, want it under the note")
+	}
+}
+
+// TestWiden_pressedAgainGivesThePreviewBack checks that the button of a
+// note standing over the preview is the way out of it: pressed again, the
+// preview comes back as wide as it was.
+func TestWiden_pressedAgainGivesThePreviewBack(t *testing.T) {
+	w, tt := zoomTester(t, 900)
+	before := w.Layout
+	ed, ok := tt.Find(editorLabel)
+	if !ok {
+		t.Fatal("the note is not drawn")
+	}
+	for _, label := range []string{locale.WidenNote(), locale.WidenBack()} {
+		if err := tt.Click(label); err != nil {
+			t.Fatalf("Click %q: %v", label, err)
+		}
+		tt.Advance(widenAnim.Duration)
+		tt.Frame()
+	}
+	if w.stretched {
+		t.Fatal("the note still stands over the preview")
+	}
+	if w.Layout != before {
+		t.Fatalf("layout = %+v, want the %+v it was", w.Layout, before)
+	}
+	if _, ok := tt.Find("head"); !ok {
+		t.Error("the preview did not come back")
+	}
+	back, ok := tt.Find(editorLabel)
+	if !ok {
+		t.Fatal("the note is gone from the window")
+	}
+	if back.W != ed.W {
+		t.Errorf("the note is %v wide, want the %v it was", back.W, ed.W)
+	}
+}
+
+// TestWiden_theButtonStandsWhereThereIsAPreview checks that the button is
+// drawn only where there is a room of the preview's to stretch over: it is
+// not drawn with the preview shut, and a preview shut under a note
+// standing over it puts the stretch away with it.
+func TestWiden_theButtonStandsWhereThereIsAPreview(t *testing.T) {
+	w, tt := zoomTester(t, 900)
+	w.SetPreviewShown(false)
+	tt.Frame()
+	if _, ok := tt.Find(locale.WidenNote()); ok {
+		t.Error("the button is drawn with the preview shut")
+	}
+	w.SetPreviewShown(true)
+	tt.Frame()
+	if err := tt.Click(locale.WidenNote()); err != nil {
+		t.Fatalf("Click: %v", err)
+	}
+	if !w.stretched {
+		t.Fatal("the button did not widen the note")
+	}
+	w.SetPreviewShown(false)
+	if w.stretched {
+		t.Error("the note still stands over a preview that is shut")
+	}
+}

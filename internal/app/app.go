@@ -231,7 +231,6 @@ func boot(app *mygo.Application) (*appState, error) {
 		ws:     ws,
 	}
 	ws.OnOpenVault = st.openVaultDialog
-	ws.OnNewNote = st.newNote
 	// What the tree asks for when the user acts on a file in it.
 	ws.Tree.OnNewNoteIn = st.newNoteIn
 	ws.Tree.OnNewFolderIn = st.newFolderIn
