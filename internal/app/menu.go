@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/egoist/mygo"
 	"github.com/helightxu/xinkgo/internal/keymap"
+	"github.com/helightxu/xinkgo/internal/locale"
 	xmd "github.com/helightxu/xinkgo/internal/markdown"
 	"github.com/helightxu/xinkgo/internal/vault"
 )
@@ -73,7 +74,7 @@ func mainMenu(bound []keymap.Resolved, vaults vault.Registry) *mygo.Menu {
 		{Role: mygo.RoleAppMenu, Submenu: []*mygo.MenuItem{
 			{Role: mygo.RoleAbout},
 			mygo.Separator(),
-			{Label: "Settings…", Accelerator: settingsKey,
+			{Label: locale.MenuSettings(), Accelerator: settingsKey,
 				Click: openSettings},
 			mygo.Separator(),
 			{Role: mygo.RoleServices},
@@ -84,65 +85,65 @@ func mainMenu(bound []keymap.Resolved, vaults vault.Registry) *mygo.Menu {
 			mygo.Separator(),
 			{Role: mygo.RoleQuit},
 		}},
-		{Label: "File", Submenu: []*mygo.MenuItem{
-			{Label: "Open Vault…", Accelerator: key("OpenFolder"),
+		{Label: locale.MenuFile(), Submenu: []*mygo.MenuItem{
+			{Label: locale.MenuOpenVault(), Accelerator: key("OpenFolder"),
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current != nil {
 						current.openVaultDialog()
 					}
 				}},
-			{Label: "New Note", Accelerator: key("NewNote"),
+			{Label: locale.MenuNewNote(), Accelerator: key("NewNote"),
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current != nil {
 						current.newNote()
 					}
 				}},
-			{Label: "New Folder", Accelerator: key("NewFolder"),
+			{Label: locale.MenuNewFolder(), Accelerator: key("NewFolder"),
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current != nil {
 						current.newFolderIn(current.ws.Tree.DirOf())
 					}
 				}},
-			{Label: "Paste into Vault", Accelerator: "CmdOrCtrl+Shift+V",
+			{Label: locale.MenuPasteIntoVault(), Accelerator: "CmdOrCtrl+Shift+V",
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current != nil {
 						current.pasteIntoVault()
 					}
 				}},
-			{Label: "Go to Note…", Accelerator: key("OpenCommandPalette"),
+			{Label: locale.MenuGoToNote(), Accelerator: key("OpenCommandPalette"),
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current != nil {
 						current.ws.OpenPalette()
 					}
 				}},
-			{Label: "Search in Vault",
+			{Label: locale.MenuSearchInVault(),
 				Accelerator: key("OpenSearch"),
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current != nil {
 						current.ws.OpenSearch()
 					}
 				}},
-			{Label: "Ask AI", Accelerator: key("ToggleAiChat"),
+			{Label: locale.MenuAskAi(), Accelerator: key("ToggleAiChat"),
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current != nil {
 						current.ws.ToggleAI()
 					}
 				}},
-			{Label: "Settings…", Accelerator: fileSettingsKey,
+			{Label: locale.MenuSettings(), Accelerator: fileSettingsKey,
 				Hidden: isMacOS(), Click: openSettings},
-			{Label: "Library tasks…",
+			{Label: locale.MenuLibraryTasks(),
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current != nil {
 						current.openTasks()
 					}
 				}},
-			{Label: "Snapshots…",
+			{Label: locale.MenuSnapshots(),
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current != nil {
 						current.openHistory()
 					}
 				}},
-			{Label: "Save", Accelerator: key("Save"),
+			{Label: locale.MenuSave(), Accelerator: key("Save"),
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current == nil {
 						return
@@ -151,15 +152,14 @@ func mainMenu(bound []keymap.Resolved, vaults vault.Registry) *mygo.Menu {
 					// written over: it is theirs to take or to
 					// send back first.
 					if current.ws.RevisionOpen() {
-						current.ws.Say("put the revision away " +
-							"first")
+						current.ws.Say(locale.SayRevisionOpen())
 						return
 					}
 					if err := current.ws.Tabs.SaveActive(); err != nil {
-						current.ws.Say("the note could not be saved")
+						current.ws.Say(locale.SayNoteNotSaved())
 					}
 				}},
-			{Label: "Close Tab", Accelerator: key("ClosePanel"),
+			{Label: locale.MenuCloseTab(), Accelerator: key("ClosePanel"),
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current != nil {
 						current.ws.Tabs.Close(current.ws.Tabs.Active)
@@ -168,52 +168,52 @@ func mainMenu(bound []keymap.Resolved, vaults vault.Registry) *mygo.Menu {
 			mygo.Separator(),
 			{Role: mygo.RoleClose},
 		}},
-		{Label: "Vault", Submenu: append(
+		{Label: locale.MenuVault(), Submenu: append(
 			vaultItems(),
 			mygo.Separator(),
-			&mygo.MenuItem{Label: "Open Another Folder…",
+			&mygo.MenuItem{Label: locale.MenuOpenAnotherFolder(),
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current != nil {
 						current.openVaultDialog()
 					}
 				}},
-			&mygo.MenuItem{Label: "Manage Vaults…",
+			&mygo.MenuItem{Label: locale.MenuManageVaults(),
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current != nil {
 						current.openVaultManager()
 					}
 				}},
 		)},
-		{Label: "Note", Submenu: []*mygo.MenuItem{
-			{Label: "Rename…", Accelerator: key("RenameItem"),
+		{Label: locale.MenuNote(), Submenu: []*mygo.MenuItem{
+			{Label: locale.MenuRename(), Accelerator: key("RenameItem"),
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current != nil {
 						current.renameChosen()
 					}
 				}},
-			{Label: "Delete", Accelerator: key("DeleteItem"),
+			{Label: locale.MenuDelete(), Accelerator: key("DeleteItem"),
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current != nil {
 						current.deleteChosen()
 					}
 				}},
 		}},
-		{Label: "Format", Submenu: []*mygo.MenuItem{
-			{Label: "Bold", Accelerator: key("FormatBold"),
+		{Label: locale.MenuFormat(), Submenu: []*mygo.MenuItem{
+			{Label: locale.MenuBold(), Accelerator: key("FormatBold"),
 				Click: format(xmd.Bold)},
-			{Label: "Italic", Accelerator: key("FormatItalic"),
+			{Label: locale.MenuItalic(), Accelerator: key("FormatItalic"),
 				Click: format(xmd.Italic)},
-			{Label: "Strikethrough",
+			{Label: locale.MenuStrikethrough(),
 				Accelerator: key("FormatStrikethrough"),
 				Click:       format(xmd.Strikethrough)},
-			{Label: "Inline code", Accelerator: key("FormatInlineCode"),
+			{Label: locale.MenuInlineCode(), Accelerator: key("FormatInlineCode"),
 				Click: format(xmd.InlineCode)},
-			{Label: "Link", Accelerator: key("FormatLink"),
+			{Label: locale.MenuLink(), Accelerator: key("FormatLink"),
 				Click: format(xmd.FormatLink)},
 		}},
 		{
-			Label: "View", Submenu: []*mygo.MenuItem{
-				{Label: "Turn the light the other way",
+			Label: locale.MenuView(), Submenu: []*mygo.MenuItem{
+				{Label: locale.MenuToggleTheme(),
 					Accelerator: key("ToggleTheme"),
 					Click: func(*mygo.MenuItem, *mygo.Window) {
 						if current != nil {

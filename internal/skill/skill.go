@@ -11,12 +11,12 @@ package skill
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 
+	"github.com/helightxu/xinkgo/internal/locale"
 	"github.com/helightxu/xinkgo/internal/media"
 )
 
@@ -38,12 +38,13 @@ const (
 	User
 )
 
-// Label is where it came from, said plainly.
+// Label is where it came from, said plainly, in the language the app
+// shows.
 func (s Source) Label() string {
 	if s == Vault {
-		return "库内"
+		return locale.SkillFromVault()
 	}
-	return "用户级"
+	return locale.SkillFromUser()
 }
 
 // Skill is one that can be used.
@@ -108,7 +109,7 @@ func Discover(vaultRoot, userDir string) ([]Skill, []Issue) {
 				if !errors.Is(err, os.ErrNotExist) {
 					issues = append(issues, Issue{
 						Path:   path,
-						Reason: fmt.Sprintf("读取失败：%v", err),
+						Reason: locale.SkillIssueNotRead(err.Error()),
 					})
 				}
 				continue
@@ -142,12 +143,12 @@ func Discover(vaultRoot, userDir string) ([]Skill, []Issue) {
 func parse(text string, source Source) (Skill, string) {
 	text = strings.TrimPrefix(text, "\ufeff")
 	if !strings.HasPrefix(text, "---") {
-		return Skill{}, "缺少 front-matter（`---` 开头）"
+		return Skill{}, locale.SkillIssueNoFrontMatter()
 	}
 	rest := strings.TrimPrefix(text[3:], "\n")
 	end, closed := frontMatterEnd(rest)
 	if !closed {
-		return Skill{}, "front-matter 没有闭合"
+		return Skill{}, locale.SkillIssueFrontMatterUnclosed()
 	}
 	body := ""
 	if at := strings.Index(rest[end:], "\n"); at >= 0 {
@@ -169,10 +170,10 @@ func parse(text string, source Source) (Skill, string) {
 		}
 	}
 	if strings.TrimSpace(one.Name) == "" {
-		return Skill{}, "缺少 name"
+		return Skill{}, locale.SkillIssueNoName()
 	}
 	if strings.TrimSpace(one.Description) == "" {
-		return Skill{}, "缺少 description"
+		return Skill{}, locale.SkillIssueNoDescription()
 	}
 	one.Body = truncateChars(body, MaxBodyChars)
 	return one, ""

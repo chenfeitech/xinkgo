@@ -178,7 +178,7 @@ make check        # gofmt + go vet + go test + 全平台编译（macOS 先）+ �
 - 命名：包名单个小写词（`config`、`view`），导出用 `MixedCaps`，缩写全大写
   （`ID`、`OS`），测试 `Test<类型>_<行为>`，getter 不加 `Get`。
 - 注释：导出标识符必须有、以标识符名开头、解释**为什么**；不写代码已经说明的
-  内容。界面文案与日志用英文。
+  内容。界面文案进 `internal/locale` 的 catalog（英文是源语言），日志用英文。
 - 错误：向上抛带 `%w` 上下文；不吞、不 `panic`；库代码不 `log.Fatal`（只有
   `cmd/xinkgo/main.go` 可以）；日志统一 `log/slog`。
 - 并发：视图与 MyGo 回调跑在主线程，视图里不做阻塞 I/O；后台 goroutine 改界面
@@ -258,7 +258,9 @@ type：`feat`/`fix`/`refactor`/`perf`/`test`/`docs`/`build`/`chore`；scope 取�
    `macos.signingIdentity`）；Windows 用 NSIS 安装器（Windows 机器或 CI
    `windows-latest`）与代码签名证书。
 4. 自动更新：`mygo keygen` + `mygo.json` 的 `updates`。
-5. 多语言：`locales/` + `mygo i18n`（届时界面文案从英文改为可翻译）。
+5. 加一门语言：`internal/locale/<tag>.json`（键集与 `en.json` 一致）+
+   `config.BasicConfig` 的语言枚举 + 设置里的选项，`go tool mygo generate`
+   生成取文案的函数与 MyGo 自身文案的 import。
 6. CI：`.github/workflows/ci.yml`，macOS runner 出主产物
    （`scripts/package.sh darwin/arm64`），Windows runner 出 `.exe` 与安装器
    （模板见 [HARNESS.md](HARNESS.md) 第 8 节）。

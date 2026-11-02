@@ -20,8 +20,11 @@ package task
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/helightxu/xinkgo/internal/locale"
 )
 
 // BatchSize is how many notes one run does: it stops and reports when it
@@ -59,11 +62,11 @@ func (k Kind) ID() string {
 func (k Kind) Label() string {
 	switch k {
 	case Retag:
-		return "改标签"
+		return locale.TaskKindRetag()
 	case AddTag:
-		return "加标签"
+		return locale.TaskKindAddTag()
 	case RemoveTag:
-		return "删标签"
+		return locale.TaskKindRemoveTag()
 	}
 	return ""
 }
@@ -89,13 +92,13 @@ const (
 func (s Status) Label() string {
 	switch s {
 	case Ready:
-		return "待执行"
+		return locale.TaskStatusReady()
 	case Running:
-		return "执行中"
+		return locale.TaskStatusRunning()
 	case Paused:
-		return "已暂停"
+		return locale.TaskStatusPaused()
 	case Done:
-		return "已完成"
+		return locale.TaskStatusDone()
 	}
 	return ""
 }
@@ -126,13 +129,13 @@ func (s ItemState) Finished() bool { return s.Kind != ItemPending }
 func (s ItemState) Label() string {
 	switch s.Kind {
 	case ItemPending:
-		return "待处理"
+		return locale.TaskItemPending()
 	case ItemDone:
-		return "已改"
+		return locale.TaskItemDone()
 	case ItemSkipped:
-		return "跳过（" + s.Reason + "）"
+		return locale.TaskItemSkipped(s.Reason)
 	case ItemFailed:
-		return "失败（" + s.Reason + "）"
+		return locale.TaskItemFailed(s.Reason)
 	}
 	return ""
 }
@@ -183,18 +186,15 @@ func (t Task) Title() string {
 	case Retag:
 		// A new name not yet said is not shown as an empty `#`.
 		if t.NewTag == "" {
-			return fmt.Sprintf("%s：#%s → （待填）", t.Kind.Label(),
-				t.Target)
+			return locale.TaskTitleRetagToFill(t.Kind.Label(), t.Target)
 		}
-		return fmt.Sprintf("%s：#%s → #%s", t.Kind.Label(), t.Target,
-			t.NewTag)
+		return locale.TaskTitleRetag(t.Kind.Label(), t.Target, t.NewTag)
 	case AddTag:
 		if t.Target == "" {
-			return fmt.Sprintf("%s：（待填）", t.Kind.Label())
+			return locale.TaskTitleToFill(t.Kind.Label())
 		}
-		return fmt.Sprintf("%s：#%s", t.Kind.Label(), t.Target)
 	}
-	return fmt.Sprintf("%s：#%s", t.Kind.Label(), t.Target)
+	return locale.TaskTitleTag(t.Kind.Label(), t.Target)
 }
 
 // Pending is how many notes there are still to do.
@@ -293,7 +293,7 @@ func RetagText(text, target, newTag string) Outcome {
 	// would leave two of the same.
 	if HasTag(text, newTag) {
 		return Outcome{Kind: Skipped,
-			Reason: "已含 #" + newTag}
+			Reason: locale.TaskReasonHasTag(newTag)}
 	}
 	out, preview, found := rewrite(text, target, &newTag)
 	if !found {
@@ -311,7 +311,7 @@ func AddTagText(text, tag string) Outcome {
 		return Outcome{Kind: Unchanged}
 	}
 	if HasTag(text, tag) {
-		return Outcome{Kind: Skipped, Reason: "已含 #" + tag}
+		return Outcome{Kind: Skipped, Reason: locale.TaskReasonHasTag(tag)}
 	}
 	out, preview, _ := rewrite(text, tag, nil)
 	return Outcome{Kind: Changed, Text: out, Preview: preview}
@@ -701,12 +701,12 @@ func Plan(
 			one.Items = append(one.Items, TaskItem{
 				Path: path,
 				State: ItemState{Kind: ItemFailed,
-					Reason: "读不到：" + err.Error()},
+					Reason: locale.TaskReasonNotRead(err.Error())},
 			})
 			continue
 		}
 		got := ApplyText(kind, text, target, newTag).orSkip(
-			"没有 #" + target)
+			locale.TaskReasonNoTag(target))
 		item := TaskItem{Path: path}
 		switch got.Kind {
 		case Changed:
@@ -715,7 +715,7 @@ func Plan(
 			item.State = ItemState{Kind: ItemSkipped, Reason: got.Reason}
 		default:
 			item.State = ItemState{Kind: ItemSkipped,
-				Reason: "没有 #" + target}
+				Reason: locale.TaskReasonNoTag(target)}
 		}
 		one.Items = append(one.Items, item)
 	}
@@ -744,7 +744,7 @@ func Run(
 		text, err := read(item.Path)
 		if err != nil {
 			item.State = ItemState{Kind: ItemFailed,
-				Reason: "读不到：" + err.Error()}
+				Reason: locale.TaskReasonNotRead(err.Error())}
 			continue
 		}
 		got := ApplyText(t.Kind, text, t.Target, t.NewTag)
@@ -752,7 +752,7 @@ func Run(
 		case Changed:
 			if err := write(item.Path, got.Text); err != nil {
 				item.State = ItemState{Kind: ItemFailed,
-					Reason: "写不了：" + err.Error()}
+					Reason: locale.TaskReasonNotWritten(err.Error())}
 				continue
 			}
 			item.Preview = got.Preview
@@ -761,7 +761,7 @@ func Run(
 			item.State = ItemState{Kind: ItemSkipped, Reason: got.Reason}
 		default:
 			item.State = ItemState{Kind: ItemSkipped,
-				Reason: "没有 #" + t.Target}
+				Reason: locale.TaskReasonNoTag(t.Target)}
 		}
 	}
 	// The cursor moves to just past the last one that was done, and no
@@ -788,12 +788,12 @@ func Progress(t Task) string {
 	out := strings.Builder{}
 	out.WriteString("# " + t.Title() + "\n\n")
 	done, skipped, failed := t.Stats()
-	out.WriteString(fmt.Sprintf("状态：%s · 已改 %d · 跳过 %d · "+
-		"失败 %d · 待处理 %d\n\n", t.Status.Label(), done, skipped,
-		failed, t.Pending()))
+	out.WriteString(locale.TaskStats(t.Status.Label(),
+		strconv.Itoa(done), strconv.Itoa(skipped), strconv.Itoa(failed),
+		strconv.Itoa(t.Pending())) + "\n\n")
 	for i := range t.Items {
 		item := t.Items[i]
-		out.WriteString(fmt.Sprintf("- %s：%s\n", item.Path,
+		out.WriteString(fmt.Sprintf("- %s: %s\n", item.Path,
 			item.State.Label()))
 		for _, edit := range item.Preview {
 			out.WriteString(fmt.Sprintf("    - `%s` → `%s`\n",

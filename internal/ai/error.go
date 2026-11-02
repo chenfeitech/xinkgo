@@ -5,31 +5,82 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+
+	"github.com/helightxu/xinkgo/internal/locale"
 )
 
 // The ways an answer can go wrong. Each of them is a sentence a person can
 // act on: what the HTTP library said is not one of them.
+//
+// The sentence is not written down with the error, for a language is
+// chosen while the app stands: what the error says is looked up when it
+// is said (Error), and so follows the language the app shows.
 var (
-	ErrNotConfigured = errors.New("还没有配置 AI：请到设置 · AI 里启用并选择模型")
-	ErrNoModel       = errors.New("没有选中模型：请到设置 · AI 里选择一个模型")
-	ErrAuth          = errors.New("认证失败：检查密钥是否正确")
-	ErrRateLimit     = errors.New("被服务商限流了，请稍后重试")
-	ErrTimeout       = errors.New("等待响应超时：可以重试，或在设置里调大超时")
+	ErrNotConfigured = Failure{notConfigured}
+	ErrNoModel       = Failure{noModel}
+	ErrAuth          = Failure{notAuthorized}
+	ErrRateLimit     = Failure{heldBack}
+	ErrTimeout       = Failure{tookTooLong}
 	// ErrTruncated is a stream that went dead before it said it was
 	// over. It is not the same as a model that ran out of budget: that
 	// one came to an end of its own, this one did not.
-	ErrTruncated   = errors.New("连接中断，结果可能不完整")
-	ErrEmptyResult = errors.New("模型没有返回正文（可能是思考占用了全部预算）" +
-		"：请重试或关闭「思考」")
-	ErrCanceled = errors.New("已取消")
+	ErrTruncated   = Failure{brokeOff}
+	ErrEmptyResult = Failure{noWords}
+	ErrCanceled    = Failure{givenUpOn}
 	// ErrSteps is a model that kept reaching for tools and never came
 	// to an answer.
-	ErrSteps = errors.New("走了太多步还没有给出答案：可以在设置里调大步数" +
-		"上限，或关掉「让它先查库」")
+	ErrSteps = Failure{tooManySteps}
 	// ErrSilent is a model that was asked and said nothing at all, not
 	// even a first word, before it was given up on.
-	ErrSilent = errors.New("the model said nothing")
+	ErrSilent = Failure{silent}
 )
+
+// Failure is one of the ways an answer can go wrong. It is only which one:
+// what is said of it is looked up when it is said, so that it follows the
+// language the app shows.
+type Failure struct{ kind wentWrong }
+
+// The ways an answer can go wrong, as a Failure names them.
+type wentWrong int
+
+const (
+	notConfigured wentWrong = iota
+	noModel
+	notAuthorized
+	heldBack
+	tookTooLong
+	brokeOff
+	noWords
+	givenUpOn
+	tooManySteps
+	silent
+)
+
+// Error is what went wrong, in the language the app shows now.
+func (f Failure) Error() string {
+	switch f.kind {
+	case notConfigured:
+		return locale.AiErrNotConfigured()
+	case noModel:
+		return locale.AiErrNoModel()
+	case notAuthorized:
+		return locale.AiErrAuth()
+	case heldBack:
+		return locale.AiErrRateLimit()
+	case tookTooLong:
+		return locale.AiErrTimeout()
+	case brokeOff:
+		return locale.AiErrTruncated()
+	case noWords:
+		return locale.AiErrEmptyResult()
+	case givenUpOn:
+		return locale.AiErrCanceled()
+	case tooManySteps:
+		return locale.AiErrSteps()
+	default:
+		return locale.AiErrSilent()
+	}
+}
 
 // Network is a model that could not be reached at all: the sentence says
 // what a person can do about it.
@@ -39,22 +90,29 @@ func Network(detail string) error {
 
 // Protocol is a model that answered something that could not be read.
 func Protocol(detail string) error {
-	return fmt.Errorf("返回内容无法解析（%s）", detail)
+	return sentence{locale.AiErrProtocol(detail)}
 }
 
 // NoSuchModel is a model the server has never heard of.
 func NoSuchModel(name string) error {
-	return fmt.Errorf("模型不存在：%s", name)
+	return sentence{locale.AiErrNoSuchModel(name)}
 }
 
 // unreachable is a model that could not be reached.
 type unreachable struct{ detail string }
 
-// Error says what happened, and what to do about it.
+// Error says what happened, and what to do about it, in the language the
+// app shows now.
 func (e unreachable) Error() string {
-	return fmt.Sprintf("网络不可用（%s）：检查地址是否正确、服务是否已启动",
-		e.detail)
+	return locale.AiErrUnreachable(e.detail)
 }
+
+// sentence is one thing that went wrong, named in the language the app
+// shows: what is said of it is worked out when it is made, which is when
+// it is shown.
+type sentence struct{ said string }
+
+func (f sentence) Error() string { return f.said }
 
 // Status is an answer that came back with a status that is not a good one.
 type Status struct {

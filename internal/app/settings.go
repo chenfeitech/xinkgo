@@ -11,6 +11,7 @@ import (
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/config"
+	"github.com/helightxu/xinkgo/internal/locale"
 )
 
 // The options a setting may be one of, as the window says them and as
@@ -33,6 +34,12 @@ var (
 	}
 	outputLanguages = []string{
 		config.OutputAuto, config.OutputZh, config.OutputEn,
+	}
+	// The languages the app speaks: the one the machine reads when the
+	// user leaves it to follow it, and those it is written in.
+	languages = []string{
+		config.LanguageSystem, config.LanguageEnglish,
+		config.LanguageChinese,
 	}
 )
 
@@ -102,18 +109,19 @@ type settingsTab struct {
 // asked, and last the folders and the file the choices are kept in.
 func (s *appState) settingsTabs() []settingsTab {
 	return []settingsTab{
-		{tabBasic, "Basic", "How the window looks", func(c *ui.Context) {
-			s.appearance(c)
-			s.window(c)
-		}},
-		{tabEditor, "Editor", "How a note is written",
-			s.editorSettings},
-		{tabPreview, "Preview", "How a note reads beside what it says",
-			s.previewSettings},
-		{tabAi, "AI", "Which model is asked, and how", s.ai},
-		{tabVault, "Vault", "The folders the app knows",
-			s.vaultSettings},
-		{tabFile, "Settings file", "Given away, and taken in again",
+		{tabBasic, locale.SettingsTabBasic(),
+			locale.SettingsTabBasicNote(), func(c *ui.Context) {
+				s.appearance(c)
+				s.window(c)
+			}},
+		{tabEditor, locale.SettingsTabEditor(),
+			locale.SettingsTabEditorNote(), s.editorSettings},
+		{tabPreview, locale.SettingsTabPreview(),
+			locale.SettingsTabPreviewNote(), s.previewSettings},
+		{tabAi, locale.SettingsTabAi(), locale.SettingsTabAiNote(), s.ai},
+		{tabVault, locale.SettingsTabVault(),
+			locale.SettingsTabVaultNote(), s.vaultSettings},
+		{tabFile, locale.SettingsTabFile(), locale.SettingsTabFileNote(),
 			s.configFile},
 	}
 }
@@ -149,7 +157,7 @@ func (s *appState) openSettingsTab(tab string) {
 	s.draft = settings{cfg: s.config, tab: tab}
 	s.draft.read(&s.config)
 	s.settingsWin = mygo.NewWindow(mygo.WindowOptions{
-		Title:     Name + " Settings",
+		Title:     Name + " " + locale.TitleSettings(),
 		Width:     820,
 		Height:    680,
 		MinWidth:  640,
@@ -230,73 +238,77 @@ func (s *appState) chosenSettings(c *ui.Context) {
 
 // appearance is how the window looks.
 func (s *appState) appearance(c *ui.Context) {
-	group(c, "Appearance", func() {
-		choice(c, "Theme", "Light, dark, or whatever the machine has",
-			&s.draft.cfg.Basic.Theme, themes)
-		toggle(c, "Show every file", "Files the app cannot read are "+
-			"listed by the tree too", &s.draft.cfg.Basic.ShowAllFiles)
-		slider(c, "Tree font size", "How large the names in the file "+
-			"tree are drawn", &s.draft.treeSize, 10, 20)
+	group(c, locale.GroupAppearance(), func() {
+		choiceNamed(c, locale.SettingLanguage(),
+			locale.SettingLanguageNote(), &s.draft.cfg.Basic.Language,
+			languages, languageName)
+		choiceNamed(c, locale.SettingTheme(), locale.SettingThemeNote(),
+			&s.draft.cfg.Basic.Theme, themes, themeName)
+		toggle(c, locale.SettingShowAllFiles(),
+			locale.SettingShowAllFilesNote(),
+			&s.draft.cfg.Basic.ShowAllFiles)
+		slider(c, locale.SettingTreeFontSize(),
+			locale.SettingTreeFontSizeNote(), &s.draft.treeSize, 10, 20)
 	})
 }
 
 // editorSettings is how the editor behaves.
 func (s *appState) editorSettings(c *ui.Context) {
-	toggle(c, "Save as I type", "The note is written to the disk "+
-		"while it is written", &s.draft.cfg.Editor.AutoSave)
-	slider(c, "Save after (ms)", "How long the typing pauses before "+
-		"the note is written", &s.draft.delay, 200, 5000)
-	toggle(c, "Wrap long lines", "A line longer than the window is "+
-		"broken, rather than run out of it",
+	toggle(c, locale.SettingAutoSave(), locale.SettingAutoSaveNote(),
+		&s.draft.cfg.Editor.AutoSave)
+	slider(c, locale.SettingAutoSaveDelay(),
+		locale.SettingAutoSaveDelayNote(), &s.draft.delay, 200, 5000)
+	toggle(c, locale.SettingSoftWrap(), locale.SettingSoftWrapNote(),
 		&s.draft.cfg.Editor.SoftWrap)
-	toggle(c, "Show line numbers", "A number beside every line",
+	toggle(c, locale.SettingLineNumbers(),
+		locale.SettingLineNumbersNote(),
 		&s.draft.cfg.Editor.ShowLineNumbers)
-	toggle(c, "Indent with tabs", "A tab, rather than spaces",
+	toggle(c, locale.SettingIndentTabs(), locale.SettingIndentTabsNote(),
 		&s.draft.cfg.Editor.Indent.UseTabs)
-	slider(c, "Indent size", "How far an indented line starts in",
+	slider(c, locale.SettingIndentSize(), locale.SettingIndentSizeNote(),
 		&s.draft.indent, 1, 8)
-	slider(c, "Font size", "How large the note's letters are",
+	slider(c, locale.SettingFontSize(), locale.SettingFontSizeNote(),
 		&s.draft.size, 10, 24)
-	slider(c, "Line height", "How far apart the lines stand",
+	slider(c, locale.SettingLineHeight(), locale.SettingLineHeightNote(),
 		&s.draft.lineHeight, 1.2, 2.2)
-	choice(c, "Code theme", "The colors the code in a note is shown "+
-		"in", &s.draft.cfg.Highlight.Theme, highlightThemes)
+	choiceNamed(c, locale.SettingCodeTheme(),
+		locale.SettingCodeThemeNote(), &s.draft.cfg.Highlight.Theme,
+		highlightThemes, highlightName)
 }
 
 // previewSettings is what a note looks like beside what it says.
 func (s *appState) previewSettings(c *ui.Context) {
-	toggle(c, "Follow where the note is", "The preview follows the "+
-		"line being written", &s.draft.cfg.Preview.SyncScroll)
-	choice(c, "Follow by", "By how far down the note is, by the "+
-		"heading at the top, or once the typing stops",
-		&s.draft.cfg.Preview.SyncMode, syncModes)
-	choice(c, "Images", "Shown as wide as the text runs, or not at "+
-		"all", &s.draft.cfg.Preview.ImageDisplay, imageShows)
-	slider(c, "Image width (%)", "How much of the text's width an "+
-		"image is given", &s.draft.imageWidth, 20, 100)
-	choice(c, "Open links", "In the app, or in the browser",
-		&s.draft.cfg.Preview.LinkOpen, linkOpens)
-	slider(c, "Widest the text runs", "A note is not set wider than "+
-		"this, however wide the window is", &s.draft.width, 400, 1400)
-	choice(c, "Density", "How much room the lines are given",
-		&s.draft.cfg.Preview.Density, densities)
+	toggle(c, locale.SettingSyncScroll(), locale.SettingSyncScrollNote(),
+		&s.draft.cfg.Preview.SyncScroll)
+	choiceNamed(c, locale.SettingSyncMode(), locale.SettingSyncModeNote(),
+		&s.draft.cfg.Preview.SyncMode, syncModes, syncModeName)
+	choiceNamed(c, locale.SettingImages(), locale.SettingImagesNote(),
+		&s.draft.cfg.Preview.ImageDisplay, imageShows, imageShowName)
+	slider(c, locale.SettingImageWidth(), locale.SettingImageWidthNote(),
+		&s.draft.imageWidth, 20, 100)
+	choiceNamed(c, locale.SettingLinkOpen(), locale.SettingLinkOpenNote(),
+		&s.draft.cfg.Preview.LinkOpen, linkOpens, linkOpenName)
+	slider(c, locale.SettingMaxWidth(), locale.SettingMaxWidthNote(),
+		&s.draft.width, 400, 1400)
+	choiceNamed(c, locale.SettingDensity(), locale.SettingDensityNote(),
+		&s.draft.cfg.Preview.Density, densities, densityName)
 }
 
 // configFile is the settings themselves: kept as a file, given away and
 // taken in again.
 func (s *appState) configFile(c *ui.Context) {
-	buttons(c, "Kept as a file", filepath.Join(s.dir, "config.json"),
-		func() {
-			if ui.Button(c.Key("export-config"), "Save a copy…").
+	buttons(c, locale.GroupConfigFile(),
+		filepath.Join(s.dir, "config.json"), func() {
+			if ui.Button(c.Key("export-config"), locale.ConfigExport()).
 				Clicked() {
 				s.exportConfig()
 			}
-			if ui.Button(c.Key("import-config"), "Take one in…").
+			if ui.Button(c.Key("import-config"), locale.ConfigImport()).
 				Clicked() {
 				s.importConfig()
 			}
 			if ui.Button(c.Key("default-config"),
-				"Back to the defaults").Clicked() {
+				locale.ConfigReset()).Clicked() {
 				s.draft.cfg = config.Default()
 				s.draft.read(&s.draft.cfg)
 			}
@@ -308,7 +320,7 @@ func (s *appState) configFile(c *ui.Context) {
 func (s *appState) exportConfig() {
 	go func() {
 		path, err := mygo.Dialog.Save(mygo.SaveDialogOptions{
-			Title:       "Save the settings",
+			Title:       locale.DialogSaveSettings(),
 			DefaultPath: filepath.Join(s.dir, "xinkgo-config.json"),
 			Filters:     []mygo.FileFilter{{Name: "JSON", Extensions: []string{"json"}}},
 		})
@@ -330,7 +342,7 @@ func (s *appState) exportConfig() {
 func (s *appState) importConfig() {
 	go func() {
 		picked, err := mygo.Dialog.Open(mygo.OpenDialogOptions{
-			Title:   "Take settings in",
+			Title:   locale.DialogImportSettings(),
 			Filters: []mygo.FileFilter{{Name: "JSON", Extensions: []string{"json"}}},
 		})
 		if err != nil || len(picked) == 0 {
@@ -407,14 +419,16 @@ func (s *appState) window(c *ui.Context) {
 	if s.ws == nil {
 		return
 	}
-	group(c, "Window", func() {
+	group(c, locale.GroupWindow(), func() {
 		tree := s.ws.TreeShown()
-		toggle(c, "Show the file tree", "The panel on the left", &tree)
+		toggle(c, locale.SettingShowTree(), locale.SettingShowTreeNote(),
+			&tree)
 		if tree != s.ws.TreeShown() {
 			s.ws.SetTreeShown(tree)
 		}
 		preview := s.ws.PreviewShown()
-		toggle(c, "Show the preview", "The panel on the right", &preview)
+		toggle(c, locale.SettingShowPreview(),
+			locale.SettingShowPreviewNote(), &preview)
 		if preview != s.ws.PreviewShown() {
 			s.ws.SetPreviewShown(preview)
 		}
@@ -492,6 +506,105 @@ func choice(
 	c *ui.Context, name, note string, value *string, options []string,
 ) {
 	field(c, name, note, func() { ui.Select(c, value, options) })
+}
+
+// choiceNamed is a setting that is one of a few things whose names are
+// said, as the languages are: what the file keeps is not what the user
+// reads, so the one chosen is looked for by the name it is given, and
+// what is kept stays one of options whichever language the app shows.
+func choiceNamed(
+	c *ui.Context, name, note string, value *string, options []string,
+	label func(string) string,
+) {
+	labels := make([]string, len(options))
+	shown := ""
+	for i, one := range options {
+		labels[i] = label(one)
+		if one == *value {
+			shown = labels[i]
+		}
+	}
+	field(c, name, note, func() { ui.Select(c, &shown, labels) })
+	// What was chosen is put back into what is kept: the names change
+	// with the language, the values do not.
+	for i, one := range labels {
+		if one == shown {
+			*value = options[i]
+			break
+		}
+	}
+}
+
+// What one of the options of a setting is called in the language the app
+// shows. They are the names of the things themselves, as the
+// configuration keeps them, and not of any one language.
+func languageName(v string) string {
+	switch v {
+	case config.LanguageEnglish:
+		return locale.LanguageEnglish()
+	case config.LanguageChinese:
+		return locale.LanguageChineseHans()
+	default:
+		return locale.LanguageFollowSystem()
+	}
+}
+
+func themeName(v string) string {
+	switch v {
+	case config.ThemeLight:
+		return locale.ThemeLight()
+	case config.ThemeDark:
+		return locale.ThemeDark()
+	default:
+		return locale.ThemeSystem()
+	}
+}
+
+func syncModeName(v string) string {
+	switch v {
+	case config.SyncAnchor:
+		return locale.SyncAnchor()
+	case config.SyncOnStop:
+		return locale.SyncOnStop()
+	default:
+		return locale.SyncRatio()
+	}
+}
+
+func imageShowName(v string) string {
+	if v == config.ImageHidden {
+		return locale.ImageHidden()
+	}
+	return locale.ImageFitWidth()
+}
+
+func linkOpenName(v string) string {
+	if v == config.LinkExternal {
+		return locale.LinkExternal()
+	}
+	return locale.LinkInApp()
+}
+
+func densityName(v string) string {
+	switch v {
+	case config.DensityCompact:
+		return locale.DensityCompact()
+	case config.DensityRelaxed:
+		return locale.DensityRelaxed()
+	default:
+		return locale.DensityNormal()
+	}
+}
+
+func highlightName(v string) string {
+	switch v {
+	case config.HighlightOcean:
+		return locale.HighlightOcean()
+	case config.HighlightSolarized:
+		return locale.HighlightSolarized()
+	default:
+		return locale.HighlightXink()
+	}
 }
 
 // slider is a setting between two numbers.

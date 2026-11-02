@@ -16,6 +16,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/helightxu/xinkgo/internal/locale"
 	"github.com/helightxu/xinkgo/internal/media"
 )
 
@@ -143,23 +144,24 @@ const (
 	StatusNested
 )
 
-// String is what a user is told about the folder.
+// String is what a user is told about the folder, in the language the app
+// shows.
 func (s Status) String() string {
 	switch s {
 	case StatusOk:
-		return "ok"
+		return locale.VaultStatusOk()
 	case StatusMissing:
-		return "the folder is not there"
+		return locale.VaultStatusMissing()
 	case StatusNotDir:
-		return "it is not a folder"
+		return locale.VaultStatusNotDir()
 	case StatusNoPermission:
-		return "the folder cannot be read"
+		return locale.VaultStatusNoPermission()
 	case StatusDuplicate:
-		return "another vault is the same folder"
+		return locale.VaultStatusDuplicate()
 	case StatusNested:
-		return "another vault is a folder above it"
+		return locale.VaultStatusNested()
 	default:
-		return "unknown"
+		return locale.VaultStatusUnknown()
 	}
 }
 

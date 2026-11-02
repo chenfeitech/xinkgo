@@ -46,6 +46,13 @@ const (
 	HighlightXink      = "xink"
 	HighlightOcean     = "ocean"
 	HighlightSolarized = "solarized"
+
+	// The languages the app speaks. A language is a BCP 47 tag, as
+	// MyGo's locales name them, but for LanguageSystem, which follows
+	// the languages the machine reads.
+	LanguageSystem  = "system"
+	LanguageEnglish = "en"
+	LanguageChinese = "zh-Hans"
 )
 
 // FontConfig is a font and how it is set.
@@ -65,6 +72,7 @@ type IndentConfig struct {
 // BasicConfig is what the whole application uses.
 type BasicConfig struct {
 	Theme        string     `json:"theme"`
+	Language     string     `json:"language"`
 	IconSize     uint32     `json:"icon_size"`
 	TreeFont     FontConfig `json:"tree_font"`
 	ShowAllFiles bool       `json:"show_all_files"`
@@ -123,6 +131,7 @@ func Default() AppConfig {
 	return AppConfig{
 		Basic: BasicConfig{
 			Theme:        ThemeSystem,
+			Language:     LanguageSystem,
 			IconSize:     16,
 			TreeFont:     bodyFont(),
 			ShowAllFiles: true,
@@ -170,6 +179,18 @@ func monoFont() FontConfig {
 		Size:       14,
 		LineHeight: 1.6,
 		Weight:     "regular",
+	}
+}
+
+// LocaleTag is the language the app is to show, as MyGo names it: a BCP 47
+// tag of the languages the app speaks, or "" to follow the languages the
+// machine reads, which is what LanguageSystem means.
+func (b BasicConfig) LocaleTag() string {
+	switch b.Language {
+	case LanguageEnglish, LanguageChinese:
+		return b.Language
+	default:
+		return ""
 	}
 }
 
@@ -260,6 +281,9 @@ func (c AppConfig) Save(dir string) error {
 func (b *BasicConfig) fillMissing(d BasicConfig) {
 	if b.Theme == "" {
 		b.Theme = d.Theme
+	}
+	if b.Language == "" {
+		b.Language = d.Language
 	}
 	if b.IconSize == 0 {
 		b.IconSize = d.IconSize
@@ -359,6 +383,10 @@ func (c *AppConfig) Sanitize() {
 	b := &c.Basic
 	if !oneOf(b.Theme, ThemeSystem, ThemeLight, ThemeDark) {
 		b.Theme = ThemeSystem
+	}
+	if !oneOf(b.Language, LanguageSystem, LanguageEnglish,
+		LanguageChinese) {
+		b.Language = LanguageSystem
 	}
 	b.IconSize = clampU32(b.IconSize, 12, 48)
 	b.TreeFont.sanitize(bodyFont())

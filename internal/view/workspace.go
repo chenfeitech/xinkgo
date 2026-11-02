@@ -14,6 +14,7 @@ import (
 	"github.com/helightxu/xinkgo/internal/datafile"
 	"github.com/helightxu/xinkgo/internal/highlight"
 	"github.com/helightxu/xinkgo/internal/index"
+	"github.com/helightxu/xinkgo/internal/locale"
 	xmd "github.com/helightxu/xinkgo/internal/markdown"
 	"github.com/helightxu/xinkgo/internal/media"
 	"github.com/helightxu/xinkgo/internal/skill"
@@ -205,7 +206,7 @@ func (w *Workspace) View(c *ui.Context) {
 	// the note is what they have yet to take or send back.
 	if !w.review.open {
 		if err := w.Tabs.SaveDue(); err != nil {
-			w.Say("the note could not be saved")
+			w.Say(locale.SayNoteNotSaved())
 		}
 	}
 	// What an action's answer came to is put before the user as a
@@ -342,11 +343,11 @@ func (w *Workspace) sidebar(c *ui.Context) {
 	ui.Column(c).Width(w.Layout.Left).FillHeight().Children(func() {
 		if w.Tree.Root == nil {
 			ui.Column(c).Fill().Center().Gap(8).Padding(16).Children(func() {
-				ui.Text(c, "No vault yet").
+				ui.Text(c, locale.NoVaultYet()).
 					TextColor(c.Theme().TextMuted)
 				if w.OnOpenVault != nil {
-					if ui.PrimaryButton(c, "Open a folder").
-						Label("Open a folder").Clicked() {
+					if ui.PrimaryButton(c, locale.OpenFolder()).
+						Label(locale.OpenFolder()).Clicked() {
 						w.OnOpenVault()
 					}
 				}
@@ -460,7 +461,8 @@ func (w *Workspace) tabBar(c *ui.Context) {
 						})
 				})
 			if w.OnNewNote != nil && w.Tree.Root != nil {
-				if ui.Button(c.Key("new"), "+").Label("New note").Clicked() {
+				if ui.Button(c.Key("new"), "+").
+					Label(locale.NewNoteLabel()).Clicked() {
 					w.OnNewNote()
 				}
 			}
@@ -509,8 +511,9 @@ func (w *Workspace) tab(c *ui.Context, path string) {
 func (w *Workspace) tabClose(c *ui.Context, path string, on bool) {
 	th := c.Theme()
 	name := PathOf(path)
-	b := ui.ButtonBase(c.Key(path+"#close")).Label("close "+name).
-		Tooltip("Close "+name).Size(tabClose, tabClose).
+	b := ui.ButtonBase(c.Key(path+"#close")).Label(locale.TabCloseLabel(name)).
+		Tooltip(locale.TabCloseTooltip(name)).
+		Size(tabClose, tabClose).
 		Radius(tabClose / 2).Justify(ui.Center).AlignItems(ui.Center)
 	b.Draw(func(p *ui.Painter, box ui.Rect) {
 		switch {
@@ -578,7 +581,7 @@ func (w *Workspace) toolbar(c *ui.Context) {
 				}
 			}
 		}).Gap(2).Padding(3, 4).MaxWidth(w.markdownWidth(c)).
-			Label("Markdown")
+			Label(locale.ToolbarMarkdown())
 		w.toolbarDivider(c)
 		w.aiButton(c)
 	})
@@ -606,7 +609,7 @@ func (w *Workspace) aiButton(c *ui.Context) {
 		return
 	}
 	button := ui.Button(c.Key("ai-open"), "").
-		Label("AI 辅助").Tooltip("AI 辅助：在笔记下方打开对话框").
+		Label(locale.AiAssist()).Tooltip(locale.AiAssistTooltip()).
 		Padding(4, 5).
 		Children(func() {
 			ui.Icon(c, iconAi).Size(iconSize, iconSize)
@@ -645,7 +648,8 @@ func (w *Workspace) dataBar(
 			ui.Text(c, "· "+problem.Message).TextColor(c.Theme().Danger)
 			return
 		}
-		ui.Text(c, "· well formed").TextColor(c.Theme().TextMuted)
+		ui.Text(c, locale.ProblemsWellFormed()).
+			TextColor(c.Theme().TextMuted)
 	})
 }
 
@@ -736,7 +740,7 @@ func (w *Workspace) editor(c *ui.Context) {
 	if n == nil {
 		// No notes open: one empty page, as xink keeps it.
 		ui.Column(c).Fill().Center().Children(func() {
-			ui.Text(c, "No note open").
+			ui.Text(c, locale.NoNoteOpen()).
 				TextColor(c.Theme().TextMuted)
 		})
 		return
@@ -839,7 +843,7 @@ func (w *Workspace) openLink(url, from string) {
 		target = filepath.Join(filepath.Dir(from), target)
 	}
 	if _, err := w.Tabs.Open(target); err != nil {
-		w.status = "no note at " + PathOf(target)
+		w.status = locale.StatusNoNoteAt(PathOf(target))
 	}
 }
 
@@ -849,11 +853,11 @@ func (w *Workspace) openLink(url, from string) {
 func (w *Workspace) openWikiLink(target string) {
 	path, ok := w.resolveLink(target)
 	if !ok {
-		w.status = "no note called " + target
+		w.status = locale.StatusNoNoteCalled(target)
 		return
 	}
 	if _, err := w.Tabs.Open(path); err != nil {
-		w.status = "could not open " + PathOf(path)
+		w.status = locale.StatusCouldNotOpen(PathOf(path))
 	}
 }
 

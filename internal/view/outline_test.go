@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/egoist/mygo/ui"
+	"github.com/helightxu/xinkgo/internal/locale"
 )
 
 // railOf is where the rail's buttons stand in a window of the width given,
@@ -16,7 +17,7 @@ func railOf(t *testing.T, width, preview float32, drawer string) ui.Rect {
 	w.Layout.Right = preview
 	w.drawer = drawer
 	tt := ui.NewTester(w.View, int(width), 600)
-	r, ok := tt.Find("大纲")
+	r, ok := tt.Find(locale.DrawerOutlineLabel())
 	if !ok {
 		t.Fatalf("no rail button in the window")
 	}
@@ -71,7 +72,7 @@ func drawerStrip(t *testing.T, open bool) int {
 	tt.Frame()
 	img := tt.Image()
 	face := ui.LightTheme().Background
-	rail, ok := tt.Find("大纲")
+	rail, ok := tt.Find(locale.DrawerOutlineLabel())
 	if !ok {
 		t.Fatalf("no rail button in the window")
 	}
@@ -217,14 +218,14 @@ func TestRailView_aButtonOpensItsDrawer(t *testing.T) {
 	w.Layout.Right = preview
 	tt := ui.NewTester(w.View, int(width), 600)
 	tt.Frame()
-	if err := tt.Click("大纲"); err != nil {
+	if err := tt.Click(locale.DrawerOutlineLabel()); err != nil {
 		t.Fatalf("Click: %v", err)
 	}
 	tt.Frame()
 	if w.drawer != drawerOutline {
 		t.Errorf("the drawer is %q, want the outline", w.drawer)
 	}
-	if err := tt.Click("大纲"); err != nil {
+	if err := tt.Click(locale.DrawerOutlineLabel()); err != nil {
 		t.Fatalf("Click: %v", err)
 	}
 	tt.Frame()

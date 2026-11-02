@@ -80,4 +80,41 @@ main()
 | 新配置项 | `internal/config` 加字段 + 默认值 + 校验 + 测试 |
 | Web 窗口 / 前端 | `internal/app/web.go` 的绑定服务 + `mygo generate` 生成 TS 客户端 |
 | 平台差异行为 | `internal/app/platform_<goos>.go` |
-| 自动更新、i18n、托盘 | `mygo.json` 配置 + 对应 MyGo 插件，按官方插件方式接入 |
+| 新界面文案 / 新语言 | `internal/locale` 的 `en.json` 与 `zh-Hans.json`，`go tool mygo generate` 生成 `locale.Xxx()` |
+| 自动更新、托盘 | `mygo.json` 配置 + 对应 MyGo 插件，按官方插件方式接入 |
+
+## 6 多语言
+
+界面文案不写在代码里，写在 **catalog**（`internal/locale`，一个 JSON 文件一门
+语言）：`en.json` 是源语言，英文写在那里；`zh-Hans.json` 是简体中文；代码调
+`go tool mygo generate` 生成的 `locale.Xxx()`，它按**应用当前语言**说话。
+
+```
+internal/locale/en.json      ← 源语言（英文），键名 + 文案 + @键 的元数据
+internal/locale/zh-Hans.json ← 翻译，键集与源文件一致
+internal/locale/catalog_gen.go ← 生成，勿改：embed 两个文件、注册 catalog、
+                                 每个键一个函数
+mygo.json                    ← "i18n": {"dir": "internal/locale", "source": "en"}
+```
+
+要点：
+
+- **键名说“这句话是干什么的”**（`menuOpenVault`、`sayNoteNotSaved`），不说它的
+  英文原文；加了新语言才不用改键名。键名是 `[A-Za-z][A-Za-z0-9_]*`（无点号）。
+- **带数字 / 名字的文案用 ICU**：`"{count, plural, one {# note} other {# notes}}"`、
+  `"{name} is as it was again"`；生成的是 `locale.NoteCount(count int)` 这样的
+  带参函数。中文只有 `other` 一种复数形式。
+- **语言由配置选**：`config.json` 的 `basic.language`，`system`（跟随系统）/ `en`
+  / `zh-Hans`；设置 ▸ 基本 ▸ 语言里改，`internal/app` 把它交给
+  `mygo.App.SetLocale`。MyGo 自己的控件、对话框、菜单角色（如“撤销”）也跟着换。
+- **菜单要重建，界面不用**：菜单是建好就不再变的，所以 `OnLocaleChanged` 里
+  `refreshMenu()`；`internal/view` 每帧重画，文案在画的时候取，切语言即刻生效。
+- **MyGo 自己的中文由生成代码引入**：`catalog_gen.go` 会按 catalog 的语言自动
+  `import _ "github.com/egoist/mygo/locales/zh-Hans"`。
+- **测试跑在英文下**：没有应用运行时 `i18n.Locale()` 取源语言，所以断言文案的
+  测试写**英文**，不要写中文，也不要写键名。
+- **域内文案**（`vault.Status.String()`、`task.Kind.Label()`、`media.Kind.String()`
+  、Markdown 工具栏的 `Label()`/`Desc()`）也走 catalog：`internal/locale` 是叶子
+  包，谁都可以 import，不会破坏依赖方向。
+
+校对命令：`go tool mygo i18n check`（缺键、复数形式、参数不一致都会报）。

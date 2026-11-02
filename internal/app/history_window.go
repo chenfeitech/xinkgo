@@ -10,6 +10,7 @@ import (
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
+	"github.com/helightxu/xinkgo/internal/locale"
 	"github.com/helightxu/xinkgo/internal/snapshot"
 )
 
@@ -33,7 +34,7 @@ func (s *appState) openHistory() {
 	s.histStatus = ""
 	s.loadKept()
 	s.histWin = mygo.NewWindow(mygo.WindowOptions{
-		Title:     "Snapshots",
+		Title:     locale.TitleSnapshots(),
 		Width:     620,
 		Height:    480,
 		MinWidth:  420,
@@ -49,20 +50,15 @@ func (s *appState) historyView(c *ui.Context) {
 	dir := snapshot.Dir(s.dir)
 	ui.Scroll(c).TrackScroll(&s.histScroll).Fill().Children(func() {
 		ui.Column(c).Fill().Gap(8).Padding(8).Children(func() {
-			ui.Text(c, "Snapshots").Bold()
-			ui.Text(c, "What a note said before it was changed. The "+
-				"oldest "+strconv.Itoa(snapshot.Max)+" are kept; "+
-				"putting one "+
-				"back goes into the note of that name in the vault "+
-				"that is open, and what stands there now is kept "+
-				"first.").TextColor(c.Theme().TextMuted)
+			ui.Text(c, locale.TitleSnapshots()).Bold()
+			ui.Text(c, locale.HistIntro(strconv.Itoa(snapshot.Max))).
+				TextColor(c.Theme().TextMuted)
 			if len(s.kept) == 0 {
-				ui.Text(c, "Nothing kept yet: a note is kept when a "+
-					"revision is written into it, or when one is put "+
-					"back.").TextColor(c.Theme().TextMuted)
+				ui.Text(c, locale.HistEmpty()).
+					TextColor(c.Theme().TextMuted)
 				return
 			}
-			ui.Text(c, strconv.Itoa(snapshot.Count(dir))+" kept").
+			ui.Text(c, locale.HistKept(snapshot.Count(dir))).
 				TextColor(c.Theme().TextMuted)
 			for _, one := range s.kept {
 				s.historyItem(c, one)
@@ -83,7 +79,7 @@ func (s *appState) historyItem(c *ui.Context, one keptOne) {
 			ui.Text(c, one.When).FontSize(11).
 				TextColor(c.Theme().TextMuted)
 			if ui.Button(c.Key("hist-back-"+filepath.Base(one.Path)),
-				"Put it back").Clicked() {
+				locale.HistPutBack()).Clicked() {
 				s.putBack(one.Path)
 			}
 		})
@@ -125,14 +121,14 @@ func (s *appState) putBack(path string) {
 	}
 	was, err := os.ReadFile(path)
 	if err != nil {
-		s.histStatus = "that snapshot could not be read"
+		s.histStatus = locale.HistNotRead()
 		slog.Warn("a snapshot could not be read", "path", path,
 			"err", err)
 		return
 	}
 	now, err := s.readNote(where)
 	if err != nil {
-		s.histStatus = "the note could not be read"
+		s.histStatus = locale.HistNoteNotRead()
 		slog.Warn("a note could not be read", "path", where, "err", err)
 		return
 	}
@@ -140,7 +136,7 @@ func (s *appState) putBack(path string) {
 	// putting back is not itself a change one cannot come back from.
 	s.snapshotNote(where, now)
 	if err := s.writeNote(where, string(was)); err != nil {
-		s.histStatus = "the note could not be written"
+		s.histStatus = locale.HistNoteNotWritten()
 		slog.Warn("a note could not be written", "path", where,
 			"err", err)
 		return
@@ -153,7 +149,7 @@ func (s *appState) putBack(path string) {
 	if s.ws != nil && s.ws.Tabs != nil {
 		s.ws.Tabs.PutText(where)
 	}
-	s.histStatus = name + " is as it was again"
+	s.histStatus = locale.HistPutBackDone(name)
 	s.loadKept()
 	slog.Info("snapshot put back", "from", path, "into", where)
 }
@@ -213,5 +209,5 @@ func firstWords(text string) string {
 		}
 		return line
 	}
-	return "(nothing in it)"
+	return locale.HistNothingInIt()
 }

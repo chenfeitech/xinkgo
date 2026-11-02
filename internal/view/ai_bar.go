@@ -10,6 +10,7 @@ import (
 	"github.com/egoist/mygo/ui/markdown"
 	"github.com/helightxu/xinkgo/internal/ai"
 	"github.com/helightxu/xinkgo/internal/config"
+	"github.com/helightxu/xinkgo/internal/locale"
 	"github.com/helightxu/xinkgo/internal/skill"
 	"github.com/helightxu/xinkgo/internal/state"
 )
@@ -166,23 +167,23 @@ func (w *Workspace) aiHead(c *ui.Context, s *aiSession) {
 	ui.Row(c).Gap(8).Children(func() {
 		ui.Text(c, "AI").Bold()
 		if s.Skill != nil {
-			ui.Text(c, "using "+s.Skill.Name).FontSize(11).
+			ui.Text(c, locale.AiUsingSkill(s.Skill.Name)).FontSize(11).
 				TextColor(c.Theme().TextMuted)
-			if ui.Button(c.Key("ai-skill-away"), "Put it down").
-				Label("Stop using this skill").Clicked() {
+			if ui.Button(c.Key("ai-skill-away"), locale.AiPutSkillDown()).
+				Label(locale.AiPutSkillDownLabel()).Clicked() {
 				s.Skill = nil
 			}
 		}
 		if s.isBusy() {
-			ui.Text(c, "answering…").FontSize(12).
+			ui.Text(c, locale.AiAnswering()).FontSize(12).
 				TextColor(c.Theme().TextMuted)
 		}
-		if ui.Button(c.Key("ai-forget"), "Forget").
-			Label("Forget this conversation").Clicked() {
+		if ui.Button(c.Key("ai-forget"), locale.AiForget()).
+			Label(locale.AiForgetLabel()).Clicked() {
 			w.aiForget(s)
 		}
 		if ui.Button(c.Key("ai-hide"), "×").
-			Label("Hide the conversation").Clicked() {
+			Label(locale.AiHideLabel()).Clicked() {
 			s.Open = false
 		}
 	})
@@ -236,7 +237,7 @@ func (w *Workspace) aiSaid(
 			}
 		}
 		if b.Cut {
-			ui.Text(c, "the model ran out of room").FontSize(12).
+			ui.Text(c, locale.AiOutOfRoom()).FontSize(12).
 				TextColor(c.Theme().TextMuted)
 		}
 		if b.Failed != "" {
@@ -248,7 +249,8 @@ func (w *Workspace) aiSaid(
 		// change at a time.
 		if b.Over && b.Text != "" {
 			if ui.Button(c.Key("ai-review#"+strconv.Itoa(at)),
-				"Look it over").Label("Look over these changes").
+				locale.AiLookOver()).
+				Label(locale.AiLookOverLabel()).
 				Clicked() {
 				w.StartReview(b.Text)
 			}
@@ -277,8 +279,8 @@ func (w *Workspace) aiCompose(c *ui.Context, s *aiSession, n *OpenNote) {
 			s.focus = false
 		}
 		if s.isBusy() {
-			if ui.Button(c.Key("ai-stop"), "Stop").
-				Label("Stop the answer").Clicked() {
+			if ui.Button(c.Key("ai-stop"), locale.AiStop()).
+				Label(locale.AiStopLabel()).Clicked() {
 				w.aiStop(s)
 			}
 			return
@@ -287,8 +289,8 @@ func (w *Workspace) aiCompose(c *ui.Context, s *aiSession, n *OpenNote) {
 			w.aiAsk(n, s)
 			return
 		}
-		if ui.Button(c.Key("ai-send"), "Ask").
-			Label("Ask the model").Clicked() {
+		if ui.Button(c.Key("ai-send"), locale.AiAsk()).
+			Label(locale.AiAskLabel()).Clicked() {
 			w.aiAsk(n, s)
 		}
 	})
@@ -301,19 +303,19 @@ func (w *Workspace) aiCompose(c *ui.Context, s *aiSession, n *OpenNote) {
 func (w *Workspace) runAction(a config.AiAction) {
 	n := w.Tabs.ActiveNote()
 	if n == nil {
-		w.status = "no note is open to do that to"
+		w.status = locale.StatusNoNoteForAction()
 		return
 	}
 	s := w.aiOf(n.Path)
 	if s.isBusy() {
-		w.status = "the model is still answering"
+		w.status = locale.StatusStillAnswering()
 		return
 	}
 	piece, from, to, part := pieceOf(n, a)
 	s.Open = true
 	w.aiSend(n, s, askingOf(a, piece, part),
 		&waitReview{part: part, from: from, to: to})
-	w.status = a.Name + " asked of it"
+	w.status = locale.StatusActionAsked(a.Name)
 }
 
 // pieceOf is what an action is done to: the selection, when the note has

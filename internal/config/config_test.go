@@ -166,6 +166,64 @@ func TestSanitize_unknownEnumFallsBack(t *testing.T) {
 	}
 }
 
+// TestLoad_theLanguageOfAMachineIsFollowed checks a first start: no
+// language is chosen, so the app speaks the one the machine reads.
+func TestLoad_theLanguageOfAMachineIsFollowed(t *testing.T) {
+	cfg := load(t, "")
+	if cfg.Basic.Language != LanguageSystem {
+		t.Errorf("language %q, want %q", cfg.Basic.Language,
+			LanguageSystem)
+	}
+	if tag := cfg.Basic.LocaleTag(); tag != "" {
+		t.Errorf("LocaleTag = %q, want it to follow the machine", tag)
+	}
+}
+
+// TestSanitize_unknownLanguageFallsBack checks a language the app does not
+// speak, as a file written by hand or by another version may have.
+func TestSanitize_unknownLanguageFallsBack(t *testing.T) {
+	cfg := load(t, `{"basic":{"language":"klingon"}}`)
+	if cfg.Basic.Language != LanguageSystem {
+		t.Errorf("language %q, want %q", cfg.Basic.Language,
+			LanguageSystem)
+	}
+}
+
+// TestLocaleTag_theLanguageMyGoIsTold checks what the configuration's
+// language is to MyGo: a tag it knows, or "" to follow the machine.
+func TestLocaleTag_theLanguageMyGoIsTold(t *testing.T) {
+	cases := map[string]string{
+		LanguageSystem:  "",
+		LanguageEnglish: "en",
+		LanguageChinese: "zh-Hans",
+	}
+	for lang, want := range cases {
+		cfg := load(t, `{"basic":{"language":"`+lang+`"}}`)
+		if got := cfg.Basic.LocaleTag(); got != want {
+			t.Errorf("%q: tag %q, want %q", lang, got, want)
+		}
+	}
+}
+
+// TestSaveLoad_theLanguageComesBack checks that the language is kept, as
+// the rest of the settings are.
+func TestSaveLoad_theLanguageComesBack(t *testing.T) {
+	dir := t.TempDir()
+	cfg := Default()
+	cfg.Basic.Language = LanguageChinese
+	if err := cfg.Save(dir); err != nil {
+		t.Fatal(err)
+	}
+	again, err := Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if again.Basic.Language != LanguageChinese {
+		t.Errorf("language %q, want %q", again.Basic.Language,
+			LanguageChinese)
+	}
+}
+
 // TestMigrate_syncModeAlias checks the name SyncRatio used to have.
 func TestMigrate_syncModeAlias(t *testing.T) {
 	if got := load(t, `{"preview":{"sync_mode":"realtime"}}`).

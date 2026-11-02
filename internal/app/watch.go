@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/egoist/mygo"
+	"github.com/helightxu/xinkgo/internal/locale"
 )
 
 // watchVault asks the system to tell the app when the files of the vault
@@ -79,10 +80,9 @@ func (s *appState) handleEvents(events []mygo.FileEvent) {
 		changed, conflict := s.ws.Tabs.Reload(path)
 		switch {
 		case conflict:
-			s.ws.Say("changed outside Xinkgo, but you have changes " +
-				"that are not saved")
+			s.ws.Say(locale.WatchChangedOutside())
 		case changed:
-			s.ws.Say("took in the changes from outside")
+			s.ws.Say(locale.WatchTookInOutside())
 		}
 	}
 	if structure {

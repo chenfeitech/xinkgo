@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/helightxu/xinkgo/internal/config"
+	"github.com/helightxu/xinkgo/internal/locale"
 )
 
 // The capabilities a model may have, as the app knows them.
@@ -36,36 +37,33 @@ func Info(id string) Capability {
 	switch id {
 	case CapCompletion:
 		return Capability{
-			Label:   "对话补全",
-			Meaning: "模型最基本的能力：给一段文字，续写或回答",
-			Usage:   "所有对话、快捷动作、改写都依赖它",
+			Label:   locale.AiCapabilityCompletion(),
+			Meaning: locale.AiCapabilityCompletionMeaning(),
+			Usage:   locale.AiCapabilityCompletionUsage(),
 		}
 	case CapTools:
 		return Capability{
-			Label: "工具调用",
-			Meaning: "能按约定格式请求调用外部函数" +
-				"（读笔记、搜索笔记）",
-			Usage: "开启后 AI 可以先查笔记再回答；" +
-				"以「连接测试」实测结果为准",
+			Label:   locale.AiCapabilityTools(),
+			Meaning: locale.AiCapabilityToolsMeaning(),
+			Usage:   locale.AiCapabilityToolsUsage(),
 		}
 	case CapThinking:
 		return Capability{
-			Label:   "思考 / 推理",
-			Meaning: "先输出一段内部推理，再给最终答案",
-			Usage: "复杂问题更准，但更慢、且占用生成预算；" +
-				"仅 Ollama 侧可关闭",
+			Label:   locale.AiCapabilityThinking(),
+			Meaning: locale.AiCapabilityThinkingMeaning(),
+			Usage:   locale.AiCapabilityThinkingUsage(),
 		}
 	case CapVision:
 		return Capability{
-			Label:   "视觉理解",
-			Meaning: "能接收图片输入",
-			Usage:   "本项目当前未使用",
+			Label:   locale.AiCapabilityVision(),
+			Meaning: locale.AiCapabilityVisionMeaning(),
+			Usage:   locale.AiCapabilityVisionUsage(),
 		}
 	}
 	return Capability{
-		Label:   "未知能力",
-		Meaning: "这个能力项不在已知列表里（厂商自定义）",
-		Usage:   "可手动删除；保留也不影响运行",
+		Label:   locale.AiCapabilityUnknown(),
+		Meaning: locale.AiCapabilityUnknownMeaning(),
+		Usage:   locale.AiCapabilityUnknownUsage(),
 	}
 }
 
