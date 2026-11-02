@@ -33,7 +33,7 @@ WINDOWS_PLATFORMS ?= windows/amd64 windows/arm64
 ALL_PLATFORMS ?= $(MACOS_PLATFORMS) $(WINDOWS_PLATFORMS) linux/amd64
 
 .PHONY: help deps run dev build build-macos build-windows package \
-	package-macos cross test test-race vet fmt fmt-check lint doctor \
+	package-macos icon cross test test-race vet fmt fmt-check lint doctor \
 	check debug clean
 
 help: ## List the commands
@@ -83,6 +83,9 @@ package: deps ## Package the app for this machine: .app and .dmg on macOS (PLATF
 
 package-macos: deps ## Package macOS, the primary target: .app and .dmg for both architectures
 	scripts/package.sh $(MACOS_PLATFORMS)
+
+icon: ## Write resources/icon.png from resources/xink.icns, on a Mac
+	scripts/icon.sh
 
 cross: deps ## Compile every platform we ship, macOS first, without packaging
 	@for p in $(ALL_PLATFORMS); do \
