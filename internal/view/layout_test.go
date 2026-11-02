@@ -130,8 +130,10 @@ func windowDrawn(t *testing.T, height int) (*Workspace, *ui.Tester) {
 func TestPanels_theTreeAndThePreviewStartAtTheTop(t *testing.T) {
 	// What stands in the tree's head, and no more: a row is under it.
 	// The preview's first line stands under the row of its own corner,
-	// which is the button that spreads the preview over the note.
-	const underHead, underTop = 80, 48
+	// which is the button that spreads the preview over the note and is
+	// as tall as the tab bar's row, and the line under it one line lower
+	// again.
+	const underHead, underTop = 88, 48
 	for _, height := range []int{400, 900} {
 		_, te := windowDrawn(t, height)
 		for _, want := range []struct {

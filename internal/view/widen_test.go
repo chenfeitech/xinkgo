@@ -159,3 +159,26 @@ func TestWiden_theButtonStandsWhereThereIsAPreview(t *testing.T) {
 		t.Error("the note still stands over a preview that is shut")
 	}
 }
+
+// TestWiden_theTwoCornerButtonsStandLevel checks that the button at the
+// end of the tab bar and the one in the preview's own corner are drawn on
+// one line: both stand at the top of a pane, and the two panes begin at
+// the top of the window together, so a button standing lower than the
+// other is read as a step across the middle of the window.
+func TestWiden_theTwoCornerButtonsStandLevel(t *testing.T) {
+	_, tt := zoomTester(t, 1100)
+	note, ok := tt.Find(locale.WidenNote())
+	if !ok {
+		t.Fatal("the button that widens the note is not drawn")
+	}
+	preview, ok := tt.Find(locale.SpreadPreview())
+	if !ok {
+		t.Fatal("the button that spreads the preview is not drawn")
+	}
+	noteMid := note.Y + note.H/2
+	previewMid := preview.Y + preview.H/2
+	if d := noteMid - previewMid; d < -1 || d > 1 {
+		t.Errorf("the note's button stands at %v and the preview's at %v,"+
+			" want them level", noteMid, previewMid)
+	}
+}

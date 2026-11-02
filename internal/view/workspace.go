@@ -565,6 +565,12 @@ const (
 	// of tabMaxWidth once its padding, its close button and the room
 	// between the two are taken out.
 	tabNameMax float32 = 142
+	// headHeight is how tall the row at the top of a pane stands: the
+	// tab bar's, which is the note's own top, and the preview's head.
+	// Each of the two carries a button in its corner, and the two are
+	// read as one row across the window, so the row is of one height in
+	// either pane and the buttons stand level with each other.
+	headHeight = tabHeight + 8
 )
 
 // editorPadX is how far the note's text stands from the sides of its
@@ -650,7 +656,7 @@ func (w *Workspace) tabBar(c *ui.Context) {
 	paths := w.Tabs.Paths()
 	ui.Row(c).AlignItems(ui.Center).PaddingEnd(w.railClear()).
 		Children(func() {
-			ui.ScrollHorizontal(c).Grow(1).Height(tabHeight + 8).
+			ui.ScrollHorizontal(c).Grow(1).Height(headHeight).
 				Children(func() {
 					ui.Row(c).Gap(2).Padding(4).AlignItems(ui.Center).
 						Children(func() {
@@ -1184,14 +1190,17 @@ func (w *Workspace) ExportText() (path, text string, ok bool) {
 // that spreads the preview over the note. It stands in the corner the
 // note's toolbar is not in, and the room it takes is the pane's own top,
 // so that what is read begins under it and is never under the button
-// itself. What the window shows and does not read — a picture, a PDF —
-// is spread as much as a note is: it is the same pane, read wider.
+// itself. The row is as tall as the tab bar's, which stands level with it
+// across the window: the button of one corner and the button of the other
+// are then drawn on one line. What the window shows and does not read —
+// a picture, a PDF — is spread as much as a note is: it is the same
+// pane, read wider.
 func (w *Workspace) previewHead(c *ui.Context) {
 	if w.Tabs.ActiveNote() == nil {
 		return
 	}
-	ui.Row(c).FillWidth().AlignItems(ui.Center).Gap(4).
-		Padding(2, 6).Children(func() {
+	ui.Row(c).FillWidth().Height(headHeight).AlignItems(ui.Center).
+		Gap(4).Padding(0, 6).Children(func() {
 		w.spreadButton(c)
 		ui.Box(c).Grow(1)
 	})
