@@ -711,17 +711,18 @@ func (w *Workspace) toolbar(c *ui.Context) {
 // the note's at the end of the Markdown toolbar, the preview's on the
 // rail, and the preview's over the note in the corner of the preview's
 // own pane. Pressed again it gives the room back, and while the pane has
-// it the button stands lit, as the way to the model does. back is what
-// the button says when that is what the press will do.
+// it the button stands lit, as the way to the model does: backIcon is the
+// picture it then shows, which is the room going back where it came from,
+// and back is what it says.
 func (w *Workspace) zoomButton(
-	c *ui.Context, key string, pane zoom, icon *ui.SVG,
+	c *ui.Context, key string, pane zoom, icon, backIcon *ui.SVG,
 	label, tip, back string,
 ) {
 	// A pane that has the room is one this button takes it from, and so
-	// it says the way back: the picture of a pane giving up the room it
-	// took, and what the press will do.
+	// it says the way back: the picture of the room going back where it
+	// came from, and what the press will do.
 	if w.zoom == pane {
-		icon = iconZoomBack
+		icon = backIcon
 	}
 	button := ui.Button(c.Key(key), "").
 		Label(label).Tooltip(w.zoomTip(pane, tip, back)).
@@ -1065,7 +1066,8 @@ func (w *Workspace) previewHead(c *ui.Context) {
 	ui.Row(c).FillWidth().AlignItems(ui.Center).Gap(4).
 		Padding(2, 6).Children(func() {
 		w.zoomButton(c, "preview-spread", zoomPreviewSpread,
-			iconPreviewSpread, locale.ZoomPreviewSpread(),
+			iconPreviewSpread, iconPreviewSpreadBack,
+			locale.ZoomPreviewSpread(),
 			locale.ZoomPreviewSpreadTooltip(),
 			locale.ZoomPreviewSpreadBackTooltip())
 		ui.Box(c).Grow(1)
@@ -1084,8 +1086,8 @@ func (w *Workspace) previewBar(c *ui.Context) {
 		Children(func() {
 			ui.Box(c).Grow(1)
 			w.zoomButton(c, "zoom-back", zoomPreview, iconZoomPreview,
-				locale.ZoomBack(), locale.ZoomBackTooltip(),
-				locale.ZoomBackTooltip())
+				iconZoomBack, locale.ZoomBack(),
+				locale.ZoomBackTooltip(), locale.ZoomBackTooltip())
 		})
 }
 
