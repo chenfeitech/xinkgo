@@ -59,18 +59,15 @@ type appState struct {
 	// win is the window the workspace is drawn in, kept so that a second
 	// launch can bring it back rather than open another.
 	win *mygo.Window
-	// settingsWin and vaultsWin are the windows of the settings and of
-	// the vaults: one of each, brought back rather than opened again.
+	// settingsWin is the window of the settings, which is where the
+	// vaults are kept too: one of it, brought back rather than opened
+	// again.
 	settingsWin *mygo.Window
-	vaultsWin   *mygo.Window
 	// draft is what the settings window is changing.
 	draft settings
 	// shownAll is whether the tree was last read with every file in it.
 	shownAll bool
 
-	// vaultRename is the vault whose name is being asked for.
-	vaultRename string
-	vaultName   string
 	// root is the folder of the vault that is open.
 	root string
 	// openNotes is what notes were open in each vault: the window
@@ -385,13 +382,10 @@ func (s *appState) rebuildIndex(root *vault.Entry) {
 // list when it is not there yet.
 func (s *appState) rememberVault(path string) {
 	known := false
-	for i := range s.vaults.Vaults {
-		if s.vaults.Vaults[i].Path == path {
-			id := s.vaults.Vaults[i].ID
-			s.vaults.Active = &id
-			known = true
-			break
-		}
+	if v := s.vaults.At(path); v != nil {
+		id := v.ID
+		s.vaults.Active = &id
+		known = true
 	}
 	if !known {
 		e := s.vaults.Add(path)

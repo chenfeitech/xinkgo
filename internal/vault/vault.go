@@ -208,6 +208,18 @@ func (r *Registry) Add(path string) VaultEntry {
 	return e
 }
 
+// At finds the vault of that folder, or nothing when the folder is not
+// one of them: a folder is put in the list once, for two rows of one
+// folder would be one row too many.
+func (r *Registry) At(path string) *VaultEntry {
+	for i := range r.Vaults {
+		if r.Vaults[i].Path == path {
+			return &r.Vaults[i]
+		}
+	}
+	return nil
+}
+
 // ByID finds a vault by its identifier.
 func (r *Registry) ByID(id string) *VaultEntry {
 	for i := range r.Vaults {

@@ -66,6 +66,11 @@ type settings struct {
 	clone  string
 	moveID string
 	moveBy int
+	// vaultRename is the vault whose name is being asked for,
+	// vaultName what the field holds, and vaultDrop the one to be
+	// forgotten. They are named by the row that was clicked, and the
+	// forgetting is done after the rows are drawn, as with the models.
+	vaultRename, vaultName, vaultDrop string
 	// tab is the group of the settings whose rows are on show: the
 	// list on the left says which, and it is kept while the window
 	// stands, and between two openings of it. shown is the group whose
@@ -116,14 +121,28 @@ func (s *appState) settingsTabs() []settingsTab {
 // openSettings shows the settings window, or brings it back when it is
 // already open: there is one of them, as there is one vault.
 func (s *appState) openSettings() {
+	s.openSettingsTab("")
+}
+
+// openSettingsTab shows the settings window with that group of the
+// settings chosen, as the vaults are asked for from the menu and from
+// the tree: they are kept among the settings, and a window that stands
+// already is brought back with the group chosen in it, rather than
+// opened again.
+func (s *appState) openSettingsTab(tab string) {
 	if s.settingsWin != nil && !s.settingsWin.IsDestroyed() {
+		if tab != "" {
+			s.draft.tab = tab
+		}
 		s.settingsWin.Show()
 		s.settingsWin.Focus()
 		return
 	}
 	// The group that was on show is on show again; a first opening
 	// starts with the one that is asked about most.
-	tab := s.draft.tab
+	if tab == "" {
+		tab = s.draft.tab
+	}
 	if tab == "" {
 		tab = tabBasic
 	}
@@ -261,20 +280,6 @@ func (s *appState) previewSettings(c *ui.Context) {
 		"this, however wide the window is", &s.draft.width, 400, 1400)
 	choice(c, "Density", "How much room the lines are given",
 		&s.draft.cfg.Preview.Density, densities)
-}
-
-// vaultSettings is the folders the app knows, and the window that keeps
-// them.
-func (s *appState) vaultSettings(c *ui.Context) {
-	buttons(c, "The vault that is open", s.root, func() {
-		if ui.Button(c.Key("manage-vaults"), "Manage…").Clicked() {
-			s.openVaultManager()
-		}
-		if ui.Button(c.Key("open-other-vault"), "Open another…").
-			Clicked() {
-			s.openVaultDialog()
-		}
-	})
 }
 
 // configFile is the settings themselves: kept as a file, given away and

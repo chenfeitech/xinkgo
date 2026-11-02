@@ -285,3 +285,21 @@ func TestRemove_forgetsTheOpenVault(t *testing.T) {
 		t.Error("the app still remembers the vault that was removed")
 	}
 }
+
+// TestAt_theVaultOfThatFolder checks that a folder is found by where it
+// stands: a folder is put in the list once, and two rows of one folder
+// would be one row too many.
+func TestAt_theVaultOfThatFolder(t *testing.T) {
+	var r Registry
+	notes := r.Add("/notes")
+	other := r.Add("/other")
+	if v := r.At("/notes"); v == nil || v.ID != notes.ID {
+		t.Errorf("At(/notes) = %+v, want %+v", v, notes)
+	}
+	if v := r.At("/other"); v == nil || v.ID != other.ID {
+		t.Errorf("At(/other) = %+v, want %+v", v, other)
+	}
+	if v := r.At("/nowhere"); v != nil {
+		t.Errorf("At(/nowhere) = %+v, want nothing", v)
+	}
+}
