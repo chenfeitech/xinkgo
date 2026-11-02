@@ -3434,11 +3434,11 @@ func (msgs Messages) AiQuickGroup() string {
 	return Catalog.Format(msgs.locale, "aiQuickGroup", nil)
 }
 
-// AiQuickGroupNote says "A word stands for something you ask a model to do to a note often. They stand in a row above the place to ask: press one, or type / and then the word."
+// AiQuickGroupNote says "A word stands for something you ask a model to do to a note often. They stand in a row above the place to ask: press …"
 // in the language the app shows.
 func AiQuickGroupNote() string { return In(i18n.Locale()).AiQuickGroupNote() }
 
-// AiQuickGroupNote says "A word stands for something you ask a model to do to a note often. They stand in a row above the place to ask: press one, or type / and then the word."
+// AiQuickGroupNote says "A word stands for something you ask a model to do to a note often. They stand in a row above the place to ask: press …"
 // in the language of msgs.
 func (msgs Messages) AiQuickGroupNote() string {
 	return Catalog.Format(msgs.locale, "aiQuickGroupNote", nil)

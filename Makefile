@@ -22,10 +22,15 @@ BIN := bin
 
 # The machine we are on, as Go names it: darwin/arm64 on Apple silicon.
 HOST_PLATFORM := $(shell uname -s | tr '[:upper:]' '[:lower:]')/$(shell uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
+# The machine's operating system, as Go names it: darwin on a Mac.
+HOST_GOOS := $(word 1,$(subst /, ,$(HOST_PLATFORM)))
 
-# What `make package` builds: the machine's own platform, which on a Mac
-# is macOS. Override to package another: PLATFORMS="windows/amd64".
-PLATFORMS ?= $(HOST_PLATFORM)
+# What `make package` builds: the machine's own platform first — macOS on a
+# Mac, the platform we develop against — and then Windows/amd64, the next
+# platform we ship. Override to package another: PLATFORMS="darwin/arm64".
+# P2 windows/arm64 is not in the default: PLATFORMS="$(WINDOWS_PLATFORMS)"
+# packages both.
+PLATFORMS ?= $(HOST_PLATFORM) $(if $(filter windows,$(HOST_GOOS)),,windows/amd64)
 # P0: macOS, both architectures. "darwin/universal" builds one app of both.
 MACOS_PLATFORMS ?= darwin/arm64 darwin/amd64
 # P1/P2: Windows, then Linux.
@@ -33,8 +38,8 @@ WINDOWS_PLATFORMS ?= windows/amd64 windows/arm64
 ALL_PLATFORMS ?= $(MACOS_PLATFORMS) $(WINDOWS_PLATFORMS) linux/amd64
 
 .PHONY: help deps run dev build build-macos build-windows package \
-	package-macos icon cross test test-race vet fmt fmt-check lint doctor \
-	check debug clean
+	package-macos package-windows icon cross test test-race vet fmt fmt-check \
+	lint doctor check debug clean
 
 help: ## List the commands
 	@grep -hE '^[a-z][a-z0-9-]*:.*?## ' $(MAKEFILE_LIST) | sort | \
@@ -78,11 +83,14 @@ build-windows: deps ## Cross-compile the Windows executables
 
 ## Package
 
-package: deps ## Package the app for this machine: .app and .dmg on macOS (PLATFORMS="windows/amd64" for another)
+package: deps ## Package the app for this machine and for Windows: .app and .dmg on macOS, Xinkgo.exe (PLATFORMS="darwin/arm64" for another)
 	scripts/package.sh $(PLATFORMS)
 
 package-macos: deps ## Package macOS, the primary target: .app and .dmg for both architectures
 	scripts/package.sh $(MACOS_PLATFORMS)
+
+package-windows: deps ## Package Windows: the executables for both architectures (x64, and arm64)
+	scripts/package.sh $(WINDOWS_PLATFORMS)
 
 icon: ## Write resources/icon.png from resources/xink.icns, on a Mac
 	scripts/icon.sh
