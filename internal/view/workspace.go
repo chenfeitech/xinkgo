@@ -710,13 +710,15 @@ func (w *Workspace) toolbar(c *ui.Context) {
 // zoomButton is one button that gives a pane room that is not its own:
 // the note's at the end of the Markdown toolbar, the preview's on the
 // rail, and the preview's over the note in the corner of the preview's
-// own pane. Pressed again it gives the room back, and while the pane has
-// it the button stands lit, as the way to the model does: backIcon is the
-// picture it then shows, which is the room going back where it came from,
-// and back is what it says.
+// own pane. Pressed again it gives the room back: backIcon is the picture
+// it then shows, which is the room going back where it came from, and back
+// is what it says. lit is whether it stands lit while the pane has the
+// room, as the way to the model does; one whose picture says the way back
+// on its own, as the corner button's arrow does, asks for no face of its
+// own.
 func (w *Workspace) zoomButton(
 	c *ui.Context, key string, pane zoom, icon, backIcon *ui.SVG,
-	label, tip, back string,
+	label, tip, back string, lit bool,
 ) {
 	// A pane that has the room is one this button takes it from, and so
 	// it says the way back: the picture of the room going back where it
@@ -730,7 +732,7 @@ func (w *Workspace) zoomButton(
 		Children(func() {
 			ui.Icon(c, icon).Size(iconSize, iconSize)
 		})
-	if w.zoom == pane {
+	if lit && w.zoom == pane {
 		button.Selected(true)
 	}
 	if button.Clicked() {
@@ -1069,7 +1071,7 @@ func (w *Workspace) previewHead(c *ui.Context) {
 			iconPreviewSpread, iconPreviewSpreadBack,
 			locale.ZoomPreviewSpread(),
 			locale.ZoomPreviewSpreadTooltip(),
-			locale.ZoomPreviewSpreadBackTooltip())
+			locale.ZoomPreviewSpreadBackTooltip(), false)
 		ui.Box(c).Grow(1)
 	})
 }
@@ -1087,7 +1089,7 @@ func (w *Workspace) previewBar(c *ui.Context) {
 			ui.Box(c).Grow(1)
 			w.zoomButton(c, "zoom-back", zoomPreview, iconZoomPreview,
 				iconZoomBack, locale.ZoomBack(),
-				locale.ZoomBackTooltip(), locale.ZoomBackTooltip())
+				locale.ZoomBackTooltip(), locale.ZoomBackTooltip(), true)
 		})
 }
 

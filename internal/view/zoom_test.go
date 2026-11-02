@@ -1,6 +1,7 @@
 package view
 
 import (
+	"image/color"
 	"testing"
 
 	"github.com/egoist/mygo/ui"
@@ -213,7 +214,6 @@ func TestZoom_thePreviewSpreadsOverTheNote(t *testing.T) {
 	if !ok {
 		t.Fatal("the note is not read in the preview")
 	}
-	t.Logf("read at %v, spread at %v", read.X, spread.X)
 	if spread.X >= read.X {
 		t.Errorf("what is read begins at %v, want it left of the %v it was",
 			spread.X, read.X)
@@ -317,5 +317,46 @@ func TestZoom_aSpreadPreviewShutGivesTheRoomBack(t *testing.T) {
 	}
 	if _, ok := tt.Find("head"); ok {
 		t.Error("the preview is still drawn, want it shut")
+	}
+}
+
+// buttonFace is the face of the button named key: read at a corner of its
+// box, where its picture is not. A button that stands lit is the window's
+// accent there, and one that does not is the face every button has.
+func buttonFace(t *testing.T, tt *ui.Tester, key string) color.RGBA {
+	t.Helper()
+	r, ok := tt.Find(key)
+	if !ok {
+		t.Fatalf("%q is not drawn", key)
+	}
+	return tt.Image().RGBAAt(int(r.X+r.W)-3, int(r.Y+r.H)-3)
+}
+
+// TestZoom_theCornerButtonDoesNotStandLit checks that the button of the
+// corner keeps its face when the preview has been spread: its arrow says
+// which way the press will go, and a face of its own would only say it
+// again. The rail's buttons, which say the way back in words alone, stand
+// lit, and are the other half of the rule.
+func TestZoom_theCornerButtonDoesNotStandLit(t *testing.T) {
+	w, tt := spreadTester(t, 1100)
+	key := locale.ZoomPreviewSpread()
+	plain := buttonFace(t, tt, key)
+	if err := tt.Click(key); err != nil {
+		t.Fatalf("Click: %v", err)
+	}
+	if spread := buttonFace(t, tt, key); spread != plain {
+		t.Errorf("the button's face is %v once the preview is spread and"+
+			" %v before, want it the same face either way", spread, plain)
+	}
+	// The rail's is the one that is lit, and it is lit only when the
+	// pane it gives the room has it.
+	w.setZoom(zoomNone)
+	tt.Frame()
+	off := buttonFace(t, tt, locale.ZoomPreview())
+	w.setZoom(zoomPreview)
+	tt.Frame()
+	if on := buttonFace(t, tt, locale.ZoomPreview()); on == off {
+		t.Errorf("the rail's button keeps the face %v when the preview"+
+			" has the window, want it lit", on)
 	}
 }

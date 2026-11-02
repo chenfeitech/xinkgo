@@ -74,10 +74,12 @@ func (w *Workspace) rail(c *ui.Context) {
 			ui.Box(c).Height(railGap * 2)
 			w.zoomButton(c, "zoom-editor", zoomEditor, iconZoomEditor,
 				iconZoomBack, locale.ZoomEditor(),
-				locale.ZoomEditorTooltip(), locale.ZoomBackTooltip())
+				locale.ZoomEditorTooltip(), locale.ZoomBackTooltip(),
+				true)
 			w.zoomButton(c, "zoom-preview", zoomPreview, iconZoomPreview,
 				iconZoomBack, locale.ZoomPreview(),
-				locale.ZoomPreviewTooltip(), locale.ZoomBackTooltip())
+				locale.ZoomPreviewTooltip(), locale.ZoomBackTooltip(),
+				true)
 		})
 	})
 }
