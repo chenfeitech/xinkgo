@@ -85,14 +85,13 @@ func linkedLine(
 			i++
 			continue
 		}
-		end := strings.Index(string(masked[i+2:]), "]]")
+		end := closingBrackets(masked, i+2)
 		if end < 0 {
 			// No closing brackets: the rest of the line is no
 			// link at all.
 			out.WriteString(string(kept[i:]))
 			return out.String()
 		}
-		end += i + 2
 		link, ok := parseWikiInner(string(masked[i+2:end]), 0)
 		if ok {
 			if _, found := resolve(link.Target); found {
@@ -105,6 +104,20 @@ func linkedLine(
 		i = end + 2
 	}
 	return out.String()
+}
+
+// closingBrackets is where the next pair of closing brackets stands at or
+// after from, counted in runes: the line is held in runes, and what a
+// count of bytes would give — as strings.Index does — runs past the end
+// of a line whose characters take more than a byte each, as Chinese ones
+// do, and then reads what is not there.
+func closingBrackets(chars []rune, from int) int {
+	for i := from; i+1 < len(chars); i++ {
+		if chars[i] == ']' && chars[i+1] == ']' {
+			return i
+		}
+	}
+	return -1
 }
 
 // written is a link in double brackets as the preview is given it: the

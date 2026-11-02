@@ -69,6 +69,35 @@ func TestLinks_moreThanOneOnALineAndMoreThanOneLine(t *testing.T) {
 	}
 }
 
+// TestLinks_aTargetOfCharactersOfMoreThanOneByte checks the line that
+// was read by the byte and written by the rune: a note named in Chinese
+// is made clickable like any other, and nothing of the line beside it is
+// read that is not there.
+func TestLinks_aTargetOfCharactersOfMoreThanOneByte(t *testing.T) {
+	got := Links("见 [[笔记]] 与 [[笔记|这一篇]] 尾", resolver("笔记"))
+	if !strings.Contains(got, "[笔记](xinkgo:%E7%AC%94%E8%AE%B0)") {
+		t.Errorf("got %q, want a link to the note", got)
+	}
+	if !strings.Contains(got, "[这一篇](xinkgo:%E7%AC%94%E8%AE%B0)") {
+		t.Errorf("got %q, want the alias shown", got)
+	}
+	if strings.Contains(got, "\x00") || strings.Contains(got, "[[") {
+		t.Errorf("got %q, want the line written out whole", got)
+	}
+}
+
+// TestLinks_oneThatEndsTheLine checks the end of a line: a link whose
+// brackets are the last of it, in characters that take more than a byte.
+func TestLinks_oneThatEndsTheLine(t *testing.T) {
+	got := Links("看 [[目录#一节]]", resolver("目录"))
+	if !strings.Contains(got, "xinkgo:%E7%9B%AE%E5%BD%95") {
+		t.Errorf("got %q, want a link to the note", got)
+	}
+	if strings.Contains(got, "\x00") {
+		t.Errorf("got %q, want nothing read past the end of the line", got)
+	}
+}
+
 // TestWikiTarget_whatADestinationNames checks the way back: what was
 // written into a link is read out of it again, spaces and all.
 func TestWikiTarget_whatADestinationNames(t *testing.T) {
