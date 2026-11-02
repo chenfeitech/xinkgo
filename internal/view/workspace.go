@@ -555,27 +555,68 @@ func (w *Workspace) toolbar(c *ui.Context) {
 		return
 	}
 	// The buttons are as close together as an editor's are, so that
-	// all of them are seen side by side rather than in the menu.
-	ui.Toolbar(c, func() {
-		for i, group := range xmd.Groups {
-			if i > 0 {
-				w.toolbarDivider(c)
-			}
-			for _, f := range group {
-				f := f
-				if ui.Button(c.Key("fmt-"+f.Label()), "").
-					Label(f.Label()).Tooltip(f.Desc()).
-					Padding(4, 5).
-					Children(func() {
-						ui.Icon(c, formatIcon(f)).
-							Size(iconSize, iconSize)
-					}).Clicked() {
-					w.Format(f)
+	// all of them are seen side by side rather than in the menu. What
+	// there is no room for goes into the menu at the toolbar's end;
+	// the way to the model is not one of them, so it stands outside it.
+	ui.Row(c).AlignItems(ui.Center).Gap(4).Children(func() {
+		ui.Toolbar(c, func() {
+			for i, group := range xmd.Groups {
+				if i > 0 {
+					w.toolbarDivider(c)
+				}
+				for _, f := range group {
+					f := f
+					if ui.Button(c.Key("fmt-"+f.Label()), "").
+						Label(f.Label()).Tooltip(f.Desc()).
+						Padding(4, 5).
+						Children(func() {
+							ui.Icon(c, formatIcon(f)).
+								Size(iconSize, iconSize)
+						}).Clicked() {
+						w.Format(f)
+					}
 				}
 			}
-		}
-	}).Gap(2).Padding(3, 4).MaxWidth(w.editorWidth(c)).
-		Label("Markdown")
+		}).Gap(2).Padding(3, 4).MaxWidth(w.markdownWidth(c)).
+			Label("Markdown")
+		w.toolbarDivider(c)
+		w.aiButton(c)
+	})
+}
+
+// markdownWidth is how wide the row of the Markdown buttons may be: what
+// the panels leave, less the room the way to the model takes beside it, so
+// that it stands beside the row and not under the rail.
+func (w *Workspace) markdownWidth(c *ui.Context) float32 {
+	room := w.editorWidth(c) - aiBand
+	// Narrower than a few buttons there is nothing to show but the menu
+	// at the end, which is still worth its place.
+	if room < iconSize*3 {
+		return iconSize * 3
+	}
+	return room
+}
+
+// aiButton is the way to the model: a button of the toolbar's own kind,
+// a picture with a word said of it when the pointer rests on it, and the
+// conversation under the note opened or hidden by a click.
+func (w *Workspace) aiButton(c *ui.Context) {
+	n := w.Tabs.ActiveNote()
+	if n == nil {
+		return
+	}
+	button := ui.Button(c.Key("ai-open"), "").
+		Label("AI 辅助").Tooltip("AI 辅助：在笔记下方打开对话框").
+		Padding(4, 5).
+		Children(func() {
+			ui.Icon(c, iconAi).Size(iconSize, iconSize)
+		})
+	if w.aiOpen(n.Path) {
+		button.Selected(true)
+	}
+	if button.Clicked() {
+		w.ToggleAI()
+	}
 }
 
 // toolbarDivider is the line that sets two groups of the toolbar apart.
