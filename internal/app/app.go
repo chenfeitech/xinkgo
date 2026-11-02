@@ -73,6 +73,10 @@ type appState struct {
 	vaultName   string
 	// root is the folder of the vault that is open.
 	root string
+	// openNotes is what notes were open in each vault: the window
+	// shows one vault at a time, and one the user comes back to has
+	// the notes they left open in it.
+	openNotes state.OpenNotesByVault
 	// idx is what is known of the whole vault. It is worked out again
 	// from the disk, and is never written down.
 	idx *index.Index
@@ -230,6 +234,11 @@ func boot(app *mygo.Application) (*appState, error) {
 	// The settings are asked for from the foot of the tree as well: it
 	// is the app that knows the window they are opened in.
 	ws.Tree.OnOpenSettings = st.openSettings
+	// The way from one vault to another stands in the tree's head: it
+	// is the app that knows which folders the user can open.
+	ws.Tree.OnSwitchVault = st.switchToVault
+	ws.Tree.OnManageVaults = st.openVaultManager
+	ws.Tree.OnOpenFolder = st.openVaultDialog
 	// What is open is written down every time it changes, so that a
 	// crash loses the words of a note and not which notes were open.
 	ws.Tabs.OnChange = st.saveOpenNotes
@@ -261,6 +270,9 @@ func boot(app *mygo.Application) (*appState, error) {
 // restore opens again what was open when the app last ran: the vault, and
 // the notes of that vault, in the order their tabs were in.
 func (s *appState) restore() {
+	// The vaults the user can open are told to the window before the
+	// one that is open: the tree carries the way between them.
+	s.syncVaults()
 	v := s.vaults.ResolveActive()
 	if v == nil {
 		return
@@ -270,10 +282,30 @@ func (s *appState) restore() {
 			"err", err)
 		return
 	}
-	on, err := state.LoadOpenNotes(s.dir)
+	// What was open is kept one list to a vault: the file of a version
+	// that knew one vault is read as the open vault's.
+	all, err := state.LoadOpenNotes(s.dir)
 	if err != nil {
 		slog.Warn("the open notes could not be read", "err", err)
 	}
+	if len(all) == 0 {
+		on, err := state.LoadLegacyOpenNotes(s.dir)
+		if err != nil {
+			slog.Warn("the open notes could not be read", "err", err)
+		}
+		if len(on.Paths) > 0 && s.vaults.Active != nil {
+			all = all.WithOpenNotes(*s.vaults.Active, on)
+		}
+	}
+	s.openNotes = all
+	s.restoreOpenNotes()
+}
+
+// restoreOpenNotes opens again what was open in the vault that is open:
+// the notes of another vault are left alone, for they are kept for the
+// vault they are of.
+func (s *appState) restoreOpenNotes() {
+	on := s.openNotes.Of(s.vaultID())
 	paths, _ := session.PartitionExisting(on.Paths)
 	for _, path := range paths {
 		// Only the notes of the vault that is open come back.
@@ -288,8 +320,28 @@ func (s *appState) restore() {
 	if on.Active != nil && session.Within(s.root, *on.Active) {
 		s.ws.Tabs.Activate(*on.Active)
 	}
-	// Written back once: the notes that are gone are dropped from it.
-	s.saveOpenNotes()
+}
+
+// vaultID is the identifier of the vault that is open, or nothing when
+// the app knows of none.
+func (s *appState) vaultID() string {
+	if s.vaults.Active != nil {
+		return *s.vaults.Active
+	}
+	return ""
+}
+
+// syncVaults is the list of vaults told to the window, as when one is
+// added, named again or forgotten: the tree carries the way from one to
+// another.
+func (s *appState) syncVaults() {
+	s.ws.Tree.Vaults = s.vaults
+	// The menu is the platform's, and only there once the app is up:
+	// a test, or anything else that asks before the loop is running,
+	// would wait for a loop that is not there.
+	if mygo.App.IsReady() {
+		s.refreshMenu()
+	}
 }
 
 // openVault makes the folder at path the vault that is open.
@@ -348,9 +400,10 @@ func (s *appState) rememberVault(path string) {
 	if err := state.SaveVaults(s.dir, s.vaults); err != nil {
 		slog.Warn("the vaults could not be written", "err", err)
 	}
-	// A vault that is not in the list yet is in the menu from now on.
+	// A vault that is not in the list yet is in the menu from now on,
+	// and in the tree's way from one vault to another.
 	if !known {
-		s.refreshMenu()
+		s.syncVaults()
 	}
 }
 
@@ -376,16 +429,31 @@ func (s *appState) switchVault(path string) {
 	if path == s.root {
 		return
 	}
+	// The notes of the vault being left are kept for it before the
+	// window is given the other: they come back with it.
+	s.saveOpenNotes()
+	// A note of another vault is closed, and written before it goes.
 	s.ws.Tabs.CloseOutside(path)
 	if err := s.openVault(path); err != nil {
 		s.ws.Say("that folder could not be opened")
 		slog.Warn("vault", "path", path, "err", err)
 		return
 	}
+	s.restoreOpenNotes()
 	s.saveOpenNotes()
 	if err := s.watchVault(); err != nil {
 		slog.Warn("could not watch the vault", "err", err)
 	}
+}
+
+// switchToVault makes the vault of that identifier the one that is open,
+// as the tree asks when the user chooses one.
+func (s *appState) switchToVault(id string) {
+	v := s.vaults.ByID(id)
+	if v == nil {
+		return
+	}
+	s.switchVault(v.Path)
 }
 
 // applyConfig is what the user chose taking effect: the window is told,
@@ -465,9 +533,14 @@ func (s *appState) saveOpenNotes() {
 	if s.dir == "" {
 		return
 	}
-	active := s.ws.Tabs.Active
-	on := state.OpenNotes{Paths: s.ws.Tabs.Paths(), Active: &active}
-	if err := state.SaveOpenNotes(s.dir, on); err != nil {
+	// What is open belongs to the vault that is open: another keeps
+	// its own, and has them back when it is the one shown.
+	if id := s.vaultID(); id != "" {
+		active := s.ws.Tabs.Active
+		on := state.OpenNotes{Paths: s.ws.Tabs.Paths(), Active: &active}
+		s.openNotes = s.openNotes.WithOpenNotes(id, on)
+	}
+	if err := state.SaveOpenNotes(s.dir, s.openNotes); err != nil {
 		slog.Warn("the open notes could not be written", "err", err)
 	}
 }

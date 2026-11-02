@@ -14,12 +14,12 @@ func str(s string) *string { return &s }
 
 // TestLoadOpenNotes_missingFileOpensNothing checks a first start.
 func TestLoadOpenNotes_missingFileOpensNothing(t *testing.T) {
-	on, err := LoadOpenNotes(t.TempDir())
+	all, err := LoadOpenNotes(t.TempDir())
 	if err != nil {
 		t.Fatalf("LoadOpenNotes: %v", err)
 	}
-	if len(on.Paths) != 0 || on.Active != nil {
-		t.Errorf("got %+v, want nothing open", on)
+	if len(all) != 0 {
+		t.Errorf("got %+v, want nothing open", all)
 	}
 }
 
@@ -31,22 +31,22 @@ func TestLoadOpenNotes_brokenFileOpensNothing(t *testing.T) {
 		0o644); err != nil {
 		t.Fatal(err)
 	}
-	on, err := LoadOpenNotes(dir)
+	all, err := LoadOpenNotes(dir)
 	if err == nil {
 		t.Error("a file that is not JSON was accepted")
 	}
-	if len(on.Paths) != 0 {
-		t.Errorf("got %v, want nothing open", on.Paths)
+	if len(all) != 0 {
+		t.Errorf("got %v, want nothing open", all)
 	}
 }
 
 // TestSaveLoadOpenNotes_roundTrip checks that what the app writes it reads
-// back, in the same order.
+// back, in the same order, one list to a vault.
 func TestSaveLoadOpenNotes_roundTrip(t *testing.T) {
 	dir := t.TempDir()
-	want := OpenNotes{
-		Paths:  []string{"b.md", "a.md", "c.md"},
-		Active: str("a.md"),
+	want := OpenNotesByVault{
+		"v1": {Paths: []string{"b.md", "a.md", "c.md"}, Active: str("a.md")},
+		"v2": {Paths: []string{"d.md"}, Active: str("d.md")},
 	}
 	if err := SaveOpenNotes(dir, want); err != nil {
 		t.Fatalf("SaveOpenNotes: %v", err)
@@ -55,11 +55,83 @@ func TestSaveLoadOpenNotes_roundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatalf("LoadOpenNotes: %v", err)
 	}
-	if strings.Join(got.Paths, ",") != "b.md,a.md,c.md" {
-		t.Errorf("paths %v, want the order they were saved in", got.Paths)
+	first := got.Of("v1")
+	if strings.Join(first.Paths, ",") != "b.md,a.md,c.md" {
+		t.Errorf("paths %v, want the order they were saved in", first.Paths)
 	}
-	if got.Active == nil || *got.Active != "a.md" {
-		t.Errorf("active %v, want a.md", got.Active)
+	if first.Active == nil || *first.Active != "a.md" {
+		t.Errorf("active %v, want a.md", first.Active)
+	}
+	// The other vault keeps its own, and one the app knows nothing of
+	// has none.
+	second := got.Of("v2")
+	if strings.Join(second.Paths, ",") != "d.md" {
+		t.Errorf("paths %v, want the other vault's own", second.Paths)
+	}
+	if len(got.Of("nope").Paths) != 0 {
+		t.Errorf("a vault the app does not know has %v open",
+			got.Of("nope").Paths)
+	}
+}
+
+// TestWithOpenNotes_oneVaultKeepsItsOwn checks that giving one vault its
+// notes leaves the others as they were: switching vaults is not allowed
+// to forget what was open in the rest.
+func TestWithOpenNotes_oneVaultKeepsItsOwn(t *testing.T) {
+	all := OpenNotesByVault{"v1": {Paths: []string{"a.md"}}}
+	all = all.WithOpenNotes("v2", OpenNotes{Paths: []string{"b.md"}})
+	if strings.Join(all.Of("v1").Paths, ",") != "a.md" {
+		t.Errorf("v1 = %v, want what it had", all.Of("v1").Paths)
+	}
+	if strings.Join(all.Of("v2").Paths, ",") != "b.md" {
+		t.Errorf("v2 = %v, want what it was given", all.Of("v2").Paths)
+	}
+	// A vault of no identifier keeps nothing: there is no vault to
+	// bring its notes back to.
+	if before := len(all); len(all.WithOpenNotes("",
+		OpenNotes{Paths: []string{"c.md"}})) != before {
+		t.Error("notes were kept for no vault at all")
+	}
+}
+
+// TestLoadLegacyOpenNotes_theOpenVaultsNotesAreRead checks the file a
+// version that knew one vault wrote: its list is read as that vault's,
+// so that the notes open then are not lost by the move to many.
+func TestLoadLegacyOpenNotes_theOpenVaultsNotesAreRead(t *testing.T) {
+	dir := t.TempDir()
+	old := `{"paths":["a.md","b.md"],"active":"b.md"}`
+	if err := os.WriteFile(filepath.Join(dir, OpenNotesFile),
+		[]byte(old), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	on, err := LoadLegacyOpenNotes(dir)
+	if err != nil {
+		t.Fatalf("LoadLegacyOpenNotes: %v", err)
+	}
+	if strings.Join(on.Paths, ",") != "a.md,b.md" {
+		t.Errorf("paths %v, want the two of the old file", on.Paths)
+	}
+	if on.Active == nil || *on.Active != "b.md" {
+		t.Errorf("active %v, want b.md", on.Active)
+	}
+}
+
+// TestLoadLegacyOpenNotes_aFileOfVaultsGivesNothing checks that a file
+// written since the vaults are known is not read as one vault's.
+func TestLoadLegacyOpenNotes_aFileOfVaultsGivesNothing(t *testing.T) {
+	dir := t.TempDir()
+	if err := SaveOpenNotes(dir, OpenNotesByVault{
+		"v1": {Paths: []string{"a.md"}},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	on, err := LoadLegacyOpenNotes(dir)
+	if err != nil {
+		t.Fatalf("LoadLegacyOpenNotes: %v", err)
+	}
+	if len(on.Paths) != 0 {
+		t.Errorf("paths %v, want none: the file is one vault to each",
+			on.Paths)
 	}
 }
 

@@ -1,6 +1,7 @@
 package view
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/egoist/mygo/ui"
@@ -264,4 +265,100 @@ func countOf(list []string, want string) int {
 		}
 	}
 	return n
+}
+
+// treeWithVaults is a tree of two vaults the user can open, the first of
+// them open.
+func treeWithVaults(t *testing.T) (*Tree, *string) {
+	t.Helper()
+	tr := NewTree()
+	tr.SetRoot(treeRoot())
+	one, two := t.TempDir(), t.TempDir()
+	tr.Vaults = vault.Registry{
+		Vaults: []vault.VaultEntry{
+			{ID: "v1", Name: "Alpha", Path: one},
+			{ID: "v2", Name: "Beta", Path: two},
+		},
+	}
+	id := "v1"
+	tr.Vaults.Active = &id
+	asked := ""
+	tr.OnSwitchVault = func(got string) { asked = got }
+	return tr, &asked
+}
+
+// TestTreeVaultSwitch_theMenuCarriesTheVaults checks the way from one
+// vault to another: every folder the user can open stands in the menu of
+// the tree's head, and so do opening another and keeping the list.
+func TestTreeVaultSwitch_theMenuCarriesTheVaults(t *testing.T) {
+	tr, _ := treeWithVaults(t)
+	te := treeTester(t, tr)
+	te.Click("Switch vault")
+	te.Frame()
+	got := te.Menu()
+	want := []string{"Alpha", "Beta", "-", "Open another folder…",
+		"Manage vaults…"}
+	if len(got) != len(want) {
+		t.Fatalf("the menu holds %q, want %q", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Errorf("the menu holds %q, want %q", got, want)
+			break
+		}
+	}
+}
+
+// TestTreeVaultSwitch_choosingOneAsksForIt checks what a choice does: the
+// vault the user chose is asked for, by its identifier, and the one that
+// is already open is not asked for again.
+func TestTreeVaultSwitch_choosingOneAsksForIt(t *testing.T) {
+	tr, asked := treeWithVaults(t)
+	te := treeTester(t, tr)
+	te.Click("Switch vault")
+	te.Frame()
+	te.ChooseMenuItem("Beta")
+	if *asked != "v2" {
+		t.Errorf("asked for %q, want the vault that was chosen", *asked)
+	}
+	// The one that is open is marked, and choosing it again does
+	// nothing: it is already the vault that is shown.
+	if !te.HasText("Alpha") {
+		t.Error("the head of the tree does not name the vault that is open")
+	}
+}
+
+// TestTreeVaultSwitch_theNameTheUserGave checks the head of the tree: it
+// calls the vault by the name the user gave it, and not by the name of
+// the folder it stands in.
+func TestTreeVaultSwitch_theNameTheUserGave(t *testing.T) {
+	tr, _ := treeWithVaults(t)
+	tr.Vaults.Vaults[0].Name = "My notes"
+	if got := tr.vaultName(); got != "My notes" {
+		t.Errorf("name = %q, want the one the user gave", got)
+	}
+	// A vault the app does not know is called by its folder's name.
+	tr.Vaults = vault.Registry{}
+	if got := tr.vaultName(); got != "vault" {
+		t.Errorf("name = %q, want the folder's own", got)
+	}
+}
+
+// TestTreeVaultSwitch_aVaultThatCannotBeOpenedSaysSo checks a folder that
+// is gone: it stands in the menu and says why, rather than failing when
+// it is chosen.
+func TestTreeVaultSwitch_aVaultThatCannotBeOpenedSaysSo(t *testing.T) {
+	tr, _ := treeWithVaults(t)
+	tr.Vaults.Vaults[1].Path = "/gone/for/good"
+	te := treeTester(t, tr)
+	te.Click("Switch vault")
+	te.Frame()
+	for _, label := range te.Menu() {
+		if strings.Contains(label, "Beta") &&
+			strings.Contains(label, "not there") {
+			return
+		}
+	}
+	t.Errorf("the menu holds %q, want the vault that is gone to say so",
+		te.Menu())
 }

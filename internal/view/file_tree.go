@@ -45,6 +45,13 @@ type Tree struct {
 	OnImport func(dir string, paths []string)
 	// OnRefresh reads the vault's folder again, when the user asks.
 	OnRefresh func()
+	// Vaults are the folders the user can open, and which one is open.
+	// OnSwitchVault is asked for another, by its identifier, and
+	// OnManageVaults for the window that keeps them.
+	Vaults         vault.Registry
+	OnSwitchVault  func(id string)
+	OnManageVaults func()
+	OnOpenFolder   func()
 	// OnOpenSettings opens the settings window, asked for at the foot
 	// of the tree, which stands there whether a vault is open or not.
 	OnOpenSettings func()
@@ -240,20 +247,16 @@ func (t *Tree) footer(c *ui.Context) {
 	}
 }
 
-// header is the head of the tree: which vault it is, what it holds, and
-// the buttons that make things in it, fold it and read it again.
+// header is the head of the tree: which vault it is, and the way to
+// another; what it holds, and the buttons that make things in it, fold it
+// and read it again.
 func (t *Tree) header(c *ui.Context) {
 	th := c.Theme()
-	name := "no vault"
-	if t.Root != nil {
-		name = t.Root.Name
-	}
+	name := t.vaultName()
 	ui.Column(c).FillWidth().Padding(8, treePad, 6).Gap(4).Children(func() {
 		ui.Row(c).FillWidth().Gap(treeGap).AlignItems(ui.Center).
 			Children(func() {
-				ui.Icon(c, iconFolder).Size(treeIcon, treeIcon).
-					TextColor(th.TextMuted)
-				ui.Text(c, name).Bold().Grow(1).Ellipsis("…").NoWrap()
+				t.vaultSwitch(c, name)
 				if t.OnRefresh != nil {
 					t.button(c, "refresh", iconRefresh,
 						"Read the folder again", t.refresh)
@@ -285,6 +288,78 @@ func (t *Tree) header(c *ui.Context) {
 			})
 	})
 	ui.Box(c).FillWidth().Height(1).Background(th.Border)
+}
+
+// vaultSwitch is the head of the tree: the vault that is open, and the
+// way to another. The folders the user can open stand in its menu, the
+// one that is open marked, and a folder the app cannot open says so
+// rather than failing when it is chosen.
+func (t *Tree) vaultSwitch(c *ui.Context, name string) {
+	th := c.Theme()
+	label := "Switch vault"
+	head := ui.ButtonBase(c.Key("vault-switch")).Label(label).
+		Tooltip(label).Grow(1).MinWidth(0).Radius(th.Radius)
+	head.Menu(func(m *ui.Menu) { t.vaultMenu(m) })
+	head.Children(func() {
+		ui.Row(c).FillWidth().Gap(treeGap).AlignItems(ui.Center).
+			Children(func() {
+				ui.Icon(c, iconFolder).Size(treeIcon, treeIcon).
+					TextColor(th.TextMuted)
+				ui.Text(c, name).Bold().Grow(1).Ellipsis("…").NoWrap()
+				ui.Icon(c, iconChevron).Size(treeChevron, treeChevron).
+					TextColor(th.TextMuted)
+			})
+	})
+}
+
+// vaultMenu is what the head of the tree asks: which vault is open, and
+// what may be done about them.
+func (t *Tree) vaultMenu(m *ui.Menu) {
+	for _, v := range t.Vaults.Vaults {
+		v := v
+		label := v.Name
+		if s := t.Vaults.StatusOf(v.ID); !s.Usable() {
+			label += " (" + s.String() + ")"
+		}
+		if m.Item(label).Radio(t.vaultID() == v.ID).Chosen() &&
+			t.vaultID() != v.ID && t.OnSwitchVault != nil {
+			t.OnSwitchVault(v.ID)
+		}
+	}
+	if len(t.Vaults.Vaults) == 0 {
+		m.Item("no other vault").Disabled(true)
+	}
+	m.Separator()
+	if m.Item("Open another folder…").Chosen() && t.OnOpenFolder != nil {
+		t.OnOpenFolder()
+	}
+	if m.Item("Manage vaults…").Chosen() && t.OnManageVaults != nil {
+		t.OnManageVaults()
+	}
+}
+
+// vaultName is what the tree calls the vault that is open: the name the
+// user gave it, when it is one the app knows, and the folder's own
+// otherwise.
+// vaultID is the identifier of the vault that is open, or nothing when
+// the app knows of none.
+func (t *Tree) vaultID() string {
+	if t.Vaults.Active != nil {
+		return *t.Vaults.Active
+	}
+	return ""
+}
+
+func (t *Tree) vaultName() string {
+	for _, v := range t.Vaults.Vaults {
+		if v.ID == t.vaultID() && v.Name != "" {
+			return v.Name
+		}
+	}
+	if t.Root != nil {
+		return t.Root.Name
+	}
+	return "no vault"
 }
 
 // button is one of the header's buttons: it shows no face of its own

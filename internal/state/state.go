@@ -19,8 +19,10 @@ import (
 
 // The files in the application's user data directory.
 const (
-	// OpenNotesFile is which notes are open, and which one is active. It
-	// holds paths, never the text of a note.
+	// OpenNotesFile is which notes are open, and which one is active,
+	// one list to a vault: the app shows one vault at a time, and a
+	// vault the user comes back to has the notes they left open in it.
+	// It holds paths, never the text of a note.
 	OpenNotesFile = "open_notes.json"
 	// VaultsFile is the list of vaults, and which one is open.
 	VaultsFile = "vaults.json"
@@ -47,15 +49,61 @@ type OpenNotes struct {
 	Active *string `json:"active"`
 }
 
-// LoadOpenNotes reads which notes were open. A file that is missing or
-// unreadable opens nothing, and says so.
-func LoadOpenNotes(dir string) (OpenNotes, error) {
+// OpenNotesByVault is the notes that were open in each vault, by the
+// vault's identifier: one list to a vault, so that going from one to
+// another and back brings back what was open in each.
+type OpenNotesByVault map[string]OpenNotes
+
+// Of is the notes that were open in the vault of that identifier: none,
+// when the app has not kept any for it.
+func (all OpenNotesByVault) Of(vaultID string) OpenNotes {
+	if all == nil {
+		return OpenNotes{}
+	}
+	return all[vaultID]
+}
+
+// LoadOpenNotes reads the notes that were open in each vault. A file that
+// is missing or unreadable opens nothing, and says so.
+func LoadOpenNotes(dir string) (OpenNotesByVault, error) {
+	data, err := os.ReadFile(filepath.Join(dir, OpenNotesFile))
+	if errors.Is(err, os.ErrNotExist) {
+		return OpenNotesByVault{}, nil
+	}
+	if err != nil {
+		return OpenNotesByVault{}, fmt.Errorf("read %s: %w",
+			OpenNotesFile, err)
+	}
+	var all OpenNotesByVault
+	if err := json.Unmarshal(data, &all); err != nil {
+		return OpenNotesByVault{}, fmt.Errorf("parse %s: %w",
+			OpenNotesFile, err)
+	}
+	if all == nil {
+		return OpenNotesByVault{}, nil
+	}
+	// Each list is brought into the shape the app can use.
+	for id, on := range all {
+		all[id] = NormalizeOpenNotes(on)
+	}
+	return all, nil
+}
+
+// LoadLegacyOpenNotes reads the file versions before the vaults wrote:
+// one list of notes, that of the vault which was open. A file of the
+// shape the versions since write gives nothing, and says so.
+func LoadLegacyOpenNotes(dir string) (OpenNotes, error) {
+	var all OpenNotesByVault
 	data, err := os.ReadFile(filepath.Join(dir, OpenNotesFile))
 	if errors.Is(err, os.ErrNotExist) {
 		return OpenNotes{}, nil
 	}
 	if err != nil {
 		return OpenNotes{}, fmt.Errorf("read %s: %w", OpenNotesFile, err)
+	}
+	if err := json.Unmarshal(data, &all); err == nil && all != nil {
+		// More than one vault: written by a version that knows them.
+		return OpenNotes{}, nil
 	}
 	var on OpenNotes
 	if err := json.Unmarshal(data, &on); err != nil {
@@ -64,12 +112,33 @@ func LoadOpenNotes(dir string) (OpenNotes, error) {
 	return NormalizeOpenNotes(on), nil
 }
 
-// SaveOpenNotes writes which notes are open, whole or not at all: the app
-// is killed by a crash or by the machine going off often enough that a
-// half-written list of open notes is a real thing to guard against.
-func SaveOpenNotes(dir string, on OpenNotes) error {
-	return writeJSON(filepath.Join(dir, OpenNotesFile),
-		NormalizeOpenNotes(on), true)
+// SaveOpenNotes writes the notes that are open in each vault, whole or
+// not at all: the app is killed by a crash or by the machine going off
+// often enough that a half-written list of open notes is a real thing to
+// guard against.
+func SaveOpenNotes(dir string, all OpenNotesByVault) error {
+	if all == nil {
+		all = OpenNotesByVault{}
+	}
+	kept := make(OpenNotesByVault, len(all))
+	for id, on := range all {
+		kept[id] = NormalizeOpenNotes(on)
+	}
+	return writeJSON(filepath.Join(dir, OpenNotesFile), kept, true)
+}
+
+// WithOpenNotes is the list of every vault, with the notes of the vault
+// named given as on. A vault of no identifier keeps nothing, for there
+// is no vault to bring its notes back to.
+func (all OpenNotesByVault) WithOpenNotes(vaultID string, on OpenNotes) OpenNotesByVault {
+	if vaultID == "" {
+		return all
+	}
+	if all == nil {
+		all = OpenNotesByVault{}
+	}
+	all[vaultID] = on
+	return all
 }
 
 // NormalizeOpenNotes puts the notes in a shape the app can use: no note

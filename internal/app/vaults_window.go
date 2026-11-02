@@ -83,7 +83,7 @@ func (s *appState) vaultNameField(c *ui.Context, v vault.VaultEntry) {
 		s.vaults.Rename(v.ID, s.vaultName)
 		s.vaultRename = ""
 		s.saveVaults()
-		s.refreshMenu()
+		s.syncVaults()
 	}
 	if field.Shortcut(0, ui.KeyEscape) {
 		s.vaultRename = ""
@@ -105,7 +105,7 @@ func (s *appState) relocateVault(id string) {
 		mygo.RunOnMain(func() {
 			s.vaults.Relocate(id, path)
 			s.saveVaults()
-			s.refreshMenu()
+			s.syncVaults()
 			// The vault that is open may be the one that moved.
 			if s.root != "" && s.vaults.StatusOf(id).Usable() {
 				s.rescan()
@@ -124,7 +124,7 @@ func (s *appState) forgetVault(id string) {
 	}
 	s.vaults.Remove(id)
 	s.saveVaults()
-	s.refreshMenu()
+	s.syncVaults()
 }
 
 // saveVaults writes the list of vaults down.

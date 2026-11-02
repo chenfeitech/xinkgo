@@ -177,6 +177,12 @@ func mainMenu(bound []keymap.Resolved, vaults vault.Registry) *mygo.Menu {
 						current.openVaultDialog()
 					}
 				}},
+			&mygo.MenuItem{Label: "Manage Vaults…",
+				Click: func(*mygo.MenuItem, *mygo.Window) {
+					if current != nil {
+						current.openVaultManager()
+					}
+				}},
 		)},
 		{Label: "Note", Submenu: []*mygo.MenuItem{
 			{Label: "Rename…", Accelerator: key("RenameItem"),
