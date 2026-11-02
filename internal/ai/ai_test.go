@@ -141,6 +141,89 @@ func TestNewEndpoint_theKeyTheUserWroteIsSent(t *testing.T) {
 	}
 }
 
+// TestNewEndpoint_aKeyKeptInTheKeyringIsFetched checks that a model is
+// still asked as itself when its key is no longer written in the
+// settings but kept in the keyring of the system: what is written to
+// disk is then nothing at all.
+func TestNewEndpoint_aKeyKeptInTheKeyringIsFetched(t *testing.T) {
+	was := keyring
+	defer func() { keyring = was }()
+	asked := ""
+	keyring = func(name string) (string, error) {
+		asked = name
+		return "sk-kept\n", nil
+	}
+	cfg := config.DefaultAi()
+	e := NewEndpoint(config.ModelEntry{
+		ID: "gpt", Kind: config.ModelOpenAICompatible, Enabled: true,
+		BaseURL:      "https://api.example.com/v1",
+		ApiKeySource: config.KeyKeychain, KeyRef: "ref-of-the-key",
+	}, cfg)
+	if e.APIKey != "sk-kept" {
+		t.Fatalf("key = %q, want the one kept in the keyring", e.APIKey)
+	}
+	if asked != "ref-of-the-key" {
+		t.Fatalf("asked for %q, want the name the key is kept under",
+			asked)
+	}
+}
+
+// TestNewEndpoint_theKeyringIsNotAskedForAKeyThatIsNotKeptThere checks
+// that the system is not asked about a model whose key was never put in
+// it: a key written in the settings is one that is sent as it stands,
+// and a model of no key is asked as nobody.
+func TestNewEndpoint_theKeyringIsNotAskedForAKeyThatIsNotKeptThere(t *testing.T) {
+	was := keyring
+	defer func() { keyring = was }()
+	asked := 0
+	keyring = func(name string) (string, error) {
+		asked++
+		return "sk-kept", nil
+	}
+	cfg := config.DefaultAi()
+	written := NewEndpoint(config.ModelEntry{
+		ID: "gpt", Kind: config.ModelOpenAICompatible, Enabled: true,
+		BaseURL: "https://api.example.com/v1", PlainKey: "sk-written",
+		ApiKeySource: config.KeyKeychain, KeyRef: "ref-of-the-key",
+	}, cfg)
+	if written.APIKey != "sk-written" {
+		t.Fatalf("key = %q, want the one written in the settings",
+			written.APIKey)
+	}
+	bare := NewEndpoint(config.ModelEntry{
+		ID: "gpt", Kind: config.ModelOpenAICompatible, Enabled: true,
+		BaseURL:      "https://api.example.com/v1",
+		ApiKeySource: config.KeyPlain,
+	}, cfg)
+	if bare.APIKey != "" {
+		t.Fatalf("key = %q, want none", bare.APIKey)
+	}
+	if asked != 0 {
+		t.Fatalf("the keyring was asked %d times, want it left alone",
+			asked)
+	}
+}
+
+// TestNewEndpoint_aKeyTheKeyringWillNotGiveUpIsNotOneToStopFor checks
+// that a model whose key the system will not give up is asked anyway, as
+// nobody: what that comes to is the model's to say, and it is said of it
+// in the answer rather than in the app.
+func TestNewEndpoint_aKeyTheKeyringWillNotGiveUpIsNotOneToStopFor(t *testing.T) {
+	was := keyring
+	defer func() { keyring = was }()
+	keyring = func(name string) (string, error) {
+		return "", errors.New("the user said no")
+	}
+	e := NewEndpoint(config.ModelEntry{
+		ID: "gpt", Kind: config.ModelOpenAICompatible, Enabled: true,
+		BaseURL:      "https://api.example.com/v1",
+		ApiKeySource: config.KeyKeychain, KeyRef: "ref-of-the-key",
+	}, config.DefaultAi())
+	if e.APIKey != "" {
+		t.Fatalf("key = %q, want none", e.APIKey)
+	}
+}
+
 // TestOpenAIStream_theKeyGoesOutWithTheAsking checks that what the
 // endpoint was given is what goes on the wire: without it a cloud answers
 // 401, or as somebody else.
