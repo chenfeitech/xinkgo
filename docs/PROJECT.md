@@ -64,9 +64,12 @@ xinkgo/
 │   ├── logging/             slog 初始化（开发到终端，安装版到文件）
 │   └── sysinfo/             版本与运行环境信息（纯数据）
 ├── resources/
-│   └── icon.png             应用图标（打包时变成 Windows 图标资源）
+│   ├── xink.icns            macOS 应用图标（打包时原样写进 .app）
+│   └── icon.png             同一图标的 PNG：Windows 图标资源与 Linux
+│                            桌面项图标由它生成（scripts/icon.sh 从 .icns 导出）
 ├── scripts/
 │   ├── check.sh             提交前门禁
+│   ├── icon.sh              icon.png 从 xink.icns 导出
 │   └── package.sh           打包（含版本一致性校验）
 └── docs/
     ├── PROJECT.md           本文：结构 / 启动 / 规范要点

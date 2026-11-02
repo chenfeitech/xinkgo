@@ -4,6 +4,10 @@
   "version": "0.1.0",
   "main": "./cmd/xinkgo",
   "out": "build",
+  "icon": "resources/icon.png",
+  "macos": {
+    "icon": "resources/xink.icns"
+  },
   "windows": {
     "installDirName": "Xinkgo"
   },

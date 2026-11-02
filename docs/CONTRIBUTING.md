@@ -106,7 +106,8 @@ internal/
   config/            用户配置：读、写、校验
   logging/           slog 初始化
   sysinfo/           版本与运行环境信息（纯数据）
-resources/           随应用发布的资源，icon.png 是应用图标
+resources/           随应用发布的资源：xink.icns 是 macOS 的应用图标，
+                     icon.png 是同一图标的 PNG，Windows 与 Linux 的图标由它生成
 docs/                工程文档
 scripts/             带逻辑的脚本（门禁、打包）
 mygo.json            应用名、标识符、版本、入口、打包配置
