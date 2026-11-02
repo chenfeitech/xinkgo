@@ -20,6 +20,7 @@ import (
 	"github.com/helightxu/xinkgo/internal/skill"
 	"github.com/helightxu/xinkgo/internal/state"
 	"github.com/helightxu/xinkgo/internal/sync"
+	"github.com/helightxu/xinkgo/internal/theme"
 )
 
 // How wide a side panel may be dragged. Below the narrowest there is
@@ -62,6 +63,15 @@ type Workspace struct {
 	// in the settings and offered by name. Those turned off are not
 	// here either.
 	Actions []config.AiAction
+	// AiModel is the model the bar asks, of the ones the settings hold:
+	// the one the settings name until another is picked in the bar, and
+	// that one again when the picked one is gone or turned off. It is
+	// not written down: a run of the app starts by asking what the
+	// settings say.
+	AiModel string
+	// aiPicked is whether a model was picked in the bar, rather than
+	// followed from the settings.
+	aiPicked bool
 
 	// OnOpenExternally opens a file with the program the machine has
 	// for it, as a PDF is previewed: the window shows it, and does not
@@ -79,9 +89,11 @@ type Workspace struct {
 	// another width, so that the app can write it down.
 	OnLayoutChanged func()
 	// OnAsk is the app asking a model: it is given all that has been
-	// said, and gives back what the model answers, a piece at a time.
+	// said, and the model to ask of the ones the settings hold (empty
+	// for the one the settings name), and gives back what the model
+	// answers, a piece at a time.
 	OnAsk func(
-		ctx context.Context, messages []ai.Message,
+		ctx context.Context, messages []ai.Message, model string,
 	) (<-chan ai.Event, error)
 	// OnAiLoad is asked for what was said about a note, the first time
 	// the bar is opened for it.
@@ -200,6 +212,9 @@ func milliseconds(ms uint64) time.Duration {
 
 // View draws the window.
 func (w *Workspace) View(c *ui.Context) {
+	// The colors the window is drawn in, before anything is drawn: the
+	// scheme the user chose, in the appearance the window has.
+	theme.Apply(c, w.Config.Basic.Theme)
 	// What the user stopped typing is written now, and not by a timer of
 	// its own: only this thread may touch a note. A revision standing
 	// before the user is not written over the top of: what stands in

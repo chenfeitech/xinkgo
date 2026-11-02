@@ -25,7 +25,7 @@ func workspaceWith(
 		t.Fatalf("Open: %v", err)
 	}
 	w.OnAsk = func(
-		context.Context, []ai.Message,
+		context.Context, []ai.Message, string,
 	) (<-chan ai.Event, error) {
 		return ask(nil), nil
 	}
@@ -188,7 +188,7 @@ func TestAiAsk_aModelThatRefusesAtTheDoorSaysSo(t *testing.T) {
 		t.Fatalf("Open: %v", err)
 	}
 	w.OnAsk = func(
-		context.Context, []ai.Message,
+		context.Context, []ai.Message, string,
 	) (<-chan ai.Event, error) {
 		return nil, ai.ErrAuth
 	}

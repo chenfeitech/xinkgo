@@ -19,6 +19,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -92,7 +93,7 @@ func NewEndpoint(m config.ModelEntry, cfg config.AiConfig) Endpoint {
 		Kind:    m.Kind,
 		BaseURL: strings.TrimRight(m.BaseURL, "/"),
 		Model:   m.ID,
-		APIKey:  strings.TrimSpace(m.PlainKey),
+		APIKey:  keyOf(m),
 		Params: Params{
 			Temperature: m.Params.Temperature,
 			NumPredict:  m.Params.NumPredict,
@@ -111,6 +112,30 @@ func NewEndpoint(m config.ModelEntry, cfg config.AiConfig) Endpoint {
 		e.Params.KeepAlive = cfg.Ollama.KeepAlive
 	}
 	return e
+}
+
+// keyOf is the key a model is asked with, and where it is taken from: the
+// one the user wrote out, or — when they named a name the machine keeps
+// a key under — the one the machine has.
+//
+// A key the machine keeps in its keyhole is one this build cannot read,
+// and so it is asked as it was written out: a key that works is worth
+// more than a promise about where it is kept.
+func keyOf(m config.ModelEntry) string {
+	name := strings.TrimSpace(m.PlainKey)
+	if m.ApiKeySource == config.KeyEnv {
+		return strings.TrimSpace(os.Getenv(name))
+	}
+	return name
+}
+
+// authHeader is how an endpoint is told who is asking.
+func (e Endpoint) authHeader() http.Header {
+	header := http.Header{}
+	if e.APIKey != "" {
+		header.Set("Authorization", "Bearer "+e.APIKey)
+	}
+	return header
 }
 
 // Piece is one piece of what the model sent: its words unread, or what

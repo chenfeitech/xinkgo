@@ -49,7 +49,7 @@
   "settingLanguage": "Language",
   "settingLanguageNote": "What the app says its menus, its settings and its own words in",
   "settingTheme": "Theme",
-  "settingThemeNote": "Light, dark, or whatever the machine has",
+  "settingThemeNote": "The colors the window is drawn in",
   "settingShowAllFiles": "Show every file",
   "settingShowAllFilesNote": "Files the app cannot read are listed by the tree too",
   "settingTreeFontSize": "Tree font size",
@@ -91,9 +91,9 @@
   "settingMaxWidthNote": "A note is not set wider than this, however wide the window is",
   "settingDensity": "Density",
   "settingDensityNote": "How much room the lines are given",
-  "themeSystem": "Follow the machine",
-  "themeLight": "Light",
-  "themeDark": "Dark",
+  "appearanceSystem": "Follow the machine",
+  "appearanceLight": "Light",
+  "appearanceDark": "Dark",
   "syncRatio": "How far down the note is",
   "syncAnchor": "The heading at the top",
   "syncOnStop": "Once the typing stops",
@@ -313,9 +313,35 @@
       }
     }
   },
-  "aiGroupWhere": "Where it is asked",
-  "aiSettingOllama": "Local Ollama",
-  "aiSettingOllamaNote": "Where the model is served from",
+  "aiGroupWhich": "Which one is asked",
+  "aiGroupOllama": "Ollama on this machine",
+  "aiOllamaAddress": "Address",
+  "aiOllamaAddressNote": "Where the models are served from",
+  "aiOllamaModels": "Models on this machine",
+  "aiOllamaModelsNote": "Asking the machine is how they are found: one pulled since the last look is found by looking again",
+  "aiOllamaRefresh": "Refresh",
+  "aiOllamaLooking": "Looking…",
+  "aiOllamaNotAsked": "It could not be asked: {err}",
+  "@aiOllamaNotAsked": {
+    "placeholders": {
+      "err": {
+        "type": "String"
+      }
+    }
+  },
+  "aiOllamaNotLooked": "Not looked at yet: press Refresh, and every model the machine holds is listed",
+  "aiOllamaNone": "It holds none: pull one with `ollama pull`",
+  "aiOllamaCount": "{count} models · looked at {at}",
+  "@aiOllamaCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "at": {
+        "type": "String"
+      }
+    }
+  },
   "aiSettingKeepAlive": "Keep it loaded for",
   "aiSettingKeepAliveNote": "How long a model is held in memory after it has answered",
   "aiSettingDefaultModel": "Ask this one",
@@ -358,7 +384,31 @@
   "aiModelClone": "Clone",
   "aiModelCloneLabel": "The same model under another name",
   "aiModelForget": "Forget",
+  "aiModelDefault": "Default",
+  "aiModelMakeDefault": "Make it the default",
+  "aiModelTest": "Test it",
+  "aiModelTestLabel": "Ask it one small question, with a tool to call",
+  "aiModelId": "Model",
+  "aiModelIdNote": "The name the address knows it by, taken in when Enter is pressed",
+  "aiModelIdPlaceholder": "gpt-4o-mini",
+  "aiModelKeyFrom": "Key comes from",
+  "aiModelKeyFromNote": "Written out below, or the name of a name the machine keeps one under",
+  "aiModelKeyName": "Name of the key",
+  "aiModelKeyNameNote": "The name it is kept under in the shell that started the app",
+  "aiModelKeyNamePlaceholder": "OPENAI_API_KEY",
+  "aiModelHolds": "What the address holds",
+  "aiModelHoldsNote": "Most clouds say, and so do most local servers",
+  "aiModelList": "List them",
+  "aiModelNotSaid": "It would not say: {err}",
+  "@aiModelNotSaid": {
+    "placeholders": {
+      "err": {
+        "type": "String"
+      }
+    }
+  },
   "aiModelAsking": "Asking…",
+  "aiProbeUnreachable": "Could not be reached",
   "aiModelName": "Name",
   "aiModelNameNote": "What the model is called in the lists",
   "aiModelAddress": "Address",
@@ -382,7 +432,6 @@
       }
     }
   },
-  "aiProbeUnreachable": "Could not be reached",
   "aiProbeUnreachableWhy": "Could not be reached: {err}",
   "@aiProbeUnreachableWhy": {
     "placeholders": {
@@ -422,6 +471,17 @@
   "aiCapabilityUnknown": "Unknown capability",
   "aiCapabilityUnknownMeaning": "This one is not among the capabilities the app knows: a vendor made it up",
   "aiCapabilityUnknownUsage": "It can be dropped by hand; keeping it does no harm",
+  "aiCapabilityPinned": "These were chosen by hand: testing the connection will not change them",
+  "aiCapabilityTested": "Testing the connection fills these in: whether it calls tools is tried, not believed",
+  "aiCapabilityNone": "What it can do is not known",
+  "aiCapabilityGuessed": "{label}?",
+  "@aiCapabilityGuessed": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
   "mediaKindDir": "Folder",
   "mediaKindMarkdown": "Markdown",
   "mediaKindImage": "Picture",
@@ -584,5 +644,7 @@
   "skillIssueNoDescription": "no description in it",
   "watchChangedOutside": "changed outside Xinkgo, but you have changes that are not saved",
   "watchTookInOutside": "took in the changes from outside",
-  "a11yPicture": "picture {name}"
+  "a11yPicture": "picture {name}",
+  "settingLook": "Look",
+  "settingLookNote": "Light, dark, or whatever the machine has"
 }

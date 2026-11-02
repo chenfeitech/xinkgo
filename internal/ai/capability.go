@@ -171,3 +171,46 @@ func hasCapability(list []string, want string) bool {
 	}
 	return false
 }
+
+// CapabilityOfOllama is what the app calls the thing Ollama calls name.
+// One it has never heard of is kept as it stands: the vendors do make
+// them up, and a name the user can see is better than none at all.
+func CapabilityOfOllama(name string) string {
+	switch strings.ToLower(strings.TrimSpace(name)) {
+	case "completion":
+		return CapCompletion
+	case "tools", "tool":
+		return CapTools
+	case "thinking", "think":
+		return CapThinking
+	case "vision":
+		return CapVision
+	}
+	return strings.TrimSpace(name)
+}
+
+// Measured is what trying a model out has really shown of what it can do:
+// that it answers, and that it calls tools when it was asked to call one.
+//
+// What a try cannot find out — whether it thinks first, whether it sees —
+// is left as it was known before, and a model that could not be reached
+// is left alone altogether: it has been shown nothing.
+func Measured(p Probe, was []string) []string {
+	if !p.OK {
+		return was
+	}
+	out := []string{CapCompletion}
+	if p.Tools {
+		out = append(out, CapTools)
+	}
+	for _, one := range was {
+		if hasCapability(out, one) {
+			continue
+		}
+		switch one {
+		case CapThinking, CapVision:
+			out = append(out, one)
+		}
+	}
+	return out
+}

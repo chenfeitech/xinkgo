@@ -17,6 +17,7 @@ import (
 	"strings"
 
 	"github.com/helightxu/xinkgo/internal/keymap"
+	"github.com/helightxu/xinkgo/internal/theme"
 )
 
 // FileName is the configuration file, in the application's user data
@@ -25,9 +26,10 @@ const FileName = "config.json"
 
 // Values the configuration's enumerations can hold.
 const (
-	ThemeSystem = "system"
-	ThemeLight  = "light"
-	ThemeDark   = "dark"
+	// The appearances: light, dark, or whichever the machine has.
+	AppearanceSystem = "system"
+	AppearanceLight  = "light"
+	AppearanceDark   = "dark"
 
 	ImageFitWidth = "fit_width"
 	ImageHidden   = "hidden"
@@ -71,6 +73,10 @@ type IndentConfig struct {
 
 // BasicConfig is what the whole application uses.
 type BasicConfig struct {
+	// Appearance is light, dark, or whichever the machine has.
+	Appearance string `json:"appearance"`
+	// Theme is the name of the color scheme the interface is drawn in,
+	// as internal/theme keeps them.
 	Theme        string     `json:"theme"`
 	Language     string     `json:"language"`
 	IconSize     uint32     `json:"icon_size"`
@@ -130,7 +136,8 @@ type AppConfig struct {
 func Default() AppConfig {
 	return AppConfig{
 		Basic: BasicConfig{
-			Theme:        ThemeSystem,
+			Appearance:   AppearanceSystem,
+			Theme:        theme.Default,
 			Language:     LanguageSystem,
 			IconSize:     16,
 			TreeFont:     bodyFont(),
@@ -279,6 +286,9 @@ func (c AppConfig) Save(dir string) error {
 // called only for a section the file has: one it does not keeps the
 // defaults whole (see fromFile).
 func (b *BasicConfig) fillMissing(d BasicConfig) {
+	if b.Appearance == "" {
+		b.Appearance = d.Appearance
+	}
 	if b.Theme == "" {
 		b.Theme = d.Theme
 	}
@@ -354,6 +364,15 @@ func (p *PreviewConfig) fillMissing(d PreviewConfig) {
 // migrate moves the settings older versions wrote elsewhere. It runs once
 // per load and the old fields are not written back.
 func (c *AppConfig) migrate() {
+	// A version that had no schemes kept the appearance in Theme: light,
+	// dark or the machine's. It is the appearance's own field now.
+	switch c.Basic.Theme {
+	case AppearanceSystem, AppearanceLight, AppearanceDark:
+		if c.Basic.Appearance == AppearanceSystem {
+			c.Basic.Appearance = c.Basic.Theme
+		}
+		c.Basic.Theme = theme.Default
+	}
 	if c.Preview.LegacyCodeTheme != nil {
 		c.Highlight.Theme = highlightThemeFrom(*c.Preview.LegacyCodeTheme)
 		c.Preview.LegacyCodeTheme = nil
@@ -381,9 +400,11 @@ func highlightThemeFrom(name string) string {
 // hand, or written by a version with other limits, never breaks it.
 func (c *AppConfig) Sanitize() {
 	b := &c.Basic
-	if !oneOf(b.Theme, ThemeSystem, ThemeLight, ThemeDark) {
-		b.Theme = ThemeSystem
+	if !oneOf(b.Appearance, AppearanceSystem, AppearanceLight,
+		AppearanceDark) {
+		b.Appearance = AppearanceSystem
 	}
+	b.Theme = theme.Normalize(b.Theme)
 	if !oneOf(b.Language, LanguageSystem, LanguageEnglish,
 		LanguageChinese) {
 		b.Language = LanguageSystem

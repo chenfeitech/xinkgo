@@ -23,6 +23,7 @@
 | `internal/app` | 应用生命周期、窗口与菜单、IPC 绑定 | 画界面、直接读写配置格式 |
 | `internal/view` | 由状态画界面，处理输入改变状态 | I/O、调应用生命周期接口 |
 | `internal/config` | `config.json` 的读、写、校验 | 依赖应用对象（目录由参数传入） |
+| `internal/theme` | 配色方案表：每套方案明暗两套取色，视图上色用 | 依赖 `config` / `app`（它是纯数据，只依赖 `ui`） |
 | `internal/logging` | 配置 slog 的默认 logger | 业务日志之外的输出策略 |
 | `internal/sysinfo` | 版本与环境信息（纯数据） | 任何 I/O |
 
@@ -65,6 +66,7 @@ main()
 | 数据 | 真值 | 位置 |
 |---|---|---|
 | 用户配置 | `config.json` | 用户数据目录（`config.Load/Save`） |
+| 配色方案 | `internal/theme` 的方案表（代码里） | 只存方案名，取色不落盘 |
 | 窗口位置尺寸 | MyGo 窗口状态 | `WindowOptions.StateKey` |
 | 应用版本 | 打包注入 / 源码常量 | `sysinfo.Info` |
 | 日志 | 追加写文件（安装版） | 日志目录 `xinkgo.log` |
@@ -78,6 +80,8 @@ main()
 |---|---|
 | 新窗口 / 新界面 | `internal/view` 加视图，`internal/app` 加打开入口与菜单项 |
 | 新配置项 | `internal/config` 加字段 + 默认值 + 校验 + 测试 |
+| 新配色方案 | `internal/theme` 的 `schemes` 加一套（明暗两套 `Palette` + 代码预设）；下拉、色卡、校验都从这张表读 |
+| 新明暗行为 | `config.Basic.Appearance` + `mygo.Theme.SetSource`（`app.setAppearance`） |
 | Web 窗口 / 前端 | `internal/app/web.go` 的绑定服务 + `mygo generate` 生成 TS 客户端 |
 | 平台差异行为 | `internal/app/platform_<goos>.go` |
 | 新界面文案 / 新语言 | `internal/locale` 的 `en.json` 与 `zh-Hans.json`，`go tool mygo generate` 生成 `locale.Xxx()` |

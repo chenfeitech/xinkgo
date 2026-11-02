@@ -524,11 +524,11 @@ func (msgs Messages) SettingTheme() string {
 	return Catalog.Format(msgs.locale, "settingTheme", nil)
 }
 
-// SettingThemeNote says "Light, dark, or whatever the machine has"
+// SettingThemeNote says "The colors the window is drawn in"
 // in the language the app shows.
 func SettingThemeNote() string { return In(i18n.Locale()).SettingThemeNote() }
 
-// SettingThemeNote says "Light, dark, or whatever the machine has"
+// SettingThemeNote says "The colors the window is drawn in"
 // in the language of msgs.
 func (msgs Messages) SettingThemeNote() string {
 	return Catalog.Format(msgs.locale, "settingThemeNote", nil)
@@ -944,34 +944,34 @@ func (msgs Messages) SettingDensityNote() string {
 	return Catalog.Format(msgs.locale, "settingDensityNote", nil)
 }
 
-// ThemeSystem says "Follow the machine"
+// AppearanceSystem says "Follow the machine"
 // in the language the app shows.
-func ThemeSystem() string { return In(i18n.Locale()).ThemeSystem() }
+func AppearanceSystem() string { return In(i18n.Locale()).AppearanceSystem() }
 
-// ThemeSystem says "Follow the machine"
+// AppearanceSystem says "Follow the machine"
 // in the language of msgs.
-func (msgs Messages) ThemeSystem() string {
-	return Catalog.Format(msgs.locale, "themeSystem", nil)
+func (msgs Messages) AppearanceSystem() string {
+	return Catalog.Format(msgs.locale, "appearanceSystem", nil)
 }
 
-// ThemeLight says "Light"
+// AppearanceLight says "Light"
 // in the language the app shows.
-func ThemeLight() string { return In(i18n.Locale()).ThemeLight() }
+func AppearanceLight() string { return In(i18n.Locale()).AppearanceLight() }
 
-// ThemeLight says "Light"
+// AppearanceLight says "Light"
 // in the language of msgs.
-func (msgs Messages) ThemeLight() string {
-	return Catalog.Format(msgs.locale, "themeLight", nil)
+func (msgs Messages) AppearanceLight() string {
+	return Catalog.Format(msgs.locale, "appearanceLight", nil)
 }
 
-// ThemeDark says "Dark"
+// AppearanceDark says "Dark"
 // in the language the app shows.
-func ThemeDark() string { return In(i18n.Locale()).ThemeDark() }
+func AppearanceDark() string { return In(i18n.Locale()).AppearanceDark() }
 
-// ThemeDark says "Dark"
+// AppearanceDark says "Dark"
 // in the language of msgs.
-func (msgs Messages) ThemeDark() string {
-	return Catalog.Format(msgs.locale, "themeDark", nil)
+func (msgs Messages) AppearanceDark() string {
+	return Catalog.Format(msgs.locale, "appearanceDark", nil)
 }
 
 // SyncRatio says "How far down the note is"
@@ -2724,34 +2724,124 @@ func (msgs Messages) AiSkillIssue(path string, reason string) string {
 	return Catalog.Format(msgs.locale, "aiSkillIssue", map[string]any{"path": path, "reason": reason})
 }
 
-// AiGroupWhere says "Where it is asked"
+// AiGroupWhich says "Which one is asked"
 // in the language the app shows.
-func AiGroupWhere() string { return In(i18n.Locale()).AiGroupWhere() }
+func AiGroupWhich() string { return In(i18n.Locale()).AiGroupWhich() }
 
-// AiGroupWhere says "Where it is asked"
+// AiGroupWhich says "Which one is asked"
 // in the language of msgs.
-func (msgs Messages) AiGroupWhere() string {
-	return Catalog.Format(msgs.locale, "aiGroupWhere", nil)
+func (msgs Messages) AiGroupWhich() string {
+	return Catalog.Format(msgs.locale, "aiGroupWhich", nil)
 }
 
-// AiSettingOllama says "Local Ollama"
+// AiGroupOllama says "Ollama on this machine"
 // in the language the app shows.
-func AiSettingOllama() string { return In(i18n.Locale()).AiSettingOllama() }
+func AiGroupOllama() string { return In(i18n.Locale()).AiGroupOllama() }
 
-// AiSettingOllama says "Local Ollama"
+// AiGroupOllama says "Ollama on this machine"
 // in the language of msgs.
-func (msgs Messages) AiSettingOllama() string {
-	return Catalog.Format(msgs.locale, "aiSettingOllama", nil)
+func (msgs Messages) AiGroupOllama() string {
+	return Catalog.Format(msgs.locale, "aiGroupOllama", nil)
 }
 
-// AiSettingOllamaNote says "Where the model is served from"
+// AiOllamaAddress says "Address"
 // in the language the app shows.
-func AiSettingOllamaNote() string { return In(i18n.Locale()).AiSettingOllamaNote() }
+func AiOllamaAddress() string { return In(i18n.Locale()).AiOllamaAddress() }
 
-// AiSettingOllamaNote says "Where the model is served from"
+// AiOllamaAddress says "Address"
 // in the language of msgs.
-func (msgs Messages) AiSettingOllamaNote() string {
-	return Catalog.Format(msgs.locale, "aiSettingOllamaNote", nil)
+func (msgs Messages) AiOllamaAddress() string {
+	return Catalog.Format(msgs.locale, "aiOllamaAddress", nil)
+}
+
+// AiOllamaAddressNote says "Where the models are served from"
+// in the language the app shows.
+func AiOllamaAddressNote() string { return In(i18n.Locale()).AiOllamaAddressNote() }
+
+// AiOllamaAddressNote says "Where the models are served from"
+// in the language of msgs.
+func (msgs Messages) AiOllamaAddressNote() string {
+	return Catalog.Format(msgs.locale, "aiOllamaAddressNote", nil)
+}
+
+// AiOllamaModels says "Models on this machine"
+// in the language the app shows.
+func AiOllamaModels() string { return In(i18n.Locale()).AiOllamaModels() }
+
+// AiOllamaModels says "Models on this machine"
+// in the language of msgs.
+func (msgs Messages) AiOllamaModels() string {
+	return Catalog.Format(msgs.locale, "aiOllamaModels", nil)
+}
+
+// AiOllamaModelsNote says "Asking the machine is how they are found: one pulled since the last look is found by looking again"
+// in the language the app shows.
+func AiOllamaModelsNote() string { return In(i18n.Locale()).AiOllamaModelsNote() }
+
+// AiOllamaModelsNote says "Asking the machine is how they are found: one pulled since the last look is found by looking again"
+// in the language of msgs.
+func (msgs Messages) AiOllamaModelsNote() string {
+	return Catalog.Format(msgs.locale, "aiOllamaModelsNote", nil)
+}
+
+// AiOllamaRefresh says "Refresh"
+// in the language the app shows.
+func AiOllamaRefresh() string { return In(i18n.Locale()).AiOllamaRefresh() }
+
+// AiOllamaRefresh says "Refresh"
+// in the language of msgs.
+func (msgs Messages) AiOllamaRefresh() string {
+	return Catalog.Format(msgs.locale, "aiOllamaRefresh", nil)
+}
+
+// AiOllamaLooking says "Looking…"
+// in the language the app shows.
+func AiOllamaLooking() string { return In(i18n.Locale()).AiOllamaLooking() }
+
+// AiOllamaLooking says "Looking…"
+// in the language of msgs.
+func (msgs Messages) AiOllamaLooking() string {
+	return Catalog.Format(msgs.locale, "aiOllamaLooking", nil)
+}
+
+// AiOllamaNotAsked says "It could not be asked: {err}"
+// in the language the app shows.
+func AiOllamaNotAsked(err string) string { return In(i18n.Locale()).AiOllamaNotAsked(err) }
+
+// AiOllamaNotAsked says "It could not be asked: {err}"
+// in the language of msgs.
+func (msgs Messages) AiOllamaNotAsked(err string) string {
+	return Catalog.Format(msgs.locale, "aiOllamaNotAsked", map[string]any{"err": err})
+}
+
+// AiOllamaNotLooked says "Not looked at yet: press Refresh, and every model the machine holds is listed"
+// in the language the app shows.
+func AiOllamaNotLooked() string { return In(i18n.Locale()).AiOllamaNotLooked() }
+
+// AiOllamaNotLooked says "Not looked at yet: press Refresh, and every model the machine holds is listed"
+// in the language of msgs.
+func (msgs Messages) AiOllamaNotLooked() string {
+	return Catalog.Format(msgs.locale, "aiOllamaNotLooked", nil)
+}
+
+// AiOllamaNone says "It holds none: pull one with `ollama pull`"
+// in the language the app shows.
+func AiOllamaNone() string { return In(i18n.Locale()).AiOllamaNone() }
+
+// AiOllamaNone says "It holds none: pull one with `ollama pull`"
+// in the language of msgs.
+func (msgs Messages) AiOllamaNone() string {
+	return Catalog.Format(msgs.locale, "aiOllamaNone", nil)
+}
+
+// AiOllamaCount says "{count} models · looked at {at}"
+// in the language the app shows.
+func AiOllamaCount(count string, at string) string { return In(i18n.Locale()).AiOllamaCount(count, at) }
+
+// AiOllamaCount says "{count} models · looked at {at}"
+// in the language of msgs.
+func (msgs Messages) AiOllamaCount(count string, at string) string {
+	return Catalog.Format(msgs.locale, "aiOllamaCount", map[string]any{"count": count, "at": at})
 }
 
 // AiSettingKeepAlive says "Keep it loaded for"
@@ -3174,6 +3264,166 @@ func (msgs Messages) AiModelForget() string {
 	return Catalog.Format(msgs.locale, "aiModelForget", nil)
 }
 
+// AiModelDefault says "Default"
+// in the language the app shows.
+func AiModelDefault() string { return In(i18n.Locale()).AiModelDefault() }
+
+// AiModelDefault says "Default"
+// in the language of msgs.
+func (msgs Messages) AiModelDefault() string {
+	return Catalog.Format(msgs.locale, "aiModelDefault", nil)
+}
+
+// AiModelMakeDefault says "Make it the default"
+// in the language the app shows.
+func AiModelMakeDefault() string { return In(i18n.Locale()).AiModelMakeDefault() }
+
+// AiModelMakeDefault says "Make it the default"
+// in the language of msgs.
+func (msgs Messages) AiModelMakeDefault() string {
+	return Catalog.Format(msgs.locale, "aiModelMakeDefault", nil)
+}
+
+// AiModelTest says "Test it"
+// in the language the app shows.
+func AiModelTest() string { return In(i18n.Locale()).AiModelTest() }
+
+// AiModelTest says "Test it"
+// in the language of msgs.
+func (msgs Messages) AiModelTest() string {
+	return Catalog.Format(msgs.locale, "aiModelTest", nil)
+}
+
+// AiModelTestLabel says "Ask it one small question, with a tool to call"
+// in the language the app shows.
+func AiModelTestLabel() string { return In(i18n.Locale()).AiModelTestLabel() }
+
+// AiModelTestLabel says "Ask it one small question, with a tool to call"
+// in the language of msgs.
+func (msgs Messages) AiModelTestLabel() string {
+	return Catalog.Format(msgs.locale, "aiModelTestLabel", nil)
+}
+
+// AiModelId says "Model"
+// in the language the app shows.
+func AiModelId() string { return In(i18n.Locale()).AiModelId() }
+
+// AiModelId says "Model"
+// in the language of msgs.
+func (msgs Messages) AiModelId() string {
+	return Catalog.Format(msgs.locale, "aiModelId", nil)
+}
+
+// AiModelIdNote says "The name the address knows it by, taken in when Enter is pressed"
+// in the language the app shows.
+func AiModelIdNote() string { return In(i18n.Locale()).AiModelIdNote() }
+
+// AiModelIdNote says "The name the address knows it by, taken in when Enter is pressed"
+// in the language of msgs.
+func (msgs Messages) AiModelIdNote() string {
+	return Catalog.Format(msgs.locale, "aiModelIdNote", nil)
+}
+
+// AiModelIdPlaceholder says "gpt-4o-mini"
+// in the language the app shows.
+func AiModelIdPlaceholder() string { return In(i18n.Locale()).AiModelIdPlaceholder() }
+
+// AiModelIdPlaceholder says "gpt-4o-mini"
+// in the language of msgs.
+func (msgs Messages) AiModelIdPlaceholder() string {
+	return Catalog.Format(msgs.locale, "aiModelIdPlaceholder", nil)
+}
+
+// AiModelKeyFrom says "Key comes from"
+// in the language the app shows.
+func AiModelKeyFrom() string { return In(i18n.Locale()).AiModelKeyFrom() }
+
+// AiModelKeyFrom says "Key comes from"
+// in the language of msgs.
+func (msgs Messages) AiModelKeyFrom() string {
+	return Catalog.Format(msgs.locale, "aiModelKeyFrom", nil)
+}
+
+// AiModelKeyFromNote says "Written out below, or the name of a name the machine keeps one under"
+// in the language the app shows.
+func AiModelKeyFromNote() string { return In(i18n.Locale()).AiModelKeyFromNote() }
+
+// AiModelKeyFromNote says "Written out below, or the name of a name the machine keeps one under"
+// in the language of msgs.
+func (msgs Messages) AiModelKeyFromNote() string {
+	return Catalog.Format(msgs.locale, "aiModelKeyFromNote", nil)
+}
+
+// AiModelKeyName says "Name of the key"
+// in the language the app shows.
+func AiModelKeyName() string { return In(i18n.Locale()).AiModelKeyName() }
+
+// AiModelKeyName says "Name of the key"
+// in the language of msgs.
+func (msgs Messages) AiModelKeyName() string {
+	return Catalog.Format(msgs.locale, "aiModelKeyName", nil)
+}
+
+// AiModelKeyNameNote says "The name it is kept under in the shell that started the app"
+// in the language the app shows.
+func AiModelKeyNameNote() string { return In(i18n.Locale()).AiModelKeyNameNote() }
+
+// AiModelKeyNameNote says "The name it is kept under in the shell that started the app"
+// in the language of msgs.
+func (msgs Messages) AiModelKeyNameNote() string {
+	return Catalog.Format(msgs.locale, "aiModelKeyNameNote", nil)
+}
+
+// AiModelKeyNamePlaceholder says "OPENAI_API_KEY"
+// in the language the app shows.
+func AiModelKeyNamePlaceholder() string { return In(i18n.Locale()).AiModelKeyNamePlaceholder() }
+
+// AiModelKeyNamePlaceholder says "OPENAI_API_KEY"
+// in the language of msgs.
+func (msgs Messages) AiModelKeyNamePlaceholder() string {
+	return Catalog.Format(msgs.locale, "aiModelKeyNamePlaceholder", nil)
+}
+
+// AiModelHolds says "What the address holds"
+// in the language the app shows.
+func AiModelHolds() string { return In(i18n.Locale()).AiModelHolds() }
+
+// AiModelHolds says "What the address holds"
+// in the language of msgs.
+func (msgs Messages) AiModelHolds() string {
+	return Catalog.Format(msgs.locale, "aiModelHolds", nil)
+}
+
+// AiModelHoldsNote says "Most clouds say, and so do most local servers"
+// in the language the app shows.
+func AiModelHoldsNote() string { return In(i18n.Locale()).AiModelHoldsNote() }
+
+// AiModelHoldsNote says "Most clouds say, and so do most local servers"
+// in the language of msgs.
+func (msgs Messages) AiModelHoldsNote() string {
+	return Catalog.Format(msgs.locale, "aiModelHoldsNote", nil)
+}
+
+// AiModelList says "List them"
+// in the language the app shows.
+func AiModelList() string { return In(i18n.Locale()).AiModelList() }
+
+// AiModelList says "List them"
+// in the language of msgs.
+func (msgs Messages) AiModelList() string {
+	return Catalog.Format(msgs.locale, "aiModelList", nil)
+}
+
+// AiModelNotSaid says "It would not say: {err}"
+// in the language the app shows.
+func AiModelNotSaid(err string) string { return In(i18n.Locale()).AiModelNotSaid(err) }
+
+// AiModelNotSaid says "It would not say: {err}"
+// in the language of msgs.
+func (msgs Messages) AiModelNotSaid(err string) string {
+	return Catalog.Format(msgs.locale, "aiModelNotSaid", map[string]any{"err": err})
+}
+
 // AiModelAsking says "Asking…"
 // in the language the app shows.
 func AiModelAsking() string { return In(i18n.Locale()).AiModelAsking() }
@@ -3182,6 +3432,16 @@ func AiModelAsking() string { return In(i18n.Locale()).AiModelAsking() }
 // in the language of msgs.
 func (msgs Messages) AiModelAsking() string {
 	return Catalog.Format(msgs.locale, "aiModelAsking", nil)
+}
+
+// AiProbeUnreachable says "Could not be reached"
+// in the language the app shows.
+func AiProbeUnreachable() string { return In(i18n.Locale()).AiProbeUnreachable() }
+
+// AiProbeUnreachable says "Could not be reached"
+// in the language of msgs.
+func (msgs Messages) AiProbeUnreachable() string {
+	return Catalog.Format(msgs.locale, "aiProbeUnreachable", nil)
 }
 
 // AiModelName says "Name"
@@ -3314,16 +3574,6 @@ func AiModelCapabilityUnknown(id string, label string) string {
 // in the language of msgs.
 func (msgs Messages) AiModelCapabilityUnknown(id string, label string) string {
 	return Catalog.Format(msgs.locale, "aiModelCapabilityUnknown", map[string]any{"id": id, "label": label})
-}
-
-// AiProbeUnreachable says "Could not be reached"
-// in the language the app shows.
-func AiProbeUnreachable() string { return In(i18n.Locale()).AiProbeUnreachable() }
-
-// AiProbeUnreachable says "Could not be reached"
-// in the language of msgs.
-func (msgs Messages) AiProbeUnreachable() string {
-	return Catalog.Format(msgs.locale, "aiProbeUnreachable", nil)
 }
 
 // AiProbeUnreachableWhy says "Could not be reached: {err}"
@@ -3504,6 +3754,46 @@ func AiCapabilityUnknownUsage() string { return In(i18n.Locale()).AiCapabilityUn
 // in the language of msgs.
 func (msgs Messages) AiCapabilityUnknownUsage() string {
 	return Catalog.Format(msgs.locale, "aiCapabilityUnknownUsage", nil)
+}
+
+// AiCapabilityPinned says "These were chosen by hand: testing the connection will not change them"
+// in the language the app shows.
+func AiCapabilityPinned() string { return In(i18n.Locale()).AiCapabilityPinned() }
+
+// AiCapabilityPinned says "These were chosen by hand: testing the connection will not change them"
+// in the language of msgs.
+func (msgs Messages) AiCapabilityPinned() string {
+	return Catalog.Format(msgs.locale, "aiCapabilityPinned", nil)
+}
+
+// AiCapabilityTested says "Testing the connection fills these in: whether it calls tools is tried, not believed"
+// in the language the app shows.
+func AiCapabilityTested() string { return In(i18n.Locale()).AiCapabilityTested() }
+
+// AiCapabilityTested says "Testing the connection fills these in: whether it calls tools is tried, not believed"
+// in the language of msgs.
+func (msgs Messages) AiCapabilityTested() string {
+	return Catalog.Format(msgs.locale, "aiCapabilityTested", nil)
+}
+
+// AiCapabilityNone says "What it can do is not known"
+// in the language the app shows.
+func AiCapabilityNone() string { return In(i18n.Locale()).AiCapabilityNone() }
+
+// AiCapabilityNone says "What it can do is not known"
+// in the language of msgs.
+func (msgs Messages) AiCapabilityNone() string {
+	return Catalog.Format(msgs.locale, "aiCapabilityNone", nil)
+}
+
+// AiCapabilityGuessed says "{label}?"
+// in the language the app shows.
+func AiCapabilityGuessed(label string) string { return In(i18n.Locale()).AiCapabilityGuessed(label) }
+
+// AiCapabilityGuessed says "{label}?"
+// in the language of msgs.
+func (msgs Messages) AiCapabilityGuessed(label string) string {
+	return Catalog.Format(msgs.locale, "aiCapabilityGuessed", map[string]any{"label": label})
 }
 
 // MediaKindDir says "Folder"
@@ -4320,4 +4610,24 @@ func A11yPicture(name string) string { return In(i18n.Locale()).A11yPicture(name
 // in the language of msgs.
 func (msgs Messages) A11yPicture(name string) string {
 	return Catalog.Format(msgs.locale, "a11yPicture", map[string]any{"name": name})
+}
+
+// SettingLook says "Look"
+// in the language the app shows.
+func SettingLook() string { return In(i18n.Locale()).SettingLook() }
+
+// SettingLook says "Look"
+// in the language of msgs.
+func (msgs Messages) SettingLook() string {
+	return Catalog.Format(msgs.locale, "settingLook", nil)
+}
+
+// SettingLookNote says "Light, dark, or whatever the machine has"
+// in the language the app shows.
+func SettingLookNote() string { return In(i18n.Locale()).SettingLookNote() }
+
+// SettingLookNote says "Light, dark, or whatever the machine has"
+// in the language of msgs.
+func (msgs Messages) SettingLookNote() string {
+	return Catalog.Format(msgs.locale, "settingLookNote", nil)
 }

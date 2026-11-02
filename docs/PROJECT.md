@@ -60,6 +60,7 @@ xinkgo/
 │   │   └── platform_darwin.go / platform_other.go   平台差异（退出行为）
 │   ├── view/                窗口界面：由状态绘制（home.go + home_test.go）
 │   ├── config/              用户配置：读 / 写 / 校验（config.json）
+│   ├── theme/               配色方案表：每套方案明暗两套取色（纯数据 + ui）
 │   ├── logging/             slog 初始化（开发到终端，安装版到文件）
 │   └── sysinfo/             版本与运行环境信息（纯数据）
 ├── resources/
@@ -78,9 +79,10 @@ xinkgo/
 **分层与依赖方向**（只能单向，不得反向或循环）：
 
 ```
-cmd/xinkgo  →  internal/app  →  internal/{view, config, logging, sysinfo}
-                                   view   → sysinfo
+cmd/xinkgo  →  internal/app  →  internal/{view, config, logging, sysinfo, theme}
+                                   view   → sysinfo, theme
                                    logging → config
+                                   config  → theme
 ```
 
 - `internal/view`、`config`、`sysinfo` **不 import `internal/app`**：它们必须在
