@@ -10,6 +10,7 @@
 | [requirements/xink-port.md](requirements/xink-port.md) | 复刻 xink 的需求口径（R-1 ~ R-10，附 xink 证据） | 开工、验收 |
 | [design/xink-port.md](design/xink-port.md) | 复刻的技术设计（底座核查、数据模型、流程、风险） | 动手前 |
 | [design/ai-assist.md](design/ai-assist.md) | AI 编辑辅助：菜单/工具条入口 + 编辑区下方对话条（草案，待拍板） | 加 AI 入口前 |
+| [design/themes.md](design/themes.md) | 系统多主题：明暗 × 配色方案的分工、五套方案、配置迁移与生效路径 | 加/改配色方案前 |
 | [exec-plans/xinkgo-port.md](exec-plans/xinkgo-port.md) | 研发计划与状态（T-1 ~ T-46） | 接着做、看进度 |
 | [../README.md](../README.md) | 仓库首页：三步跑起来 + 文档入口 | — |
 | [../AGENTS.md](../AGENTS.md) | AI / 新人的操作地图与技术铁律 | 交给 AI 任务时 |
@@ -27,6 +28,9 @@
 - **P1（R-8、R-9）**：完成。索引 / 双链补全 / 反链 / 标签 / 全文搜索 / 大纲 /
   命令面板 / 设置窗口 / 库管理 / 数据文件（JSON 校验与格式化）。验收项 B1 ~ B8、
   C1 ~ C9。
+- **多主题**：完成（2026-11-02）。`internal/theme` 五套方案（xink / ocean /
+  moss / plum / sepia），明暗与方案两个设置项，设置里色卡即点即换，代码预设跟随。
+  设计见 [design/themes.md](design/themes.md)，验收项 F1 ~ F4。
 - **P2（R-10，AI）**：主体完成。Provider 抽象（Ollama native + OpenAI 兼容）、
   流式事件解析、对话条、会话持久化、AI 修订逐块接受、只读工具集与 agent loop、
   Skills、模型能力清单与探针、批量标签任务、改前快照与取回、模型列表克隆与排序、

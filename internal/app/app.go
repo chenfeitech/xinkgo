@@ -133,8 +133,9 @@ func Run() error {
 		}
 		current = st
 		// Light or dark as the user chose, or as the desktop has it: the
-		// code themes follow the appearance on their own.
-		mygo.Theme.SetSource(mygo.ThemeSource(st.config.Basic.Theme))
+		// code themes follow the appearance on their own, and every
+		// window puts the scheme the user chose on top of it.
+		mygo.Theme.SetSource(mygo.ThemeSource(st.config.Basic.Appearance))
 		// Bound for windows that show a page: mygo generate writes their
 		// typed client from this and whatever else is bound here.
 		mygo.Bind(system{info: info})
@@ -457,8 +458,16 @@ func (s *appState) switchToVault(id string) {
 // applyConfig is what the user chose taking effect: the window is told,
 // and the appearance is set as it was chosen.
 func (s *appState) applyConfig() {
+	was := s.ws.Config.Basic.Theme
 	s.ws.Config = s.config
 	s.setAppearance()
+	// A scheme is put on by the view that is drawn, so a window that is
+	// drawing nothing would keep the colors it had: the windows are told
+	// to draw again when the scheme changed. The appearance says so of
+	// itself.
+	if s.config.Basic.Theme != was {
+		s.redrawWindows()
+	}
 	// Saving as the user types, after the pause they chose.
 	s.ws.Tabs.AutoSave = s.config.Editor.AutoSave
 	s.ws.Tabs.AutoSaveDelay = time.Duration(
@@ -478,28 +487,43 @@ func (s *appState) applyConfig() {
 	s.refreshMenu()
 }
 
-// setAppearance is the app told how things are to look, as the user
-// chose or as the desktop has it. It is the app's to tell while it runs:
-// a test, or anything else that asks before the loop is up, would wait
-// for a loop that is not there.
+// setAppearance is the app told how light or dark things are to be, as
+// the user chose or as the desktop has it. It is the app's to tell while
+// it runs: a test, or anything else that asks before the loop is up,
+// would wait for a loop that is not there. The colors are the scheme's,
+// and every window puts them on as it is drawn.
 func (s *appState) setAppearance() {
 	if !mygo.App.IsReady() {
 		return
 	}
-	mygo.Theme.SetSource(mygo.ThemeSource(s.config.Basic.Theme))
+	mygo.Theme.SetSource(mygo.ThemeSource(s.config.Basic.Appearance))
 }
 
-// toggleTheme is the appearance turned the other way: light into dark and
-// dark into light. Following the machine is a light appearance until the
-// user says otherwise, so that turning once is a thing that shows.
-func (s *appState) toggleTheme() {
-	next := config.ThemeDark
-	if s.config.Basic.Theme == config.ThemeDark {
-		next = config.ThemeLight
+// redrawWindows asks every window to draw again: a scheme is put on by
+// the view that is drawn, so a window that is drawing nothing keeps the
+// colors it had until it draws the next frame. Telling the appearance
+// module what it already knows is what makes them draw, and changes
+// nothing else.
+func (s *appState) redrawWindows() {
+	if !mygo.App.IsReady() {
+		return
 	}
-	s.config.Basic.Theme = next
+	mygo.Theme.SetSource(mygo.Theme.Source())
+}
+
+// toggleAppearance is the appearance turned the other way: light into
+// dark and dark into light. Following the machine is a light appearance
+// until the user says otherwise, so that turning once is a thing that
+// shows.
+func (s *appState) toggleAppearance() {
+	next := config.AppearanceDark
+	if s.config.Basic.Appearance == config.AppearanceDark {
+		next = config.AppearanceLight
+	}
+	s.config.Basic.Appearance = next
 	s.ws.Config = s.config
 	s.setAppearance()
+	s.redrawWindows()
 	if err := s.config.Save(s.dir); err != nil {
 		slog.Warn("the choice could not be written", "err", err)
 	}

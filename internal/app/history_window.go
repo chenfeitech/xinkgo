@@ -11,6 +11,7 @@ import (
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/snapshot"
+	"github.com/helightxu/xinkgo/internal/theme"
 )
 
 // keptOne is a snapshot as the window shows it: where it stands, what it
@@ -46,6 +47,7 @@ func (s *appState) openHistory() {
 // historyView is the window of what was kept: one line for each snapshot,
 // the newest first, and the way to have it put back.
 func (s *appState) historyView(c *ui.Context) {
+	theme.Apply(c, s.config.Basic.Theme)
 	dir := snapshot.Dir(s.dir)
 	ui.Scroll(c).TrackScroll(&s.histScroll).Fill().Children(func() {
 		ui.Column(c).Fill().Gap(8).Padding(8).Children(func() {

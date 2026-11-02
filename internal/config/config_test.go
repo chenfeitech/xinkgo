@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/helightxu/xinkgo/internal/theme"
 )
 
 // load reads a configuration whose file has the given contents.
@@ -28,7 +30,7 @@ func load(t *testing.T, contents string) AppConfig {
 // TestLoad_missingFileGivesDefaults checks a first start.
 func TestLoad_missingFileGivesDefaults(t *testing.T) {
 	cfg := load(t, "")
-	if cfg.Basic.Theme != ThemeSystem || !cfg.Basic.ShowAllFiles {
+	if cfg.Basic.Appearance != AppearanceSystem || !cfg.Basic.ShowAllFiles {
 		t.Errorf("basic %+v, want the defaults", cfg.Basic)
 	}
 	if cfg.Editor.AutoSaveDelayMs != 300 || !cfg.Editor.SoftWrap {
@@ -63,9 +65,34 @@ func TestLoad_emptyObjectGivesDefaults(t *testing.T) {
 // TestLoad_unknownFieldsAreIgnored checks that a newer file, with fields
 // this version does not have, still loads.
 func TestLoad_unknownFieldsAreIgnored(t *testing.T) {
-	cfg := load(t, `{"basic":{"theme":"dark","something_new":42}}`)
-	if cfg.Basic.Theme != ThemeDark {
-		t.Errorf("theme %q, want %q", cfg.Basic.Theme, ThemeDark)
+	cfg := load(t, `{"basic":{"appearance":"dark","something_new":42}}`)
+	if cfg.Basic.Appearance != AppearanceDark {
+		t.Errorf("appearance %q, want %q", cfg.Basic.Appearance,
+			AppearanceDark)
+	}
+}
+
+// TestLoad_anOldFileKeepsItsAppearance checks a file of a version that
+// kept the appearance in Theme, where the schemes are now: light and
+// dark are not names of a scheme, and are moved to the appearance.
+func TestLoad_anOldFileKeepsItsAppearance(t *testing.T) {
+	cfg := load(t, `{"basic":{"theme":"dark"}}`)
+	if cfg.Basic.Appearance != AppearanceDark {
+		t.Errorf("appearance %q, want %q", cfg.Basic.Appearance,
+			AppearanceDark)
+	}
+	if cfg.Basic.Theme != theme.Default {
+		t.Errorf("theme %q, want %q", cfg.Basic.Theme, theme.Default)
+	}
+}
+
+// TestLoad_aSchemeIsKept checks that the scheme the user chose comes
+// back, and is not taken for an appearance.
+func TestLoad_aSchemeIsKept(t *testing.T) {
+	cfg := load(t, `{"basic":{"appearance":"light","theme":"ocean"}}`)
+	if cfg.Basic.Appearance != AppearanceLight ||
+		cfg.Basic.Theme != theme.Ocean {
+		t.Errorf("basic %+v, want light and ocean", cfg.Basic)
 	}
 }
 
@@ -81,8 +108,8 @@ func TestLoad_brokenFileGivesDefaultsAndError(t *testing.T) {
 	if err == nil {
 		t.Error("Load accepted a file that is not JSON")
 	}
-	if cfg.Basic.Theme != ThemeSystem {
-		t.Errorf("theme %q, want the defaults", cfg.Basic.Theme)
+	if cfg.Basic.Appearance != AppearanceSystem {
+		t.Errorf("appearance %q, want the defaults", cfg.Basic.Appearance)
 	}
 }
 
@@ -90,7 +117,8 @@ func TestLoad_brokenFileGivesDefaultsAndError(t *testing.T) {
 func TestSaveLoad_roundTrip(t *testing.T) {
 	dir := t.TempDir()
 	want := Default()
-	want.Basic.Theme = ThemeDark
+	want.Basic.Appearance = AppearanceDark
+	want.Basic.Theme = theme.Ocean
 	want.Editor.AutoSaveDelayMs = 1500
 	want.Preview.Density = DensityRelaxed
 	if err := want.Save(dir); err != nil {
@@ -100,9 +128,11 @@ func TestSaveLoad_roundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
-	if got.Basic.Theme != ThemeDark || got.Editor.AutoSaveDelayMs != 1500 ||
+	if got.Basic.Appearance != AppearanceDark ||
+		got.Basic.Theme != theme.Ocean ||
+		got.Editor.AutoSaveDelayMs != 1500 ||
 		got.Preview.Density != DensityRelaxed {
-		t.Errorf("got basic=%q delay=%d density=%q", got.Basic.Theme,
+		t.Errorf("got basic=%+v delay=%d density=%q", got.Basic,
 			got.Editor.AutoSaveDelayMs, got.Preview.Density)
 	}
 }
@@ -111,12 +141,16 @@ func TestSaveLoad_roundTrip(t *testing.T) {
 // put in the file by hand.
 func TestSanitize_clampsOutOfRangeValues(t *testing.T) {
 	cfg := load(t, `{
-		"basic":{"theme":"neon","icon_size":999},
+		"basic":{"appearance":"twilight","theme":"neon","icon_size":999},
 		"editor":{"auto_save_delay_ms":1,"indent":{"tab_size":99}},
 		"preview":{"image_width_percent":5,"max_width":99999,"density":"airy"}
 	}`)
-	if cfg.Basic.Theme != ThemeSystem {
-		t.Errorf("theme %q, want %q", cfg.Basic.Theme, ThemeSystem)
+	if cfg.Basic.Appearance != AppearanceSystem {
+		t.Errorf("appearance %q, want %q", cfg.Basic.Appearance,
+			AppearanceSystem)
+	}
+	if cfg.Basic.Theme != theme.Default {
+		t.Errorf("theme %q, want %q", cfg.Basic.Theme, theme.Default)
 	}
 	if cfg.Basic.IconSize != 48 {
 		t.Errorf("icon size %d, want 48", cfg.Basic.IconSize)

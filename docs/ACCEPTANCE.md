@@ -95,6 +95,15 @@
 | E5 | AI 旋钮 | 设置 ▸ AI ▸ Asking：改「How long an answer may take」「How often it is tried again」等，关掉设置再打开；再看 `config.json` | 数字**带得回来**（不是默认值）；`config.json` 里同步；`Answer in` 选 zh / en 后提问，模型的回答跟着换语言 |
 | E6 | AI 动作 | 打开一篇笔记，Cmd+P 打 `Polish` 回车；再选中一段（只选中两三个词）打 `Condense` 回车 | 对话条自己打开并问出这句话；答完后**自动进入评审 diff**（不是直接写进笔记）；整篇时 diff 是整篇，有选区时 diff **只是那一段**，Write it in 后也只有那一段被改、前后文字不动 |
 
+## 多主题（F）
+
+| # | 项 | 怎么验 | 期望 |
+|---|---|---|---|
+| F1 | 换方案 | 设置 ▸ Basic ▸ Appearance：点 Sepia 那张色卡 | **整个窗口立刻换色**（含设置窗口自己、按钮、菜单），不用重开；关掉设置再打开，`Theme` 下拉与高亮卡片仍是 Sepia；`config.json` 里 `basic.theme` = `sepia` |
+| F2 | 明暗与方案是两件事 | `Look` 选 light / dark / system，再各看一遍五张色卡 | 每套方案**各有明暗两套取色**（不是同一套反色）；机器切到深色（或按 View ▸ Turn the light the other way）时方案不变，只是换成它的暗色那一半 |
+| F3 | 色卡就是预览 | 看设置里的五张卡 | 每张卡**用它自己的颜色画**（ground / surface / text / accent 四个点 + 标题按钮），不是文字描述；当前那张有 accent 边框、按钮是实心的 |
+| F4 | 代码高亮跟随 | Editor ▸ Code theme 先不动，换方案到 Ocean；再手动把 Code theme 改成 xink，然后换方案到 Moss | 第一次代码配色跟着变成 ocean；第二次**保持 xink**（自己挑过的不被覆盖） |
+
 ## 已自动化、不必人验的
 
 库扫描与忽略规则、`fs` 的重名与跨设备移动、`note` 的原子写与外部变更取回、
@@ -102,7 +111,9 @@
 `keymap` 的冲突与清理、`sync` 的锚点换算与方向锁、`markdown` 的工具栏插入规则、
 `snapshot` 的取名 / 排序 / 轮转与取回（取回前先存当前、同名两篇不猜）、
 `config.ModelEntry.Clone` 的深拷贝与副本命名、模型列表的克隆与前后移动、
-`highlight` 的三套主题取值：均有 Go 单元测试（`make test`）。
+`highlight` 的三套主题取值、`theme` 的五套方案（完整性 + **对比度门禁** + 明暗
+取色 + 未知名回落）、`config` 的 appearance/theme 迁移与钳制、窗口按方案上色
+（含像素级底色断言）、设置里点色卡即换并落盘：均有 Go 单元测试（`make test`）。
 
 ## 已知缺口（登记待办，不在本轮范围）
 

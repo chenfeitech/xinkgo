@@ -19,6 +19,7 @@ import (
 	"github.com/helightxu/xinkgo/internal/skill"
 	"github.com/helightxu/xinkgo/internal/state"
 	"github.com/helightxu/xinkgo/internal/sync"
+	"github.com/helightxu/xinkgo/internal/theme"
 )
 
 // How wide a side panel may be dragged. Below the narrowest there is
@@ -199,6 +200,9 @@ func milliseconds(ms uint64) time.Duration {
 
 // View draws the window.
 func (w *Workspace) View(c *ui.Context) {
+	// The colors the window is drawn in, before anything is drawn: the
+	// scheme the user chose, in the appearance the window has.
+	theme.Apply(c, w.Config.Basic.Theme)
 	// What the user stopped typing is written now, and not by a timer of
 	// its own: only this thread may touch a note. A revision standing
 	// before the user is not written over the top of: what stands in

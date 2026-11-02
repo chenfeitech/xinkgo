@@ -11,6 +11,7 @@ import (
 	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/note"
 	"github.com/helightxu/xinkgo/internal/task"
+	"github.com/helightxu/xinkgo/internal/theme"
 )
 
 // taskDraft is the task being put together: which kind of work it is, and
@@ -44,6 +45,7 @@ func (s *appState) openTasks() {
 // tasksView is the window of the long work: what is to be done, what it
 // would come to, and the way to have it done a batch at a time.
 func (s *appState) tasksView(c *ui.Context) {
+	theme.Apply(c, s.config.Basic.Theme)
 	ui.Scroll(c).TrackScroll(&s.taskScroll).Fill().Children(func() {
 		ui.Column(c).Fill().Gap(8).Padding(8).Children(func() {
 			s.taskBeing(c)

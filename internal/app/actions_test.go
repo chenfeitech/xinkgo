@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/helightxu/xinkgo/internal/config"
+	"github.com/helightxu/xinkgo/internal/theme"
 	"github.com/helightxu/xinkgo/internal/view"
 )
 
@@ -20,33 +21,38 @@ func appWithWindow(t *testing.T) *appState {
 	}
 }
 
-// TestToggleTheme_theOtherWayRound checks that turning the light once
-// turns it, and that turning it twice is the same as never having: a key
-// that only ever goes one way is no way to turn anything.
-func TestToggleTheme_theOtherWayRound(t *testing.T) {
+// TestToggleAppearance_theOtherWayRound checks that turning the light
+// once turns it, and that turning it twice is the same as never having:
+// a key that only ever goes one way is no way to turn anything.
+func TestToggleAppearance_theOtherWayRound(t *testing.T) {
 	s := appWithWindow(t)
 	s.config = config.Default()
-	s.config.Basic.Theme = config.ThemeLight
-	s.toggleTheme()
-	if s.config.Basic.Theme != config.ThemeDark {
-		t.Fatalf("theme = %q, want dark", s.config.Basic.Theme)
+	s.config.Basic.Appearance = config.AppearanceLight
+	s.toggleAppearance()
+	if s.config.Basic.Appearance != config.AppearanceDark {
+		t.Fatalf("appearance = %q, want dark", s.config.Basic.Appearance)
 	}
 	// The window is told, and not only the settings: it is what is
 	// asked how things are to look.
-	if s.ws.Config.Basic.Theme != config.ThemeDark {
-		t.Fatalf("window = %q, want dark", s.ws.Config.Basic.Theme)
+	if s.ws.Config.Basic.Appearance != config.AppearanceDark {
+		t.Fatalf("window = %q, want dark", s.ws.Config.Basic.Appearance)
 	}
-	s.toggleTheme()
-	if s.config.Basic.Theme != config.ThemeLight {
-		t.Fatalf("theme = %q, want light again", s.config.Basic.Theme)
+	s.toggleAppearance()
+	if s.config.Basic.Appearance != config.AppearanceLight {
+		t.Fatalf("appearance = %q, want light again",
+			s.config.Basic.Appearance)
+	}
+	// The scheme is not what turns: it is chosen, and kept.
+	if s.config.Basic.Theme != theme.Default {
+		t.Fatalf("theme = %q, want %q", s.config.Basic.Theme, theme.Default)
 	}
 	// It is a choice that is kept: the app comes up as it was left.
 	got, err := config.Load(s.dir)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got.Basic.Theme != config.ThemeLight {
-		t.Fatalf("kept = %q, want light", got.Basic.Theme)
+	if got.Basic.Appearance != config.AppearanceLight {
+		t.Fatalf("kept = %q, want light", got.Basic.Appearance)
 	}
 }
 
