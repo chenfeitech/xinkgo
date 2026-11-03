@@ -439,7 +439,7 @@ func TestPad_theMarginIsRoomTheWordsKeepBesidesThePadding(t *testing.T) {
 	}
 	near := ed.X + editorInsetLeft +
 		float32(n.Editor.WrapColumn)*w.editorCharWidth(n)
-	w.Config.Editor.MarginRight = 40
+	w.Config.Editor.MarginRight = 90
 	tt.Frame()
 	far, ok := tt.Find(editorLabel)
 	if !ok {
@@ -451,10 +451,13 @@ func TestPad_theMarginIsRoomTheWordsKeepBesidesThePadding(t *testing.T) {
 	}
 	words := far.X + editorInsetLeft +
 		float32(n.Editor.WrapColumn)*w.editorCharWidth(n)
-	// A line is broken at a whole character, so what the words come in
-	// by is the margin asked for, less what is left of a character.
-	if got := near - words; got < 30 {
-		t.Errorf("the margin brought the words in %v, want the 40 asked"+
-			" for, but for the rest of a character", got)
+	// A line is broken at a whole character, and the room the editor's
+	// own bar stands in is kept whether the margin is asked for or not:
+	// what the words come in by is the margin asked for, less that room,
+	// and less what is left of a character besides.
+	if got := near - words; got < 60 {
+		t.Errorf("the margin brought the words in %v, want the 90 asked"+
+			" for, less the %v the bar stands in and the rest of a"+
+			" character", got, editorBarAir)
 	}
 }

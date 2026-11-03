@@ -64,16 +64,18 @@ const (
 	// them and the editor's own scroll bar: the editor draws the bar over
 	// the last of what it is given, four DIPs from a line it breaks, and
 	// four DIPs is no room at all. The line is broken this much shorter
-	// than the room there is, so that the bar stands in the room the pane
-	// keeps beside its padding, and not against the words.
-	editorBarAir float32 = 10
+	// than the room there is — half as much again as it was, for the words
+	// stood nearer the bar than a note reads well beside it — so that the
+	// bar stands in the room the pane keeps beside its padding, and not
+	// against the words.
+	editorBarAir float32 = 15
 	// editorRailAir is the room the note's words keep beside the rail's
 	// buttons, on top of the padding, when its pane ends at the window's
 	// own edge, as the note's does widened over the preview: the buttons
 	// stand over that end of the pane, and half as much again as one of
-	// them is wide is no more than the note needs to read well beside
-	// them.
-	editorRailAir float32 = railWidth * 3 / 2
+	// them is wide — and half as much again as that — is no more than the
+	// note needs to read well beside them.
+	editorRailAir float32 = railWidth * 9 / 4
 	// layoutSettle is how long the panels stay as they were dragged
 	// before what the user chose is written down.
 	layoutSettle = 400 * time.Millisecond
