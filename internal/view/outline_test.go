@@ -76,14 +76,14 @@ func drawerStrip(t *testing.T, open bool) int {
 	if !ok {
 		t.Fatalf("no rail button in the window")
 	}
-	// The strip stands well inside the drawer: near its right edge, where
-	// nothing of what it says reaches, as what it says reads from the
-	// left, and over the middle of the height it was given beside the
-	// rail, which is where the note behind it has lines of text whatever
-	// the pane keeps at the top of its own.
+	// The strip stands well inside the drawer: a hundred DIPs in from the
+	// rail, where nothing of what it says reaches, as what it says reads
+	// from the left, and over the middle of the height it was given
+	// beside the rail, which is where the note behind it has lines of
+	// text whatever the pane keeps at the top of its own.
 	other := 0
 	for y := height/2 - 30; y <= height/2+30; y++ {
-		r, g, b, _ := img.At(int(rail.X)-16, y).RGBA()
+		r, g, b, _ := img.At(int(rail.X)-100, y).RGBA()
 		if int(r>>8) != int(face.R) || int(g>>8) != int(face.G) ||
 			int(b>>8) != int(face.B) {
 			other++

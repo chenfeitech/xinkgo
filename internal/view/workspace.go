@@ -39,6 +39,13 @@ const (
 	// other, which is what the padding is for.
 	editorInsetLeft  float32 = 8
 	editorInsetRight float32 = 14
+	// editorTrack is the room of the editor's own scroll bar, which it
+	// draws over the last of what it is given while the pointer rests
+	// on it, and not beside it: a line it breaks keeps clear of the bar
+	// and of four DIPs besides, which is the editorInsetRight above,
+	// but a line it does not break is cut at the very edge of what it
+	// is given, bar and all.
+	editorTrack float32 = 10
 	// layoutSettle is how long the panels stay as they were dragged
 	// before what the user chose is written down.
 	layoutSettle = 400 * time.Millisecond
@@ -515,8 +522,16 @@ func (w *Workspace) followActiveNote() {
 // center is the tabs and the editor.
 func (w *Workspace) center(c *ui.Context) {
 	// What the side panels leave is the note's: widening the window
-	// gives the text room, not the panels.
-	ui.Column(c).Grow(1).FillHeight().Children(func() {
+	// gives the text room, not the panels. A note that ends at the
+	// window's own right edge — the preview standing down, or given
+	// over to the note — keeps the rail's strip besides: what is
+	// written there is written under the rail's buttons, and its
+	// padding with it.
+	note := ui.Column(c).Grow(1).FillHeight()
+	if w.notePaneAtRail() {
+		note.Padding(0, railStrip, 0, 0)
+	}
+	note.Children(func() {
 		w.tabBar(c)
 		w.toolbar(c)
 		w.centerBody(c)
@@ -565,6 +580,18 @@ const (
 	// of tabMaxWidth once its padding, its close button and the room
 	// between the two are taken out.
 	tabNameMax float32 = 142
+	// cornerGap is the room a corner button keeps from the edge of the
+	// pane it stands in: the button at the end of the tab bar and the
+	// one in the preview's head stand as far from the line that parts
+	// the panes — which is drawn down the middle of its grip — as one
+	// another, so that the two are read as one row across it.
+	cornerGap float32 = 6
+	// headHeight is how tall the row at the top of a pane stands: the
+	// tab bar's, which is the note's own top, and the preview's head.
+	// Each of the two carries a button in its corner, and the two are
+	// read as one row across the window, so the row is of one height in
+	// either pane and the buttons stand level with each other.
+	headHeight = tabHeight + 8
 )
 
 // editorPadX is how far the note's text stands from the sides of its
@@ -583,7 +610,19 @@ func (w *Workspace) editorPadLeft() float32 {
 	return max(w.editorPadX()-editorInsetLeft, 0)
 }
 
+// editorPadRight is how much room the pane keeps on the right of the
+// editor, which is not what it keeps on the left of it: a line the
+// editor breaks is given the room the editor keeps beside it — its
+// scroll bar's, and four — out of the width the editor is given, so
+// that room comes off the padding the user chose. A line it does not
+// break is cut at the very edge of what it is given, and the bar is
+// drawn over the last of it: nothing of the editor's own is taken out
+// of what the user chose, and the room of the bar is kept besides it,
+// so that no word is written where the bar will stand.
 func (w *Workspace) editorPadRight() float32 {
+	if !w.Config.Editor.SoftWrap {
+		return w.editorPadX() + editorTrack
+	}
 	return max(w.editorPadX()-editorInsetRight, 0)
 }
 
@@ -620,21 +659,36 @@ func (w *Workspace) previewPaneWidth() float32 {
 // railBand is how much room the rail takes at the right edge of the
 // window: its own, and its drawer's when one is open.
 func (w *Workspace) railBand() float32 {
-	band := railWidth + railGap + 2
+	band := railStrip
 	if w.drawer != "" {
 		band += drawerWidth + 2
 	}
 	return band
 }
 
-// railClear is how much of that room a row has to give up: the rail
-// hangs from the top of the window over whatever ends there, so a row as
-// wide as the window, as the tab bar is when the preview is shut, would
-// end its last button under it. The preview, which ends at the window's
-// own edge, is not in the way: what it leaves of the band is what a row
-// beside it gives up.
+// notePaneAtRail is whether it is the note's pane that ends at the
+// window's own right edge, which is the one the rail hangs over: it is
+// when no preview stands beside the note, its room given over to the
+// note or shut altogether. A preview of less than a DIP is no pane at
+// all, and is not drawn: the note reaches the edge all the same.
+func (w *Workspace) notePaneAtRail() bool {
+	return w.previewPaneWidth() < 1
+}
+
+// railClear is how much of the rail's room a row of the note's has to
+// give up beside what its pane keeps already: the pane ends where the
+// rail's strip begins, when it is the pane the rail hangs over, so what
+// is left for the row is the drawer's own room, which covers what it
+// covers. A row of a note with a preview beside it gives up nothing: the
+// preview stands between it and the rail.
 func (w *Workspace) railClear() float32 {
 	clear := w.railBand() - w.previewPaneWidth()
+	// What the row gives up is what is left of the band beside that:
+	// when the note's pane is the one the rail hangs over, its pane
+	// keeps the strip already, and what is left is the drawer's room.
+	if w.notePaneAtRail() {
+		clear -= railStrip
+	}
 	if clear < 0 {
 		return 0
 	}
@@ -648,20 +702,20 @@ func (w *Workspace) railClear() float32 {
 // outside what is scrolled, so that it is always there.
 func (w *Workspace) tabBar(c *ui.Context) {
 	paths := w.Tabs.Paths()
-	ui.Row(c).AlignItems(ui.Center).PaddingEnd(w.railClear()).
-		Children(func() {
-			ui.ScrollHorizontal(c).Grow(1).Height(tabHeight + 8).
-				Children(func() {
-					ui.Row(c).Gap(2).Padding(4).AlignItems(ui.Center).
-						Children(func() {
-							for _, path := range paths {
-								path := path
-								w.tab(c, path)
-							}
-						})
-				})
-			w.widenButton(c)
-		})
+	ui.Row(c).AlignItems(ui.Center).
+		PaddingEnd(w.railClear() + cornerGap).Children(func() {
+		ui.ScrollHorizontal(c).Grow(1).Height(headHeight).
+			Children(func() {
+				ui.Row(c).Gap(2).Padding(4).AlignItems(ui.Center).
+					Children(func() {
+						for _, path := range paths {
+							path := path
+							w.tab(c, path)
+						}
+					})
+			})
+		w.widenButton(c)
+	})
 }
 
 // tab is one open note: its name, marked when it has changes the disk
@@ -923,12 +977,28 @@ func (w *Workspace) toolbarDivider(c *ui.Context) {
 // rail and its drawer leave of it besides.
 func (w *Workspace) editorWidth(c *ui.Context) float32 {
 	width, _ := c.Size()
-	// Given the whole window, the note is as wide as it, less what the
-	// rail and its drawer keep to themselves.
-	if w.zoom == zoomEditor {
-		return max(width-w.railClear(), 0)
+	// What the pane keeps at the window's right edge: the rail's strip,
+	// when the note is the pane the rail hangs over, and the drawer's
+	// room on top of it while one stands open beside the rail.
+	clear := w.railClear()
+	if w.notePaneAtRail() {
+		clear += railStrip
 	}
-	return max(width-w.Layout.Left-w.previewPaneWidth()-w.railClear(), 0)
+	// Given the whole window, the note is as wide as it, less that.
+	if w.zoom == zoomEditor {
+		return max(width-clear, 0)
+	}
+	// Less the panels on either side, and the lines that part them from
+	// the note: a button of the row is to stand over the note, and not
+	// past the end of it.
+	side := w.Layout.Left + w.previewPaneWidth()
+	if w.Layout.Left > 0 {
+		side += dividerGrip
+	}
+	if w.previewPaneWidth() >= 1 {
+		side += dividerGrip
+	}
+	return max(width-side-clear, 0)
 }
 
 // dataBar is what the toolbar says of a file of data: which of the three
@@ -1077,7 +1147,7 @@ func (w *Workspace) previewPanel(c *ui.Context, width float32) {
 	// As the tree's panel: a note is read from its first line, and not
 	// from the middle of the window. A width of none is the whole
 	// window, which is what the pane is given when it is maximized.
-	pane := ui.Column(c).FillHeight()
+	pane := ui.Column(c).FillHeight().Padding(0, railStrip, 0, 0)
 	if width > 0 {
 		pane.Width(width)
 	} else {
@@ -1105,7 +1175,7 @@ func (w *Workspace) previewPanel(c *ui.Context, width float32) {
 			// edge. In its own pane it is that pane's width already.
 			if width <= 0 {
 				ui.Row(c).FillWidth().Justify(ui.Center).Children(func() {
-					ui.Box(c).Width(w.previewWidth(room)).
+					ui.Box(c).FillWidth().MaxWidth(w.previewWidth(room)).
 						Padding(w.previewPadY(), w.previewPadX()).
 						Children(func() {
 							markdown.View(c, w.previewText(n), opts)
@@ -1184,14 +1254,19 @@ func (w *Workspace) ExportText() (path, text string, ok bool) {
 // that spreads the preview over the note. It stands in the corner the
 // note's toolbar is not in, and the room it takes is the pane's own top,
 // so that what is read begins under it and is never under the button
-// itself. What the window shows and does not read — a picture, a PDF —
-// is spread as much as a note is: it is the same pane, read wider.
+// itself. The row is as tall as the tab bar's, which stands level with it
+// across the window: the button of one corner and the button of the other
+// are then drawn on one line, each keeping cornerGap from the edge of
+// its own pane, so that the two stand as far from the line that parts
+// the panes as one another. What the window shows and does not read —
+// a picture, a PDF — is spread as much as a note is: it is the same
+// pane, read wider.
 func (w *Workspace) previewHead(c *ui.Context) {
 	if w.Tabs.ActiveNote() == nil {
 		return
 	}
-	ui.Row(c).FillWidth().AlignItems(ui.Center).Gap(4).
-		Padding(2, 6).Children(func() {
+	ui.Row(c).FillWidth().Height(headHeight).AlignItems(ui.Center).
+		Gap(4).Padding(0, cornerGap).Children(func() {
 		w.spreadButton(c)
 		ui.Box(c).Grow(1)
 	})
@@ -1245,7 +1320,7 @@ func (w *Workspace) spreadButton(c *ui.Context) {
 // instead, which is smaller and stands at the other end.
 func (w *Workspace) previewBar(c *ui.Context) {
 	ui.Row(c).FillWidth().AlignItems(ui.Center).Gap(4).
-		Padding(4, 6).PaddingEnd(w.railBand() + 6).
+		Padding(4, 6).PaddingEnd(w.railBand() - railStrip + 6).
 		Children(func() {
 			ui.Box(c).Grow(1)
 			w.zoomButton(c, "zoom-back", zoomPreview, iconZoomPreview,

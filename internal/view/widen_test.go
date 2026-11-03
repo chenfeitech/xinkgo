@@ -50,10 +50,13 @@ func TestWiden_theNoteStretchesOverThePreview(t *testing.T) {
 		t.Errorf("the note is %v wide, want it wider than the %v it was",
 			wide.W, ed.W)
 	}
-	// It reaches the window's edge, but for the rail that hangs over it.
-	if end := wide.X + wide.W; end < float32(width)-w.railBand()-1 {
-		t.Errorf("the note ends at %v, want it at the window's edge, "+
-			"but for the rail", end)
+	// It reaches the rail: the pane ends where the rail's strip begins,
+	// and the text the room the user chose inside that, less what the
+	// editor keeps beside its lines of its own.
+	if end := wide.X + wide.W; end < float32(width)-railStrip-
+		w.editorPadRight()-1 {
+		t.Errorf("the note ends at %v, want it at the rail's strip, "+
+			"but for the padding", end)
 	}
 }
 
@@ -157,5 +160,61 @@ func TestWiden_theButtonStandsWhereThereIsAPreview(t *testing.T) {
 	w.SetPreviewShown(false)
 	if w.stretched {
 		t.Error("the note still stands over a preview that is shut")
+	}
+}
+
+// cornerDivider is how the line that parts the note from the preview is
+// named to the window: a test looks for it to say where the line stands.
+const cornerDivider = "divider-preview"
+
+// TestWiden_theTwoCornerButtonsStandLevel checks that the button at the
+// end of the tab bar and the one in the preview's own corner are drawn on
+// one line: both stand at the top of a pane, and the two panes begin at
+// the top of the window together, so a button standing lower than the
+// other is read as a step across the middle of the window.
+func TestWiden_theTwoCornerButtonsStandLevel(t *testing.T) {
+	_, tt := zoomTester(t, 1100)
+	note, ok := tt.Find(locale.WidenNote())
+	if !ok {
+		t.Fatal("the button that widens the note is not drawn")
+	}
+	preview, ok := tt.Find(locale.SpreadPreview())
+	if !ok {
+		t.Fatal("the button that spreads the preview is not drawn")
+	}
+	noteMid := note.Y + note.H/2
+	previewMid := preview.Y + preview.H/2
+	if d := noteMid - previewMid; d < -1 || d > 1 {
+		t.Errorf("the note's button stands at %v and the preview's at %v,"+
+			" want them level", noteMid, previewMid)
+	}
+}
+
+// TestWiden_theTwoCornerButtonsStandAsFarFromTheLine checks that the two
+// buttons keep the same room either side of the line that parts the note
+// from the preview: the pane of each ends at the line, whose hair is
+// drawn down the middle of its grip, so a button standing nearer the
+// line than the other is read as a step in the row the two make.
+func TestWiden_theTwoCornerButtonsStandAsFarFromTheLine(t *testing.T) {
+	_, tt := zoomTester(t, 1100)
+	line, ok := tt.Find(cornerDivider)
+	if !ok {
+		t.Fatal("the line that parts the note from the preview is not drawn")
+	}
+	note, ok := tt.Find(locale.WidenNote())
+	if !ok {
+		t.Fatal("the button that widens the note is not drawn")
+	}
+	preview, ok := tt.Find(locale.SpreadPreview())
+	if !ok {
+		t.Fatal("the button that spreads the preview is not drawn")
+	}
+	middle := line.X + line.W/2
+	left := middle - (note.X + note.W)
+	right := preview.X - middle
+	if d := left - right; d < -1 || d > 1 {
+		t.Errorf("the note's button stands %v from the line and the"+
+			" preview's %v, want them as far from it as one another",
+			left, right)
 	}
 }

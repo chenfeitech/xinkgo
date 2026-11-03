@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/helightxu/xinkgo/internal/config"
+	"github.com/helightxu/xinkgo/internal/locale"
 )
 
 // TestPad_theNoteStandsAsFarFromOneSideAsTheOther checks what the padding
@@ -14,8 +15,8 @@ import (
 // that it is the text, and not the editor, that is being measured.
 //
 // The tree and the preview stand down for the measurement, so that the
-// note's pane is the window itself and where it begins and ends is not in
-// question.
+// note's pane is the window but for the rail's strip, which no pane
+// writes in, and where it begins and ends is not in question.
 func TestPad_theNoteStandsAsFarFromOneSideAsTheOther(t *testing.T) {
 	const width = 900
 	w, tt := zoomTester(t, width)
@@ -28,10 +29,13 @@ func TestPad_theNoteStandsAsFarFromOneSideAsTheOther(t *testing.T) {
 			t.Fatalf("with a padding of %d, the note is not drawn", pad)
 		}
 		// Where the note's text stands: the room the pane was given,
-		// and what the editor keeps of its own beside the lines.
+		// and what the editor keeps of its own beside the lines. The
+		// pane ends where the rail's strip begins, and not at the
+		// window's own edge.
 		for side, got := range map[string]float32{
-			"left":  ed.X + editorInsetLeft,
-			"right": width - (ed.X + ed.W) + editorInsetRight,
+			"left": ed.X + editorInsetLeft,
+			"right": width - railStrip - (ed.X + ed.W) +
+				editorInsetRight,
 		} {
 			if got != float32(pad) {
 				t.Errorf("with a padding of %d, the note stands %.0f "+
@@ -60,7 +64,9 @@ func TestPad_aPaneGivenLessThanTheEditorKeepsKeepsNone(t *testing.T) {
 			"none: the padding is narrower than what the editor keeps",
 			ed.X)
 	}
-	if got := width - (ed.X + ed.W); got != 0 {
+	// The other side of the pane is where the rail's strip begins: the
+	// pane keeps nothing beside it of its own.
+	if got := width - railStrip - (ed.X + ed.W); got != 0 {
 		t.Errorf("the note's pane keeps %.0f on the other side, want none",
 			got)
 	}
@@ -133,5 +139,98 @@ func TestPad_whatIsReadStandsOffTheEdgesOfItsPane(t *testing.T) {
 	if got := far.Y - near.Y; got != 24 {
 		t.Errorf("what is read came down %v, want the 24 of the padding "+
 			"it was given more of", got)
+	}
+}
+
+// TestPad_whatIsReadKeepsItsPaddingSpreadOverTheNote checks the padding
+// of a preview given the note's room as well as its own: what is read
+// stands the room the user chose from the tree's line on one side and
+// from the rail's strip on the other, and not hard against the window's
+// own edge, which is where a box as wide as the pane puts it.
+func TestPad_whatIsReadKeepsItsPaddingSpreadOverTheNote(t *testing.T) {
+	const width = 1100
+	w, tt := zoomTester(t, width)
+	w.setZoom(zoomPreviewSpread)
+	for _, pad := range []uint32{config.MinPadding, 16, 40} {
+		w.Config.Preview.PaddingX = pad
+		tt.Frame()
+		text, ok := tt.Find("head")
+		if !ok {
+			t.Fatalf("with a padding of %d, the note is not read", pad)
+		}
+		want := float32(pad)
+		if got := text.X - (w.Layout.Left + dividerGrip); got != want {
+			t.Errorf("with a padding of %d, what is read stands %.0f "+
+				"from the line of the tree, want %d", pad, got, pad)
+		}
+		if got := float32(width) - railStrip - (text.X + text.W); got != want {
+			t.Errorf("with a padding of %d, what is read stands %.0f "+
+				"from the rail's strip, want %d", pad, got, pad)
+		}
+	}
+}
+
+// TestPad_thePaneEndsWhereTheRailBegins checks that no pane writes in the
+// rail's strip: the buttons of the rail have no face of their own, so
+// what is written there is lost, and the padding of the pane with it.
+// Opening the drawer beside the rail covers what it covers, and takes
+// none of the room the note is writing in.
+func TestPad_thePaneEndsWhereTheRailBegins(t *testing.T) {
+	const width = 1100
+	w, tt := zoomTester(t, width)
+	if err := tt.Click(locale.WidenNote()); err != nil {
+		t.Fatalf("Click: %v", err)
+	}
+	tt.Advance(widenAnim.Duration)
+	tt.Frame()
+	ed, ok := tt.Find(editorLabel)
+	if !ok {
+		t.Fatal("the note is not drawn")
+	}
+	end := ed.X + ed.W
+	if got := float32(width) - railStrip - end; got != w.editorPadRight() {
+		t.Errorf("the note's pane keeps %.0f beside the rail, want the "+
+			"%.0f of the padding", got, w.editorPadRight())
+	}
+	// A drawer opened beside the rail covers what it covers.
+	w.drawer = drawerOutline
+	tt.Frame()
+	tt.Frame()
+	open, ok := tt.Find(editorLabel)
+	if !ok {
+		t.Fatal("the note is not drawn with the drawer open")
+	}
+	if open.X+open.W != end {
+		t.Errorf("the note ends at %v with the drawer open, want the %v "+
+			"it ends at with it shut", open.X+open.W, end)
+	}
+}
+
+// TestPad_aLineThatIsNotBrokenKeepsItsRoomBesideTheEditor checks the
+// padding of a note whose lines the editor does not break: such a line is
+// cut at the very edge of what the editor is given, and the editor draws
+// its scroll bar over the last of it, so the pane keeps the room the user
+// chose and the room of the bar besides, and no word is written where the
+// bar will stand.
+func TestPad_aLineThatIsNotBrokenKeepsItsRoomBesideTheEditor(t *testing.T) {
+	w, tt := zoomTester(t, 1100)
+	line, ok := tt.Find(cornerDivider)
+	if !ok {
+		t.Fatal("the line that parts the note from the preview is not drawn")
+	}
+	pane := line.X
+	w.Config.Editor.SoftWrap = false
+	for _, pad := range []uint32{16, 40} {
+		w.Config.Editor.PaddingX = pad
+		tt.Frame()
+		ed, ok := tt.Find(editorLabel)
+		if !ok {
+			t.Fatalf("with a padding of %d, the note is not drawn", pad)
+		}
+		if got := pane - (ed.X + ed.W); got != float32(pad)+editorTrack {
+			t.Errorf("with a padding of %d, the pane keeps %.0f beside "+
+				"the editor, want the %d the user chose and the %.0f "+
+				"of its scroll bar", pad, got, pad, editorTrack)
+		}
 	}
 }
