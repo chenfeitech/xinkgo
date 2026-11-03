@@ -6,6 +6,7 @@ import (
 
 	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/locale"
+	"github.com/helightxu/xinkgo/internal/view/layout"
 )
 
 // railOf is where the rail's buttons stand in a window of the width given,
@@ -15,7 +16,7 @@ func railOf(t *testing.T, width, preview float32, drawer string) ui.Rect {
 	t.Helper()
 	w, _ := workspaceShown(t)
 	w.Layout.Right = preview
-	w.drawer = drawer
+	w.mode.Drawer = drawer
 	tt := ui.NewTester(w.View, int(width), 600)
 	r, ok := tt.Find(locale.DrawerOutlineLabel())
 	if !ok {
@@ -65,7 +66,7 @@ func drawerStrip(t *testing.T, open bool) int {
 	w.Tabs.ActiveNote().Editor.Buffer.Set("# a heading\n\n" +
 		strings.Repeat("word ", 3000))
 	if open {
-		w.drawer = drawerOutline
+		w.mode.Drawer = drawerOutline
 	}
 	tt := ui.NewTester(w.View, int(width), height)
 	tt.Frame()
@@ -133,15 +134,15 @@ func drawerEdge(t *testing.T, height int) (top, bottom int) {
 	w, _ := workspaceShown(t)
 	w.Layout.Right = 320
 	w.Tabs.ActiveNote().Editor.Buffer.Set("")
-	w.drawer = drawerOutline
+	w.mode.Drawer = drawerOutline
 	tt := ui.NewTester(w.View, width, height)
 	tt.Frame()
 	tt.Frame()
 	img := tt.Image()
 	border := ui.LightTheme().Border
 	// The drawer stands its own width and the rail's in from the right
-	// edge, as the rail stands railGap in from it.
-	x := width - int(railWidth) - int(drawerWidth) - int(railGap)
+	// edge, as the rail stands layout.RailGap in from it.
+	x := width - int(layout.RailWidth) - int(layout.DrawerWidth) - int(layout.RailGap)
 	top, bottom = -1, -1
 	for y := 0; y < height; y++ {
 		r, g, b, _ := img.At(x, y).RGBA()
@@ -227,15 +228,15 @@ func TestRailView_aButtonOpensItsDrawer(t *testing.T) {
 		t.Fatalf("Click: %v", err)
 	}
 	tt.Frame()
-	if w.drawer != drawerOutline {
-		t.Errorf("the drawer is %q, want the outline", w.drawer)
+	if w.mode.Drawer != drawerOutline {
+		t.Errorf("the drawer is %q, want the outline", w.mode.Drawer)
 	}
 	if err := tt.Click(locale.DrawerOutlineLabel()); err != nil {
 		t.Fatalf("Click: %v", err)
 	}
 	tt.Frame()
-	if w.drawer != "" {
-		t.Errorf("the drawer is %q, want it shut again", w.drawer)
+	if w.mode.Drawer != "" {
+		t.Errorf("the drawer is %q, want it shut again", w.mode.Drawer)
 	}
 }
 
@@ -263,7 +264,7 @@ func TestDrawerOutline_theHeadingsReadAsAList(t *testing.T) {
 	w.Layout.Right = 0
 	n := w.Tabs.ActiveNote()
 	n.Editor.Buffer.Set("one\ntwo\nthree\n# a heading\n")
-	w.drawer = drawerOutline
+	w.mode.Drawer = drawerOutline
 	tt := ui.NewTester(w.View, 1000, 600)
 	tt.Frame()
 	if _, ok := tt.Find("•"); !ok {
@@ -283,7 +284,7 @@ func TestDrawerTags_theTagsReadAsAList(t *testing.T) {
 	w, a, _ := windowWithTwoNotes(t)
 	w.Layout.Right = 0
 	w.Index.Put(a, "# a\n\n#work\n")
-	w.drawer = drawerTags
+	w.mode.Drawer = drawerTags
 	tt := ui.NewTester(w.View, 1000, 600)
 	tt.Frame()
 	if _, ok := tt.Find("•"); !ok {
@@ -306,7 +307,7 @@ func TestDrawerLinks_theBacklinksReadAsAList(t *testing.T) {
 	if _, err := w.Tabs.Open(b); err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	w.drawer = drawerLinks
+	w.mode.Drawer = drawerLinks
 	tt := ui.NewTester(w.View, 1000, 600)
 	tt.Frame()
 	drawerClick(t, tt, "a.md")

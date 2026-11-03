@@ -559,7 +559,7 @@ func widened(
 	w, _, _ := shownWorkspace(t)
 	w.Layout.Right = preview
 	w.Tree.SetRoot(treeRoot())
-	w.drawer = drawer
+	w.mode.Drawer = drawer
 	tt := ui.NewTester(w.View, int(width), 600)
 	tt.Frame()
 	if err := tt.Click(locale.WidenNote()); err != nil {
@@ -567,7 +567,7 @@ func widened(
 	}
 	tt.Advance(widenAnim.Duration)
 	tt.Frame()
-	return w.stretched
+	return w.mode.Stretched
 }
 
 // TestTabs_theWidenButtonStandsClearOfTheRail checks that the button at

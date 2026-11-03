@@ -45,8 +45,8 @@ func scrolledWindow(t *testing.T) (*Workspace, *OpenNote, *ui.Tester) {
 	w.Layout.Right = previewWidth
 	te := ui.NewTester(w.View, 1000, 600)
 	te.Frame()
-	if w.previewScroll.MaxY <= 0 {
-		t.Fatalf("the preview is not scrollable: %+v", w.previewScroll)
+	if w.scroll.Preview.MaxY <= 0 {
+		t.Fatalf("the preview is not scrollable: %+v", w.scroll.Preview)
 	}
 	return w, n, te
 }
@@ -68,8 +68,8 @@ func TestFollowScroll_thePreviewComesToTheNote(t *testing.T) {
 	if n.Editor.ScrollY() <= 0 {
 		t.Fatalf("the note did not scroll: %v", n.Editor.ScrollY())
 	}
-	if w.previewScroll.Y <= 0 {
-		t.Fatalf("the preview stayed at the top: %+v", w.previewScroll)
+	if w.scroll.Preview.Y <= 0 {
+		t.Fatalf("the preview stayed at the top: %+v", w.scroll.Preview)
 	}
 	// The two stand at the same place in the note, and have not merely
 	// both moved: how far down its lines the note is is how far down
@@ -77,13 +77,13 @@ func TestFollowScroll_thePreviewComesToTheNote(t *testing.T) {
 	lineHeight := n.Editor.LineTop(1) - n.Editor.LineTop(0)
 	line := float32(n.Editor.ScrollY()) / float32(lineHeight)
 	want := line / float32(n.Editor.Buffer.LineCount()) *
-		w.previewScroll.MaxY
+		w.scroll.Preview.MaxY
 	// A line of the note is a good part of the preview: how far off
 	// the two may be and still be called the same place.
-	tol := w.previewScroll.MaxY / float32(n.Editor.Buffer.LineCount())
-	if d := w.previewScroll.Y - want; d < -tol || d > tol {
+	tol := w.scroll.Preview.MaxY / float32(n.Editor.Buffer.LineCount())
+	if d := w.scroll.Preview.Y - want; d < -tol || d > tol {
 		t.Errorf("the preview is at %v, want it at %v (of %v)",
-			w.previewScroll.Y, want, w.previewScroll.MaxY)
+			w.scroll.Preview.Y, want, w.scroll.Preview.MaxY)
 	}
 }
 
@@ -93,8 +93,8 @@ func TestFollowScroll_theNoteComesToThePreview(t *testing.T) {
 	w, n, te := scrolledWindow(t)
 	userScrolls(te, previewX, 500)
 	te.Frame()
-	if w.previewScroll.Y <= 0 {
-		t.Fatalf("the preview did not scroll: %+v", w.previewScroll)
+	if w.scroll.Preview.Y <= 0 {
+		t.Fatalf("the preview did not scroll: %+v", w.scroll.Preview)
 	}
 	if n.Editor.ScrollY() <= 0 {
 		t.Fatalf("the note stayed at the top: %v", n.Editor.ScrollY())
@@ -110,7 +110,7 @@ func TestFollowScroll_theSideTheUserScrolledIsLeftAlone(t *testing.T) {
 	userScrolls(te, noteX, 400)
 	te.Frame()
 	at := float32(n.Editor.ScrollY())
-	preview := w.previewScroll.Y
+	preview := w.scroll.Preview.Y
 	// Time enough for what was written to come back, and be read as
 	// the user's own were it not known for what it is.
 	for i := 0; i < 4; i++ {
@@ -120,7 +120,7 @@ func TestFollowScroll_theSideTheUserScrolledIsLeftAlone(t *testing.T) {
 	if got := float32(n.Editor.ScrollY()); moved(got, at) {
 		t.Errorf("the note was pulled from %v to %v", at, got)
 	}
-	if got := w.previewScroll.Y; moved(got, preview) {
+	if got := w.scroll.Preview.Y; moved(got, preview) {
 		t.Errorf("the preview moved on from %v to %v", preview, got)
 	}
 }
@@ -133,13 +133,13 @@ func TestFollowScroll_itFollowsAsTheUserGoes(t *testing.T) {
 	w, _, te := scrolledWindow(t)
 	userScrolls(te, noteX, 200)
 	te.Frame()
-	first := w.previewScroll.Y
+	first := w.scroll.Preview.Y
 	if first <= 0 {
-		t.Fatalf("the preview did not come: %+v", w.previewScroll)
+		t.Fatalf("the preview did not come: %+v", w.scroll.Preview)
 	}
 	userScrolls(te, noteX, 200)
 	te.Frame()
-	if second := w.previewScroll.Y; second <= first {
+	if second := w.scroll.Preview.Y; second <= first {
 		t.Errorf("the preview stood at %v, want it on to %v and further",
 			second, first)
 	}
@@ -154,21 +154,21 @@ func TestFollowScroll_onStopWaitsForTheScrollToEnd(t *testing.T) {
 	w.Config.Preview.SyncMode = config.SyncOnStop
 	userScrolls(te, noteX, 400)
 	te.Frame()
-	if w.previewScroll.Y != 0 {
+	if w.scroll.Preview.Y != 0 {
 		t.Fatalf("the preview came at once: %+v, want it to wait",
-			w.previewScroll)
+			w.scroll.Preview)
 	}
 	// Still scrolling: a second move within the moment it waits.
 	userScrolls(te, noteX, 100)
 	te.Frame()
-	if w.previewScroll.Y != 0 {
+	if w.scroll.Preview.Y != 0 {
 		t.Fatalf("the preview came while the user was at it: %+v",
-			w.previewScroll)
+			w.scroll.Preview)
 	}
 	te.Advance(sync.StopQuiet + 20*time.Millisecond)
 	te.Frame()
-	if w.previewScroll.Y <= 0 {
-		t.Errorf("the preview never came: %+v", w.previewScroll)
+	if w.scroll.Preview.Y <= 0 {
+		t.Errorf("the preview never came: %+v", w.scroll.Preview)
 	}
 }
 
@@ -179,17 +179,17 @@ func TestFollowScroll_turnedOffNeitherFollowsTheOther(t *testing.T) {
 	w.Config.Preview.SyncScroll = false
 	userScrolls(te, noteX, 400)
 	te.Frame()
-	if w.previewScroll.Y != 0 {
+	if w.scroll.Preview.Y != 0 {
 		t.Errorf("the preview came though the following is off: %+v",
-			w.previewScroll)
+			w.scroll.Preview)
 	}
 	userScrolls(te, previewX, 400)
 	te.Frame()
 	if n.Editor.ScrollY() == 0 {
 		t.Fatalf("the preview did not scroll")
 	}
-	if w.previewScroll.Y <= 0 {
-		t.Fatalf("the preview did not scroll: %+v", w.previewScroll)
+	if w.scroll.Preview.Y <= 0 {
+		t.Fatalf("the preview did not scroll: %+v", w.scroll.Preview)
 	}
 }
 
@@ -199,16 +199,16 @@ func TestFollowScroll_anotherNoteStartsAtItsTop(t *testing.T) {
 	w, _, te := scrolledWindow(t)
 	userScrolls(te, noteX, 400)
 	te.Frame()
-	if w.previewScroll.Y <= 0 {
-		t.Fatalf("the preview did not come: %+v", w.previewScroll)
+	if w.scroll.Preview.Y <= 0 {
+		t.Fatalf("the preview did not come: %+v", w.scroll.Preview)
 	}
 	_, _, b := vaultWithNotes(t)
 	if _, err := w.Tabs.Open(b); err != nil {
 		t.Fatalf("Open: %v", err)
 	}
 	te.Frame()
-	if w.previewScroll.Y != 0 {
+	if w.scroll.Preview.Y != 0 {
 		t.Errorf("the other note was put at %v, want it at its top",
-			w.previewScroll.Y)
+			w.scroll.Preview.Y)
 	}
 }
