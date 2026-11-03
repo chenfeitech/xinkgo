@@ -329,3 +329,27 @@ func TestPad_theWordsKeepTheirAirBesideTheEditorBar(t *testing.T) {
 			" of air they keep beside the bar", got, editorBarAir)
 	}
 }
+
+// TestPad_aPreviewNarrowerThanTheRailIsNoCoverForIt checks the shape the
+// note passes through as it is stretched over the preview: the preview
+// grows narrower and narrower, and while it is narrower than the rail's
+// strip the strip hangs over the note as well as over the preview. The
+// note keeps the strip's room all the same — its padding with it — and
+// not only once the preview has stood down altogether.
+func TestPad_aPreviewNarrowerThanTheRailIsNoCoverForIt(t *testing.T) {
+	const width = 1100
+	w, tt := zoomTester(t, width)
+	// Narrower than the strip and still drawn: as the preview is for the
+	// last of the stretch, before it stands down.
+	w.Layout.Right = 1
+	tt.Frame()
+	ed, ok := tt.Find(editorLabel)
+	if !ok {
+		t.Fatal("the note is not drawn")
+	}
+	if end := ed.X + ed.W + w.editorPadRight(); end > float32(width)-railStrip {
+		t.Errorf("the note's pane ends at %v, want it to end at %v and no"+
+			" further: the rail's strip hangs over what is past it",
+			end, float32(width)-railStrip)
+	}
+}

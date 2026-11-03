@@ -753,10 +753,14 @@ func (w *Workspace) railBand() float32 {
 // notePaneAtRail is whether it is the note's pane that ends at the
 // window's own right edge, which is the one the rail hangs over: it is
 // when no preview stands beside the note, its room given over to the
-// note or shut altogether. A preview of less than a DIP is no pane at
-// all, and is not drawn: the note reaches the edge all the same.
+// note or shut altogether — and when what stands there is narrower than
+// the rail's strip, for the strip is then wider than the pane it stands
+// beside, and the rest of it hangs over the note. That is the shape the
+// note passes through as it is stretched over the preview: the preview
+// grows narrower and narrower until it stands down, and for the last of
+// the way it is narrower than the strip.
 func (w *Workspace) notePaneAtRail() bool {
-	return w.previewPaneWidth() < 1
+	return w.previewPaneWidth() < railStrip
 }
 
 // railClear is how much of the rail's room a row of the note's has to
