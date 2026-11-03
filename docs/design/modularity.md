@@ -55,9 +55,37 @@
 
 `internal/app` 按“**一个窗口一个目录**”：
 
-| 现在 | 将来 |
+| 现在（阶段 4 之后） | 行数 |
 |---|---|
-| `settings.go` + `settings_ai.go` + `settings_vault.go` + `settings_quick.go` | `internal/app/settings/`：`window.go`（骨架与各页注册）、`editor.go`、`preview.go`、`ai.go`、`vault.go`、`basic.go` |
+| `settings.go` | 602 — 窗口、导航、页签、状态读写、共用控件（toggle / slider / choice / field / group） |
+| `settings_ai.go` | 1069 — AI 一页（模型、技能、Ollama） |
+| `settings_vault.go` | 226 — 库管理一页 |
+| `settings_quick.go` | 265 — 快捷动作一页 |
+| `settings_preview.go` | 130 — 预览一页 |
+| `settings_appearance.go` | 97 — 外观与配色一页 |
+| `settings_config.go` | 93 — 配置文件的导入导出 |
+| `settings_editor.go` | 39 — 编辑区一页 |
+
+**为什么不做成独立包**（原计划的 `internal/app/settings/`，已放弃）：设置窗口的
+每个方法都挂在 `*appState` 上，用到库、索引、模型目录、重启等十余个应用级动作。
+要独立成包就得先抽出一层 `Host` 接口（设置窗口能做的十几件事），那是另一次成
+规模的设计与搬运，收益是“边界写死”，代价是一次动 2500 行用户可见的界面代码。
+按页分文件已经解决了“找不到改哪”的问题，包边界留到真有第二个窗口需要它时再
+做，并把 `Host` 的形状先写在这里：
+
+```go
+// 将来若要独立成包，设置窗口只需要应用给这些：
+type Host interface {
+    Config() *config.AppConfig     // 读
+    Apply(config.AppConfig)        // 写并生效
+    Restart(note string)           // 有些改动要重启
+    Vaults() []vault.VaultEntry    // 库管理
+    KeepVault(path string) error
+    LookForOllamaModels()          // 拉模型列表
+    ExportConfig() (path string, err error)
+    ImportConfig(path string) error
+}
+```
 
 不变的东西（写死，别动）：
 
@@ -105,7 +133,7 @@
 | `modes.go` | 51 | 三种形态与切换 |
 | **2** | ✅ 已完成：几何提成子包 `internal/view/layout`，导出 `layout.Geometry` 与 `layout.Zoom`；`Workspace` 每次用时现取 `w.geometry()`，不做缓存（避免过期） | 中 | 同上 + `layout` 自有单测（不渲染窗口即可验几何） |
 | **3** | ✅ 已完成（一半）：`Workspace` 的状态分组 —— `mode`（三形态 + 抽屉）与 `scroll`（滚动同步的 12 个记账字段）各自成组，类型 `scrollFollow` 跟 `scroll.go` 走 | 中 | 同上 |
-| **4** | `internal/app/settings/` 独立成包，按页分文件 | 中 | 设置窗口人工验收（ACCEPTANCE 里那几条） |
+| **4** | ✅ 已完成（改了做法）：设置窗口按页分文件（`settings_appearance` / `_editor` / `_preview` / `_config`），**不再独立成包** —— 理由见下 | 低 | 构建 + 全量测试 + 声明清单比对（43 个 func 一个不差）+ 设置窗口人工验收 |
 | **5** | `ai_bar.go`（756）按“消息列表 / 输入区 / 快捷词”拆；`file_tree.go` 拆出“行绘制 / 图标 / 选中与滚动” | 中 | 对话条与目录树人工验收 |
 
 阶段 1 先行：它把后面每一步的“落点”先定下来，且不碰任何行为。
