@@ -9,11 +9,11 @@ import (
 	"github.com/egoist/mygo/ui/markdown"
 	"github.com/helightxu/xinkgo/internal/locale"
 	xmd "github.com/helightxu/xinkgo/internal/markdown"
-	"github.com/helightxu/xinkgo/internal/view/layout"
+	"github.com/helightxu/xinkgo/internal/view/geom"
 )
 
 // How wide the drawer is, and where it hangs. Its height is not one of
-// them: it is as tall as the panels it stands over. It hangs layout.RailGap in
+// them: it is as tall as the panels it stands over. It hangs geom.RailGap in
 // from the top, the right and the foot of them, as the preview begins at
 // the top of the window and not lower down.
 //
@@ -25,8 +25,8 @@ import (
 // Where the rail and the drawer hang is left to the rail's own file;
 // how wide they are is layout's, and is asked of it.
 const (
-	drawerTop              = layout.RailGap
-	drawerFoot             = layout.RailGap
+	drawerTop              = geom.RailGap
+	drawerFoot             = geom.RailGap
 	railButtonsTop float32 = 34
 )
 
@@ -71,12 +71,12 @@ func (w *Workspace) rail(c *ui.Context) {
 	// under it: a drawer as tall as the window is must not push them
 	// down the note. It hangs below the row at the top of that pane,
 	// whose buttons it would otherwise cover.
-	ui.Row(c).Absolute().Right(layout.RailGap).Top(drawerTop).Bottom(drawerFoot).
+	ui.Row(c).Absolute().Right(geom.RailGap).Top(drawerTop).Bottom(drawerFoot).
 		AlignItems(ui.Start).Children(func() {
 		if w.mode.Drawer != "" {
 			w.drawerPanel(c)
 		}
-		ui.Column(c).Width(layout.RailWidth).
+		ui.Column(c).Width(geom.RailWidth).
 			Padding(railButtonsTop, 0).Children(func() {
 			w.railButton(c, drawerOutline, drawerOutlineMark,
 				locale.DrawerOutlineLabel())
@@ -89,10 +89,10 @@ func (w *Workspace) rail(c *ui.Context) {
 			// pane, so that the way out is there whichever pane has
 			// the window, and so that taking a pane out of the layout
 			// costs the note none of the room of its toolbar.
-			ui.Box(c).Height(layout.RailGap * 2)
-			w.zoomButton(c, "zoom-editor", layout.ZoomEditor, iconZoomEditor,
+			ui.Box(c).Height(geom.RailGap * 2)
+			w.zoomButton(c, "zoom-editor", geom.ZoomEditor, iconZoomEditor,
 				locale.ZoomEditor(), locale.ZoomEditorTooltip())
-			w.zoomButton(c, "zoom-preview", layout.ZoomPreview, iconZoomPreview,
+			w.zoomButton(c, "zoom-preview", geom.ZoomPreview, iconZoomPreview,
 				locale.ZoomPreview(), locale.ZoomPreviewTooltip())
 		})
 	})
@@ -125,7 +125,7 @@ func (w *Workspace) railButton(
 // than there is room for, as the note beside it is.
 func (w *Workspace) drawerPanel(c *ui.Context) {
 	th := c.Theme()
-	ui.Column(c).Width(layout.DrawerWidth).FillHeight().ClipY().
+	ui.Column(c).Width(geom.DrawerWidth).FillHeight().ClipY().
 		Padding(th.Space(2)).Background(th.Background).
 		Border(1, th.Border).Radius(th.Radius+2).
 		Shadow(0, 6, 20, 0, ui.RGBA(0, 0, 0, 0.18)).Children(func() {

@@ -1,5 +1,7 @@
 // Package state is what the app keeps between two runs: which notes were
-// open, which vault, and how the window was laid out.
+// open, which vault, and how the window was laid out — four files in the
+// application's own folder: `open_notes.json`, `vaults.json`,
+// `layout.json` and `ai_sessions.json`.
 //
 // None of it is allowed to keep the app from starting: a file that is
 // missing, or that cannot be read, or that another version wrote, gives a

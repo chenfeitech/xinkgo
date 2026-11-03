@@ -1,5 +1,7 @@
 // Package snapshot is the way back: what a note was before a model
-// changed it, kept in the application's own folder.
+// changed it, kept in the application's own folder, one folder to a
+// vault. It is not a stack of undone things and nothing of it is in
+// memory: what is saved is on the disk.
 //
 // The app has no stack of undone things — what is saved is on the disk —
 // so a snapshot is the only cheap way back from a change someone did not

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/helightxu/xinkgo/internal/locale"
-	"github.com/helightxu/xinkgo/internal/view/layout"
+	"github.com/helightxu/xinkgo/internal/view/geom"
 )
 
 // TestWiden_theNoteStretchesOverThePreview checks what the button at the
@@ -54,7 +54,7 @@ func TestWiden_theNoteStretchesOverThePreview(t *testing.T) {
 	// It reaches the rail: the pane ends where the rail's strip begins,
 	// and the text the room the user chose inside that, less what the
 	// editor keeps beside its lines of its own.
-	if end := wide.X + wide.W; end < float32(width)-layout.RailStrip-
+	if end := wide.X + wide.W; end < float32(width)-geom.RailStrip-
 		w.geometry().EditorPadRight()-1 {
 		t.Errorf("the note ends at %v, want it at the rail's strip, "+
 			"but for the padding", end)

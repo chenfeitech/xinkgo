@@ -10,14 +10,14 @@ import (
 
 	"github.com/egoist/mygo/ui"
 
-	"github.com/helightxu/xinkgo/internal/view/layout"
+	"github.com/helightxu/xinkgo/internal/view/geom"
 )
 
 // setZoom gives pane the whole window, or gives the room back when it has
 // it already: one button, and the same one out again.
-func (w *Workspace) setZoom(pane layout.Zoom) {
+func (w *Workspace) setZoom(pane geom.Zoom) {
 	if w.mode.Zoom == pane {
-		w.mode.Zoom = layout.ZoomNone
+		w.mode.Zoom = geom.ZoomNone
 		return
 	}
 	w.mode.Zoom = pane

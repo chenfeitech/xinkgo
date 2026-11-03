@@ -4,9 +4,11 @@ import (
 	"context"
 	"log/slog"
 	"path/filepath"
+	"strings"
 
 	"github.com/egoist/mygo"
 	"github.com/helightxu/xinkgo/internal/locale"
+	"github.com/helightxu/xinkgo/internal/media"
 )
 
 // watchVault asks the system to tell the app when the files of the vault
@@ -91,4 +93,15 @@ func (s *appState) handleEvents(events []mygo.FileEvent) {
 		// again, in the background.
 		s.reindexAll()
 	}
+}
+
+// ignoreWatched is what the watch does not look at: the same names the
+// tree never shows, so that a note being saved does not wake the app.
+func ignoreWatched(path string, isDir bool) bool {
+	base := filepath.Base(path)
+	if isDir {
+		return base == ".git" || base == "node_modules" ||
+			base == "target" || base == media.AIDirName
+	}
+	return base == ".DS_Store" || strings.HasSuffix(base, ".md.tmp")
 }

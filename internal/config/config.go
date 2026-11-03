@@ -1,4 +1,5 @@
 // Package config holds the application's preferences, as xink keeps them:
+// one file, `config.json`, in the application's own folder.
 // one JSON file with five sections, whose fields, defaults and limits are
 // the same, so a xink user can switch to Xinkgo and keep their settings.
 //
