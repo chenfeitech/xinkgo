@@ -1,6 +1,7 @@
 package view
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/helightxu/xinkgo/internal/config"
@@ -232,5 +233,152 @@ func TestPad_aLineThatIsNotBrokenKeepsItsRoomBesideTheEditor(t *testing.T) {
 				"the editor, want the %d the user chose and the %.0f "+
 				"of its scroll bar", pad, got, pad, editorTrack)
 		}
+	}
+}
+
+// TestPad_aPaneNarrowerThanTheNoteNeedsIsNeverMade checks the end of the
+// range the other way: a panel given more room than the window has beside
+// the note does not take the note's with it. The editor breaks a line no
+// narrower than eight of its own characters, so a pane narrower than
+// those and the rooms beside them writes its words over them and cuts
+// them off at the edge of the pane, padding and all.
+func TestPad_aPaneNarrowerThanTheNoteNeedsIsNeverMade(t *testing.T) {
+	w, tt := zoomTester(t, 900)
+	want := w.noteMinWidth() - w.editorPadLeft() - w.editorPadRight()
+	for _, name := range []string{
+		"the preview given more than there is", "the window squeezed",
+	} {
+		switch name {
+		case "the preview given more than there is":
+			w.Layout.Right = 700
+		case "the window squeezed":
+			w.Layout.Right = 300
+			tt.SetSize(420, 320)
+		}
+		tt.Frame()
+		ed, ok := tt.Find(editorLabel)
+		if !ok {
+			t.Fatalf("with %s, the note is not drawn", name)
+		}
+		if ed.W < want {
+			t.Errorf("with %s, the note is given %v, want the %v it needs:"+
+				" narrower than that it is written over the edge of its"+
+				" pane", name, ed.W, want)
+		}
+	}
+}
+
+// TestPad_aDragTakesNoMoreThanTheWindowHasBesideTheNote checks that a
+// drag does not put the note in a pane it cannot be written in: what the
+// panel is given by the drag is what the window has beside the note, so
+// that letting go and taking hold again does not find the room already
+// spent.
+func TestPad_aDragTakesNoMoreThanTheWindowHasBesideTheNote(t *testing.T) {
+	const width = 900
+	w, tt := zoomTester(t, width)
+	div, ok := tt.Find("divider-preview")
+	if !ok {
+		t.Fatal("there is no line to drag the preview by")
+	}
+	x, y := div.X+div.W/2, div.Y+80
+	tt.Move(x, y)
+	tt.Press(x, y)
+	tt.Move(x-400, y) // the preview asked for more than the window has
+	tt.Release(x-400, y)
+	tt.Frame()
+	ed, ok := tt.Find(editorLabel)
+	if !ok {
+		t.Fatal("the note is not drawn")
+	}
+	want := w.noteMinWidth() - w.editorPadLeft() - w.editorPadRight()
+	if ed.W < want {
+		t.Errorf("the drag left the note %v, want the %v it needs", ed.W, want)
+	}
+	if got, room := w.Layout.Right,
+		width-w.Layout.Left-w.noteMinWidth()-2*dividerGrip; got > room {
+		t.Errorf("the drag gave the preview %v, want no more than the %v"+
+			" beside the note", got, room)
+	}
+}
+
+// TestPad_theWordsKeepTheirAirBesideTheEditorBar checks that the padding
+// is air and not the room a scroll bar stands in. The editor draws its
+// bar over the last of what it is given, four DIPs from a line it breaks,
+// so a line is broken short of the bar's room by the air the words keep:
+// without that, the bar is drawn against the last word however wide the
+// padding is chosen.
+func TestPad_theWordsKeepTheirAirBesideTheEditorBar(t *testing.T) {
+	w, tt := zoomTester(t, 900)
+	w.Config.Editor.PaddingX = 29
+	n := w.Tabs.ActiveNote()
+	n.Editor.Buffer.Set(strings.Repeat("M", 400))
+	tt.Frame()
+	ed, ok := tt.Find(editorLabel)
+	if !ok {
+		t.Fatal("the note is not drawn")
+	}
+	// The room the editor breaks a line at when it is left to itself:
+	// what it is given, less what it keeps of its own beside the lines.
+	natural := ed.W - editorInsetLeft - editorInsetRight
+	broken := float32(n.Editor.WrapColumn) * w.editorCharWidth(n)
+	if n.Editor.WrapColumn <= 0 || broken > natural {
+		broken = natural
+	}
+	if got := natural - broken; got < editorBarAir {
+		t.Errorf("the words end %v short of the room there is, want the %v"+
+			" of air they keep beside the bar", got, editorBarAir)
+	}
+}
+
+// TestPad_aPreviewNarrowerThanTheRailIsNoCoverForIt checks the shape the
+// note passes through as it is stretched over the preview: the preview
+// grows narrower and narrower, and while it is narrower than the rail's
+// strip the strip hangs over the note as well as over the preview. The
+// note keeps the strip's room all the same — its padding with it — and
+// not only once the preview has stood down altogether.
+func TestPad_aPreviewNarrowerThanTheRailIsNoCoverForIt(t *testing.T) {
+	const width = 1100
+	w, tt := zoomTester(t, width)
+	// Narrower than the strip and still drawn: as the preview is for the
+	// last of the stretch, before it stands down.
+	w.Layout.Right = 1
+	tt.Frame()
+	ed, ok := tt.Find(editorLabel)
+	if !ok {
+		t.Fatal("the note is not drawn")
+	}
+	if end := ed.X + ed.W + w.editorPadRight(); end > float32(width)-railStrip {
+		t.Errorf("the note's pane ends at %v, want it to end at %v and no"+
+			" further: the rail's strip hangs over what is past it",
+			end, float32(width)-railStrip)
+	}
+}
+
+// TestPad_theWordsKeepTheRailsRoomBesideThePadding checks the pane that
+// ends at the window's own edge, as the note's does widened over the
+// preview: the rail's buttons stand over that end of it, so the words
+// keep their air beside the buttons on top of the padding — the padding
+// alone was chosen for a pane with a pane beside it, and not the rail.
+func TestPad_theWordsKeepTheRailsRoomBesideThePadding(t *testing.T) {
+	w, tt := zoomTester(t, 1100)
+	n := w.Tabs.ActiveNote()
+	if err := tt.Click(locale.WidenNote()); err != nil {
+		t.Fatalf("Click: %v", err)
+	}
+	tt.Advance(widenAnim.Duration)
+	tt.Frame()
+	ed, ok := tt.Find(editorLabel)
+	if !ok {
+		t.Fatal("the note is not drawn")
+	}
+	// Where the words would end were the line broken at the very room
+	// there is, and where they do end at the column they are broken at.
+	natural := ed.X + ed.W - editorInsetRight
+	broken := ed.X + editorInsetLeft +
+		float32(n.Editor.WrapColumn)*w.editorCharWidth(n)
+	if got := natural - broken; got < editorBarAir+editorRailAir {
+		t.Errorf("the words end %v short of the room there is, want the %v"+
+			" of air beside the bar and the rail's buttons", got,
+			editorBarAir+editorRailAir)
 	}
 }
