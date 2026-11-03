@@ -119,11 +119,16 @@ Makefile             开发入口（构建/运行/测试/调试）
 | 要写的东西 | 放哪 |
 |---|---|
 | 只在启动时执行一次的装配 | `internal/app` |
-| 一个窗口画什么、点一下发生什么 | `internal/view` |
-| 读写用户数据目录里的文件 | `internal/config`（或新增 `internal/store`） |
-| 纯数据、纯计算，无 IO | 独立小包，如 `internal/sysinfo` |
+| 一个窗口画什么、点一下发生什么 | `internal/view`（一块界面一个文件） |
+| 多少 DIPs 的计算（宽度、留白、边距、换行列数） | `internal/view/geom`，别写在绘制代码里 |
+| 读写用户数据目录里的文件 | `internal/config`（设置）/ `internal/state`（窗口状态）/ 新增的持久化包 |
+| 纯数据、纯计算，无 IO | 独立小包，如 `internal/sysinfo`、`internal/fuzzy` |
+| 库、笔记、索引、模型这类领域逻辑 | 对应的领域包（`vault` / `note` / `index` / `ai` …），不写进 `app` |
 | 平台差异 | `文件名_<goos>.go`（如 `platform_windows.go`），不用运行时 `switch` |
 | 随包发布的静态文件 | `resources/` |
+
+文件怎么分，见 [design/modularity.md](design/modularity.md)：一块界面一个文件、
+几何只在一处、超过约 400 行就是拆的信号。
 
 **依赖方向只允许单向**，不允许反向或循环：
 

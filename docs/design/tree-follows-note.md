@@ -107,7 +107,7 @@ func (t *Tree) bringIntoView(rows []row)  // 画之前调：找到行号 -> Scro
 | 文件 | 改动 |
 |---|---|
 | `internal/view/file_tree.go` | `Reveal` 返回 `bool` 并记 `revealPath`；新增 `bringIntoView`，在 `View` 里建列表前调 |
-| `internal/view/workspace.go` | 新增 `treeFollowed` 与 `followActiveNote()`，`View` 开头调用 |
+| `internal/view/file_tree.go:196` | 新增 `treeFollowed` 与 `followActiveNote()`，`View` 开头调用 |
 | `internal/view/file_tree_test.go` | 4 个用例（见下） |
 
 ## 5 测试

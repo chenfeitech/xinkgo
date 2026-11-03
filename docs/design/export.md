@@ -66,7 +66,7 @@
   `internal/config`。按 CONTRIBUTING 要求同步更新依赖方向表与 PROJECT.md 的目录树。
 - **`internal/app/export.go`**：菜单项、按钮回调接线、Save 对话框、goroutine、
   PDF 的隐藏窗口流程、状态与错误提示。
-- **`internal/view/workspace.go`**：预览面板的按钮与弹出菜单、新增 `OnExport`
+- **`internal/view/preview.go`**：预览面板的按钮与弹出菜单、新增 `OnExport`
   回调；对"由系统程序预览的文件"（图片、PDF）禁用。
 - **`internal/config`**：新增 `ExportConfig`（纸张、横竖、边距、是否嵌入图片、
   导出配色）＋默认值＋ Sanitize ＋测试——按 config 包的三件套约定。

@@ -26,7 +26,7 @@
 |---|---|---|
 | 菜单入口 | File ▸ **Ask AI**，快捷键 `cmd-shift-a` | `internal/app/menu.go`（File 子菜单）、`internal/keymap/keymap.go` `ToggleAiChat`（标签「AI 对话条」） |
 | 开关 | `Workspace.ToggleAI()`：翻 `aiSession.Open`，打开时聚焦输入框；没有笔记打开时直接返回 | `internal/view/ai_bar.go` |
-| 面板位置 | `center()` 一列里：`tabBar → toolbar → centerBody（编辑器/评审）→ aiBar` | `internal/view/workspace.go` |
+| 面板位置 | `center()` 一列里：`tabBar → toolbar → centerBody（编辑器/评审）→ aiBar` | `internal/view/panes.go` |
 | 面板内容 | 头（AI / using skill / answering… / Forget / ×）、对话区（`Scroll`，上限 260，`markdown.Stream` 逐字）、输入区（输入框 + Ask / Stop） | `internal/view/ai_bar.go` |
 | 会话归属与持久化 | 按**笔记路径**归属，关闭只隐藏、历史保留；`ai_sessions.json` 原子写 | `ai_bar.go`、`internal/state` |
 | 未配置 AI | 发送后回答块直接落一句提示，不转圈等待（D3） | `aiSend` 里 `OnAsk == nil` / `ErrNotConfigured` 分支 |
