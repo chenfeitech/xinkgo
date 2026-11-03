@@ -382,3 +382,42 @@ func TestPad_theWordsKeepTheRailsRoomBesideThePadding(t *testing.T) {
 			editorBarAir+editorRailAir)
 	}
 }
+
+// TestPad_theBarOfTheNoteIsPaintedNoColor checks that the editor's own
+// scroll bar paints nothing over the note: the bar stands over the last
+// of the room the editor is given, and what is written there is the
+// note's, and not the bar's to cover. The bars of the window's own panes
+// are left as they were.
+func TestPad_theBarOfTheNoteIsPaintedNoColor(t *testing.T) {
+	w, tt := zoomTester(t, 900)
+	n := w.Tabs.ActiveNote()
+	// A note long enough to scroll, scrolled past its first lines so that
+	// the mark the bar shows of the caret is out of the way: what is left
+	// standing in the bar's room is the bar itself.
+	var b strings.Builder
+	for i := 0; i < 600; i++ {
+		b.WriteString("a line of the note\n")
+	}
+	n.Editor.Buffer.Set(b.String())
+	tt.Frame()
+	n.Editor.SetScrollY(4000)
+	ed, ok := tt.Find(editorLabel)
+	if !ok {
+		t.Fatal("the note is not drawn")
+	}
+	tt.Move(ed.X+100, ed.Y+100) // the pointer over the note: the bar shows
+	tt.Frame()
+	img := tt.Image()
+	// The last of the pane's height is where a bar that runs along the
+	// foot of it stands, and is not this one's: the bar asked about runs
+	// down the side of the note.
+	for y := int(ed.Y); y < int(ed.Y+ed.H)-int(editorTrack); y++ {
+		for x := int(ed.X+ed.W) - int(editorTrack); x < int(ed.X+ed.W); x++ {
+			r, g, b, _ := img.At(x, y).RGBA()
+			if (r>>8+g>>8+b>>8)/3 < 250 {
+				t.Fatalf("the bar paints at %v,%v: what stands there is"+
+					" written over", x, y)
+			}
+		}
+	}
+}

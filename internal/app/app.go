@@ -39,7 +39,7 @@ const Name = "Xinkgo"
 
 // Version is the version of a build that has none linked in, such as
 // `go run`. Keep it the version in mygo.json.
-const Version = "0.1.0"
+const Version = "0.1.1"
 
 // current is the application as it runs: one window, one vault, and the
 // notes that are open.
