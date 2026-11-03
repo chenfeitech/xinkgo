@@ -159,7 +159,7 @@ func (w *Workspace) widenButton(c *ui.Context) {
 	// and so it says the way back: the arrow turned round, and the press
 	// named for what it does.
 	icon, label, tip := iconWiden, locale.WidenNote(), locale.WidenNoteTooltip()
-	if w.stretched {
+	if w.mode.Stretched {
 		icon, label, tip = iconWidenBack, locale.WidenBack(),
 			locale.WidenBackTooltip()
 	}
@@ -173,16 +173,16 @@ func (w *Workspace) widenButton(c *ui.Context) {
 	// reads the window aloud, which is what the box was for.
 	button := ui.ButtonBase(c.Key("widen")).
 		Label(label).Tooltip(tip).
-		Role(ui.RoleToggleButton).Checked(w.stretched).
+		Role(ui.RoleToggleButton).Checked(w.mode.Stretched).
 		Padding(4, 5)
 	button.Children(func() {
 		glyph := ui.Icon(c, icon).Size(iconSize, iconSize)
-		if !w.stretched && !button.Hovered() {
+		if !w.mode.Stretched && !button.Hovered() {
 			glyph.TextColor(c.Theme().TextMuted)
 		}
 	})
 	if button.Clicked() {
-		w.stretched = !w.stretched
+		w.mode.Stretched = !w.mode.Stretched
 	}
 }
 
@@ -191,7 +191,7 @@ func (w *Workspace) widenButton(c *ui.Context) {
 // preview stands shut — unless the note stands over that room now, and
 // has to be given the way back.
 func (w *Workspace) widenOffered() bool {
-	return w.stretched || w.Layout.Right > 0
+	return w.mode.Stretched || w.Layout.Right > 0
 }
 
 // toolbar is the row of buttons that write Markdown for the user: one
@@ -257,7 +257,7 @@ func (w *Workspace) zoomButton(
 	// A pane that has the window is one this button takes it from, and
 	// so it says the way back: the picture of a pane giving up the room
 	// it took, and what the press will do.
-	if w.zoom == pane {
+	if w.mode.Zoom == pane {
 		icon = iconZoomBack
 	}
 	button := ui.Button(c.Key(key), "").
@@ -266,7 +266,7 @@ func (w *Workspace) zoomButton(
 		Children(func() {
 			ui.Icon(c, icon).Size(iconSize, iconSize)
 		})
-	if w.zoom == pane {
+	if w.mode.Zoom == pane {
 		button.Selected(true)
 	}
 	if button.Clicked() {
@@ -277,7 +277,7 @@ func (w *Workspace) zoomButton(
 // zoomTip is what the button says when the pointer rests on it: what the
 // press will do, which is the room given back when the pane has it.
 func (w *Workspace) zoomTip(pane layout.Zoom, tip string) string {
-	if w.zoom == pane {
+	if w.mode.Zoom == pane {
 		return locale.ZoomBackTooltip()
 	}
 	return tip

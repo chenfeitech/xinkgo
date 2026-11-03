@@ -26,7 +26,7 @@ func TestWiden_theNoteStretchesOverThePreview(t *testing.T) {
 	}
 	tt.Advance(widenAnim.Duration)
 	tt.Frame()
-	if !w.stretched {
+	if !w.mode.Stretched {
 		t.Fatal("the button did not widen the note")
 	}
 	// What the panels were given is kept: the note is stretched over the
@@ -121,7 +121,7 @@ func TestWiden_pressedAgainGivesThePreviewBack(t *testing.T) {
 		tt.Advance(widenAnim.Duration)
 		tt.Frame()
 	}
-	if w.stretched {
+	if w.mode.Stretched {
 		t.Fatal("the note still stands over the preview")
 	}
 	if w.Layout != before {
@@ -155,11 +155,11 @@ func TestWiden_theButtonStandsWhereThereIsAPreview(t *testing.T) {
 	if err := tt.Click(locale.WidenNote()); err != nil {
 		t.Fatalf("Click: %v", err)
 	}
-	if !w.stretched {
+	if !w.mode.Stretched {
 		t.Fatal("the button did not widen the note")
 	}
 	w.SetPreviewShown(false)
-	if w.stretched {
+	if w.mode.Stretched {
 		t.Error("the note still stands over a preview that is shut")
 	}
 }

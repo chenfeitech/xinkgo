@@ -16,11 +16,11 @@ import (
 // setZoom gives pane the whole window, or gives the room back when it has
 // it already: one button, and the same one out again.
 func (w *Workspace) setZoom(pane layout.Zoom) {
-	if w.zoom == pane {
-		w.zoom = layout.ZoomNone
+	if w.mode.Zoom == pane {
+		w.mode.Zoom = layout.ZoomNone
 		return
 	}
-	w.zoom = pane
+	w.mode.Zoom = pane
 }
 
 // widenAnim is how the note goes over the preview's room, and back: a

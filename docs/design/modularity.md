@@ -75,6 +75,16 @@
 |---|---|---|---|
 | **1** | ✅ 已完成：`workspace.go` 拆成 `metrics.go` / `panes.go` / `preview.go` / `bars.go` / `modes.go`（纯搬运，零行为变更） | 低 | 构建 + 全量测试 + 声明清单比对（搬运前后 64 个 func、`const`/`var`/`type` 一个不差） |
 
+阶段 3 之后 `Workspace` 的字段不再是 185 行平表：
+
+| 组 | 装的什么 |
+|---|---|
+| `w.mode` | `Zoom` / `Stretched` / `Stretch` / `Drawer`：窗口的形状 |
+| `w.scroll` | `scrollFollow`：两侧滚动互跟的全部记账（锚点表、手势、上次位置） |
+| 其余 | 面板宽度 `Layout`、命令面板、搜索、补全、对话、评审，各自紧挨注释 |
+
+还留着没分的：`Layout`（面板宽度，单独一个 `state.Layout` 值，分组收益小）、命令面板 / 补全 / 大纲 / 快捷词的散字段（各 2–4 个，已有注释）—— 真要动，等它们再长。
+
 阶段 2 之后：
 
 | 文件 | 行数 | 装什么 |
@@ -94,7 +104,7 @@
 | `panes.go` | 225 | 树 / 编辑区 / 预览区的组装 |
 | `modes.go` | 51 | 三种形态与切换 |
 | **2** | ✅ 已完成：几何提成子包 `internal/view/layout`，导出 `layout.Geometry` 与 `layout.Zoom`；`Workspace` 每次用时现取 `w.geometry()`，不做缓存（避免过期） | 中 | 同上 + `layout` 自有单测（不渲染窗口即可验几何） |
-| **3** | `Workspace` 的状态分组：`mode`（三模式）+ `panels`（宽度）+ 其余交互状态各自成组，字段带前缀、不再是一张平表 | 中 | 同上 |
+| **3** | ✅ 已完成（一半）：`Workspace` 的状态分组 —— `mode`（三形态 + 抽屉）与 `scroll`（滚动同步的 12 个记账字段）各自成组，类型 `scrollFollow` 跟 `scroll.go` 走 | 中 | 同上 |
 | **4** | `internal/app/settings/` 独立成包，按页分文件 | 中 | 设置窗口人工验收（ACCEPTANCE 里那几条） |
 | **5** | `ai_bar.go`（756）按“消息列表 / 输入区 / 快捷词”拆；`file_tree.go` 拆出“行绘制 / 图标 / 选中与滚动” | 中 | 对话条与目录树人工验收 |
 

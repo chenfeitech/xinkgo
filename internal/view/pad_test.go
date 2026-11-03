@@ -195,7 +195,7 @@ func TestPad_thePaneEndsWhereTheRailBegins(t *testing.T) {
 			"%.0f of the padding", got, w.geometry().EditorPadRight())
 	}
 	// A drawer opened beside the rail covers what it covers.
-	w.drawer = drawerOutline
+	w.mode.Drawer = drawerOutline
 	tt.Frame()
 	tt.Frame()
 	open, ok := tt.Find(editorLabel)

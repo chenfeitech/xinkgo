@@ -33,7 +33,7 @@ func (w *Workspace) previewPanel(c *ui.Context, width float32) {
 		// A preview given the whole window keeps the bar that is its
 		// way back. One in a pane of its own — spread over the note,
 		// or not — keeps the button of its corner instead.
-		if w.zoom == layout.ZoomPreview {
+		if w.mode.Zoom == layout.ZoomPreview {
 			w.previewBar(c)
 		} else {
 			w.previewHead(c)
@@ -51,7 +51,7 @@ func (w *Workspace) previewPanel(c *ui.Context, width float32) {
 			return
 		}
 		opts := w.markdownOptions(c, n.Path)
-		ui.Scroll(c).TrackScroll(&w.previewScroll).Fill().Children(func() {
+		ui.Scroll(c).TrackScroll(&w.scroll.Preview).Fill().Children(func() {
 			room, _ := c.Size()
 			// Given the whole window, what is read is given the width
 			// it is allowed and stands in the middle of what is left:
@@ -163,7 +163,7 @@ func (w *Workspace) previewHead(c *ui.Context) {
 // the note comes back as wide as it was. It is the other half of the one
 // at the end of the tab bar, which stretches the note over the preview.
 func (w *Workspace) spreadButton(c *ui.Context) {
-	spread := w.zoom == layout.ZoomPreviewSpread
+	spread := w.mode.Zoom == layout.ZoomPreviewSpread
 	// A preview standing over the note is one this button takes it from,
 	// and so it says the way back: the arrow turned round, and the press
 	// named for what it does.

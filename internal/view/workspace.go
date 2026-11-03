@@ -14,7 +14,6 @@ import (
 	xmd "github.com/helightxu/xinkgo/internal/markdown"
 	"github.com/helightxu/xinkgo/internal/skill"
 	"github.com/helightxu/xinkgo/internal/state"
-	"github.com/helightxu/xinkgo/internal/sync"
 	"github.com/helightxu/xinkgo/internal/theme"
 	"github.com/helightxu/xinkgo/internal/view/layout"
 	"github.com/helightxu/xinkgo/internal/wechat"
@@ -123,22 +122,9 @@ type Workspace struct {
 	themeName string
 	themeDark bool
 
-	// What the editor and the preview follow each other by.
-	previewScroll ui.ScrollState
-	guard         sync.Guard
-	// edGesture and prGesture are how long each side is left to the
-	// user after they scrolled it; follow is the side the user moved
-	// whose other side has yet to be brought over.
-	edGesture    sync.Gesture
-	prGesture    sync.Gesture
-	follow       *sync.Side
-	lastEdY      float32
-	lastPrY      float32
-	lastMove     time.Time
-	table        sync.AnchorTable
-	tablePath    string
-	tableVersion uint64
-	scrollPath   string
+	// scroll is what the note and the preview follow each other by: one
+	// is scrolled by the user, and the other is brought to it.
+	scroll scrollFollow
 
 	// The command palette: whether it is open, what was typed in it,
 	// and which of its answers the keys are on.
@@ -151,25 +137,31 @@ type Workspace struct {
 	// what was found.
 	search searchState
 
-	// drawer is which panel the buttons on the rail have open beside
-	// the note, empty for none.
-	drawer string
-	// zoom is which pane has been given the whole window, and none for
-	// the usual, in which the panels stand as the user left them. It is
-	// not written down: a run of the app starts in the shape it was
-	// left in, and not in a pane given the window.
-	zoom layout.Zoom
-	// stretched is whether the note has been given the preview's room:
-	// it stands over the preview, out to the window's right edge, and
-	// the tree keeps the room it was given. It is not written down
-	// either, and what the preview was given is left alone, so that it
-	// comes back as wide as it was.
-	stretched bool
-	// stretch is how far the note has gone over that room in the frame
-	// being drawn, 0 to 1: it follows stretched by an animation, so
-	// that the note is seen to stretch over the preview rather than to
-	// jump over it.
-	stretch float32
+	// mode is the shape the window is in: which pane has been given
+	// room that is not its own, how far the note has gone over the
+	// preview's, and which drawer stands beside the rail. None of it is
+	// written down: a run of the app starts in the shape the user left
+	// the panels in, and not in a pane given the window.
+	mode struct {
+		// Zoom is which pane has been given the whole window, and
+		// ZoomNone for the usual, in which the panels stand as the
+		// user left them.
+		Zoom layout.Zoom
+		// Stretched is whether the note has been given the preview's
+		// room: it stands over the preview, out to the window's right
+		// edge, and the tree keeps the room it was given. What the
+		// preview was given is left alone, so that it comes back as
+		// wide as it was.
+		Stretched bool
+		// Stretch is how far the note has gone over that room in the
+		// frame being drawn, 0 to 1: it follows Stretched by an
+		// animation, so that the note is seen to stretch over the
+		// preview rather than to jump over it.
+		Stretch float32
+		// Drawer is which panel the buttons on the rail have open
+		// beside the note, empty for none.
+		Drawer string
+	}
 	// outlineHeadings are the headings of the note that is open, read
 	// again when its text has changed.
 	outlineHeadings []xmd.Heading
@@ -245,9 +237,9 @@ func milliseconds(ms uint64) time.Duration {
 // the window they belong to.
 func (w *Workspace) geometry() layout.Geometry {
 	return layout.Of(&w.Config, w.Layout, layout.Shape{
-		Zoom:    w.zoom,
-		Stretch: w.stretch,
-		Drawer:  w.drawer != "",
+		Zoom:    w.mode.Zoom,
+		Stretch: w.mode.Stretch,
+		Drawer:  w.mode.Drawer != "",
 	})
 }
 
@@ -284,12 +276,12 @@ func (w *Workspace) View(c *ui.Context) {
 		// moves.
 		panels := ui.Row(c).Key("panels").Fill()
 		target := float32(0)
-		if w.stretched {
+		if w.mode.Stretched {
 			target = 1
 		}
-		w.stretch = panels.AnimateTo("stretch", target, widenAnim)
+		w.mode.Stretch = panels.AnimateTo("stretch", target, widenAnim)
 		panels.Children(func() {
-			switch w.zoom {
+			switch w.mode.Zoom {
 			case layout.ZoomEditor:
 				// The note takes the window: the tree and the preview
 				// are left out, without giving up the width they
@@ -364,9 +356,9 @@ func (w *Workspace) SetTreeShown(shown bool) {
 func (w *Workspace) SetPreviewShown(shown bool) {
 	w.setShown(shown, &w.Layout.Right, &w.Layout.LastRight)
 	if !shown {
-		w.stretched = false
-		if w.zoom == layout.ZoomPreviewSpread {
-			w.zoom = layout.ZoomNone
+		w.mode.Stretched = false
+		if w.mode.Zoom == layout.ZoomPreviewSpread {
+			w.mode.Zoom = layout.ZoomNone
 		}
 	}
 }

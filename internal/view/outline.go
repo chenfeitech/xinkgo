@@ -73,7 +73,7 @@ func (w *Workspace) rail(c *ui.Context) {
 	// whose buttons it would otherwise cover.
 	ui.Row(c).Absolute().Right(layout.RailGap).Top(drawerTop).Bottom(drawerFoot).
 		AlignItems(ui.Start).Children(func() {
-		if w.drawer != "" {
+		if w.mode.Drawer != "" {
 			w.drawerPanel(c)
 		}
 		ui.Column(c).Width(layout.RailWidth).
@@ -106,15 +106,15 @@ func (w *Workspace) railButton(
 ) {
 	button := ui.Button(c.Key("rail-"+drawer), mark).
 		Label(label).Tooltip(label)
-	if w.drawer == drawer {
+	if w.mode.Drawer == drawer {
 		button.Selected(true)
 	}
 	if button.Clicked() {
-		if w.drawer == drawer {
-			w.drawer = ""
+		if w.mode.Drawer == drawer {
+			w.mode.Drawer = ""
 			return
 		}
-		w.drawer = drawer
+		w.mode.Drawer = drawer
 	}
 }
 
@@ -131,7 +131,7 @@ func (w *Workspace) drawerPanel(c *ui.Context) {
 		Shadow(0, 6, 20, 0, ui.RGBA(0, 0, 0, 0.18)).Children(func() {
 		ui.Scroll(c).Fill().Children(func() {
 			ui.Column(c).FillWidth().Children(func() {
-				switch w.drawer {
+				switch w.mode.Drawer {
 				case drawerOutline:
 					w.outline(c)
 				case drawerLinks:

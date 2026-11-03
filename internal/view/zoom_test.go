@@ -41,8 +41,8 @@ func TestZoom_theNoteTakesTheWholeWindow(t *testing.T) {
 	if err := tt.Click(locale.ZoomEditor()); err != nil {
 		t.Fatalf("Click: %v", err)
 	}
-	if w.zoom != layout.ZoomEditor {
-		t.Fatalf("zoom = %v, want the note given the window", w.zoom)
+	if w.mode.Zoom != layout.ZoomEditor {
+		t.Fatalf("zoom = %v, want the note given the window", w.mode.Zoom)
 	}
 	// What the panels were given is kept: the note is given the window
 	// over them, and not instead of their room.
@@ -78,8 +78,8 @@ func TestZoom_thePreviewTakesTheWholeWindow(t *testing.T) {
 	if err := tt.Click(locale.ZoomPreview()); err != nil {
 		t.Fatalf("Click: %v", err)
 	}
-	if w.zoom != layout.ZoomPreview {
-		t.Fatalf("zoom = %v, want the preview given the window", w.zoom)
+	if w.mode.Zoom != layout.ZoomPreview {
+		t.Fatalf("zoom = %v, want the preview given the window", w.mode.Zoom)
 	}
 	if w.Layout != before {
 		t.Fatalf("layout = %+v, want the %+v it was", w.Layout, before)
@@ -118,8 +118,8 @@ func TestZoom_pressedAgainGivesTheRoomBack(t *testing.T) {
 			t.Fatalf("Click %q: %v", label, err)
 		}
 	}
-	if w.zoom != layout.ZoomNone {
-		t.Fatalf("zoom = %v, want the panels as they were", w.zoom)
+	if w.mode.Zoom != layout.ZoomNone {
+		t.Fatalf("zoom = %v, want the panels as they were", w.mode.Zoom)
 	}
 	if w.Layout != before {
 		t.Fatalf("layout = %+v, want the %+v it was", w.Layout, before)
@@ -138,8 +138,8 @@ func TestZoom_onePaneAtATime(t *testing.T) {
 	w, _ := zoomTester(t, 900)
 	w.setZoom(layout.ZoomEditor)
 	w.setZoom(layout.ZoomPreview)
-	if w.zoom != layout.ZoomPreview {
-		t.Fatalf("zoom = %v, want the preview, and not both", w.zoom)
+	if w.mode.Zoom != layout.ZoomPreview {
+		t.Fatalf("zoom = %v, want the preview, and not both", w.mode.Zoom)
 	}
 }
 
@@ -189,8 +189,8 @@ func TestZoom_thePreviewSpreadsOverTheNote(t *testing.T) {
 	if err := tt.Click(locale.SpreadPreview()); err != nil {
 		t.Fatalf("Click: %v", err)
 	}
-	if w.zoom != layout.ZoomPreviewSpread {
-		t.Fatalf("zoom = %v, want the preview spread over the note", w.zoom)
+	if w.mode.Zoom != layout.ZoomPreviewSpread {
+		t.Fatalf("zoom = %v, want the preview spread over the note", w.mode.Zoom)
 	}
 	// What the panels were given is kept here too: the preview is given
 	// the note's room over it, and not instead of its own.
@@ -238,8 +238,8 @@ func TestZoom_theSpreadButtonGivesTheRoomBack(t *testing.T) {
 	if err := tt.Click(locale.SpreadPreviewBack()); err != nil {
 		t.Fatalf("Click: %v", err)
 	}
-	if w.zoom != layout.ZoomNone {
-		t.Fatalf("zoom = %v, want the panels as they were", w.zoom)
+	if w.mode.Zoom != layout.ZoomNone {
+		t.Fatalf("zoom = %v, want the panels as they were", w.mode.Zoom)
 	}
 	if w.Layout != before {
 		t.Fatalf("layout = %+v, want the %+v it was", w.Layout, before)
@@ -293,8 +293,8 @@ func TestZoom_theSpreadButtonSaysWhatItWillDo(t *testing.T) {
 	if _, ok := tt.Find(locale.SpreadPreviewBack()); !ok {
 		t.Fatal("the button does not say the way back")
 	}
-	if w.zoom != layout.ZoomPreviewSpread {
-		t.Fatalf("zoom = %v, want the preview spread", w.zoom)
+	if w.mode.Zoom != layout.ZoomPreviewSpread {
+		t.Fatalf("zoom = %v, want the preview spread", w.mode.Zoom)
 	}
 }
 
@@ -305,8 +305,8 @@ func TestZoom_theSpreadIsOneShapeAtATime(t *testing.T) {
 	w, _ := spreadTester(t, 1100)
 	w.setZoom(layout.ZoomPreviewSpread)
 	w.setZoom(layout.ZoomEditor)
-	if w.zoom != layout.ZoomEditor {
-		t.Fatalf("zoom = %v, want the note, and not both", w.zoom)
+	if w.mode.Zoom != layout.ZoomEditor {
+		t.Fatalf("zoom = %v, want the note, and not both", w.mode.Zoom)
 	}
 }
 
@@ -318,8 +318,8 @@ func TestZoom_aSpreadPreviewShutGivesTheRoomBack(t *testing.T) {
 	w.setZoom(layout.ZoomPreviewSpread)
 	w.SetPreviewShown(false)
 	tt.Frame()
-	if w.zoom != layout.ZoomNone {
-		t.Fatalf("zoom = %v, want the note back", w.zoom)
+	if w.mode.Zoom != layout.ZoomNone {
+		t.Fatalf("zoom = %v, want the note back", w.mode.Zoom)
 	}
 	if _, ok := tt.Find(editorLabel); !ok {
 		t.Error("the note did not come back")
