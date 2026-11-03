@@ -737,6 +737,18 @@ func (w *Workspace) wrapColumn(c *ui.Context, n *OpenNote) int {
 	return max(int(room/char), editorMinChars)
 }
 
+// editorTheme is the theme the note is written in: the window's own, but
+// for the color of the thumb of a scroll bar, which is painted over the
+// last of the room the editor is given, and so over the words standing
+// there. Nothing of the bar is painted over the note now, and what shows
+// of it elsewhere — the note's pane beside it, the panes of the window —
+// is as it was.
+func (w *Workspace) editorTheme(c *ui.Context) *ui.Theme {
+	t := *c.Theme()
+	t.Scrollbar = ui.Transparent
+	return &t
+}
+
 // editorCharWidth is how wide a character of the note's font is: the
 // editor measures it itself, of the nought, and keeps what it measured,
 // so the nought is measured here as well. The note's font is a
@@ -1264,7 +1276,10 @@ func (w *Workspace) editor(c *ui.Context) {
 	w.dataDiagnostics(n)
 	// The room the note's text stands off the edges of its pane: the
 	// padding the user chose, less what the editor keeps of its own.
-	ui.Box(c).Fill().
+	// The note is written in a theme of its own, whose scroll bar is
+	// painted no color at all: the bar stands over the last of the room
+	// the editor is given, and what is written there is the note's.
+	ui.Themed(c, w.editorTheme(c)).Fill().
 		Padding(0, w.editorPadRight(), 0, w.editorPadLeft()).
 		Children(func() {
 			ed := editor.View(c, n.Editor).Fill()
