@@ -1,6 +1,7 @@
 package view
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/helightxu/xinkgo/internal/config"
@@ -297,5 +298,34 @@ func TestPad_aDragTakesNoMoreThanTheWindowHasBesideTheNote(t *testing.T) {
 		width-w.Layout.Left-w.noteMinWidth()-2*dividerGrip; got > room {
 		t.Errorf("the drag gave the preview %v, want no more than the %v"+
 			" beside the note", got, room)
+	}
+}
+
+// TestPad_theWordsKeepTheirAirBesideTheEditorBar checks that the padding
+// is air and not the room a scroll bar stands in. The editor draws its
+// bar over the last of what it is given, four DIPs from a line it breaks,
+// so a line is broken short of the bar's room by the air the words keep:
+// without that, the bar is drawn against the last word however wide the
+// padding is chosen.
+func TestPad_theWordsKeepTheirAirBesideTheEditorBar(t *testing.T) {
+	w, tt := zoomTester(t, 900)
+	w.Config.Editor.PaddingX = 29
+	n := w.Tabs.ActiveNote()
+	n.Editor.Buffer.Set(strings.Repeat("M", 400))
+	tt.Frame()
+	ed, ok := tt.Find(editorLabel)
+	if !ok {
+		t.Fatal("the note is not drawn")
+	}
+	// The room the editor breaks a line at when it is left to itself:
+	// what it is given, less what it keeps of its own beside the lines.
+	natural := ed.W - editorInsetLeft - editorInsetRight
+	broken := float32(n.Editor.WrapColumn) * w.editorCharWidth(n)
+	if n.Editor.WrapColumn <= 0 || broken > natural {
+		broken = natural
+	}
+	if got := natural - broken; got < editorBarAir {
+		t.Errorf("the words end %v short of the room there is, want the %v"+
+			" of air they keep beside the bar", got, editorBarAir)
 	}
 }

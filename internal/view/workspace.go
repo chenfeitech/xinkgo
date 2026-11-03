@@ -59,6 +59,13 @@ const (
 	// not say what it measured, so it is said here, a little on the wide
 	// side, so that the room kept is never less than the room needed.
 	monoCharRatio float32 = 0.6
+	// editorBarAir is the room the note's words keep between the last of
+	// them and the editor's own scroll bar: the editor draws the bar over
+	// the last of what it is given, four DIPs from a line it breaks, and
+	// four DIPs is no room at all. The line is broken this much shorter
+	// than the room there is, so that the bar stands in the room the pane
+	// keeps beside its padding, and not against the words.
+	editorBarAir float32 = 10
 	// layoutSettle is how long the panels stay as they were dragged
 	// before what the user chose is written down.
 	layoutSettle = 400 * time.Millisecond
@@ -675,6 +682,34 @@ func (w *Workspace) noteMinWidth() float32 {
 		editorInsetLeft + editorInsetRight + chars
 }
 
+// wrapColumn is how many columns the note's text is broken at, when
+// long lines are wrapped: as many as the room the editor is given holds,
+// less the room its bar stands in and the air the words keep beside it.
+// The editor breaks a line at the very room it is given, bar and all,
+// whatever the pane keeps beside that: without a column to break at, the
+// right-hand padding the user chose is a room the bar is drawn in, and
+// the words stand four DIPs from it however wide the padding is.
+func (w *Workspace) wrapColumn(c *ui.Context, n *OpenNote) int {
+	room := w.editorWidth(c) - w.editorPadLeft() - w.editorPadRight()
+	room -= editorInsetLeft + editorInsetRight + editorBarAir
+	char := w.editorCharWidth(n)
+	if char <= 0 {
+		return 0
+	}
+	// A line shorter than eight characters is not broken at all, and the
+	// editor breaks none narrower than that in any case.
+	return max(int(room/char), editorMinChars)
+}
+
+// editorCharWidth is how wide a character of the note's font is: the
+// editor measures it itself, of the nought, and keeps what it measured,
+// so the nought is measured here as well. The note's font is a
+// monospaced one, so every character of it stands as wide as the nought.
+func (w *Workspace) editorCharWidth(n *OpenNote) float32 {
+	wide, _ := ui.ShapeText("0", n.Editor.Font, 0).Size()
+	return wide
+}
+
 // previewPadX is how far what the preview reads stands from the sides of
 // its pane, and previewPadY from the top of it and the foot of it, as the
 // user chose: the note is read from the top of the pane, and not from
@@ -1178,6 +1213,14 @@ func (w *Workspace) editor(c *ui.Context) {
 	// Code is painted with the same colors the preview paints it with.
 	n.Editor.Theme = w.codeThemeFor(c)
 	w.applyEditor(n)
+	// What a long line is broken at: shorter than the room there is by
+	// the air the words keep beside the editor's bar. A line that is not
+	// broken is not broken at a column either.
+	if w.Config.Editor.SoftWrap {
+		n.Editor.WrapColumn = w.wrapColumn(c, n)
+	} else {
+		n.Editor.WrapColumn = 0
+	}
 	w.dataDiagnostics(n)
 	// The room the note's text stands off the edges of its pane: the
 	// padding the user chose, less what the editor keeps of its own.
