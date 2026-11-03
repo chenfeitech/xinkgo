@@ -21,7 +21,7 @@
 |---|---|---|
 | `cmd/xinkgo` | 调 `app.Run()`，失败 `log.Fatal` | 写业务逻辑 |
 | `internal/app` | 应用生命周期、窗口与菜单、IPC 绑定 | 画界面、直接读写配置格式 |
-| `internal/view` | 由状态画界面，处理输入改变状态 | I/O、调应用生命周期接口 |
+| `internal/view` | 由状态画界面，处理输入改变状态 | I/O、调应用生命周期接口、写任何文件（要写就回调 `app`） |
 | `internal/config` | `config.json` 的读、写、校验 | 依赖应用对象（目录由参数传入） |
 | `internal/theme` | 配色方案表：每套方案明暗两套取色，视图上色用 | 依赖 `config` / `app`（它是纯数据，只依赖 `ui`） |
 | `internal/export` | 把笔记写成自成一页的 HTML（PDF 由系统 webview 打印它） | 读文件、弹对话框（那些是 `internal/app` 的事） |
@@ -124,6 +124,29 @@ mygo.json                    ← "i18n": {"dir": "internal/locale", "source": "e
   包，谁都可以 import，不会破坏依赖方向。
 
 校对命令：`go tool mygo i18n check`（缺键、复数形式、参数不一致都会报）。
+
+## 8 `internal/app` 自己怎么分
+
+`app` 是唯一碰磁盘、弹对话框、起窗口的一层，所以它天生最长。为了让“改哪件事”
+不用在 800 行里找，它按**事情**分文件，而不是按技术角色分：
+
+| 文件 | 装什么 |
+|---|---|
+| `app.go` | 装配与生命周期：`Run`、启动恢复、`appState`、版本 |
+| `app_vault.go` | 库的打开、记住、切换，以及切换后的重建索引 |
+| `app_apply.go` | 配置改动对运行中的 app 做什么：外观、语言、重画菜单、退出前写盘 |
+| `watch.go` | 盯着库的外部改动，交回主线程 |
+| `menu.go` / `window.go` / `host.go` | 菜单、窗口、IPC 绑定 |
+| `ask.go` | 问模型的编排（回调给 `view`） |
+| `files.go` / `export.go` / `wechat.go` | 文件对话框、导出、公众号（都要 I/O，所以在这里） |
+| `settings*.go` | 设置窗口，一页一个文件 |
+
+两条规则：
+
+- **不为了“分层”把业务下沉。** `ask.go`/`export.go`/`wechat.go` 看着像编排，
+  但它们要 I/O、要对话框、要碰 `appState`，而下沉就意味着领域包开始做 I/O ——
+  那才是破坏分层。它们留在 `app`，按文件分开。
+- **`app` 里再出现 600 行的文件，就按上面的方式再切一次。**
 
 ## 7 持久化与状态
 
