@@ -134,7 +134,23 @@ type Host interface {
 | **2** | ✅ 已完成：几何提成子包 `internal/view/layout`，导出 `layout.Geometry` 与 `layout.Zoom`；`Workspace` 每次用时现取 `w.geometry()`，不做缓存（避免过期） | 中 | 同上 + `layout` 自有单测（不渲染窗口即可验几何） |
 | **3** | ✅ 已完成（一半）：`Workspace` 的状态分组 —— `mode`（三形态 + 抽屉）与 `scroll`（滚动同步的 12 个记账字段）各自成组，类型 `scrollFollow` 跟 `scroll.go` 走 | 中 | 同上 |
 | **4** | ✅ 已完成（改了做法）：设置窗口按页分文件（`settings_appearance` / `_editor` / `_preview` / `_config`），**不再独立成包** —— 理由见下 | 低 | 构建 + 全量测试 + 声明清单比对（43 个 func 一个不差）+ 设置窗口人工验收 |
-| **5** | `ai_bar.go`（756）按“消息列表 / 输入区 / 快捷词”拆；`file_tree.go` 拆出“行绘制 / 图标 / 选中与滚动” | 中 | 对话条与目录树人工验收 |
+| **5** | ✅ 已完成：`ai_bar.go`（756）拆成 bar / session / talk / ask 四个文件；`file_tree.go`（641）拆成 tree / rows / vault / paths 四个文件 | 低 | 构建 + 全量测试 + 声明清单比对（32 / 31 个 func 一个不差）+ 对话条与目录树人工验收 |
+
+阶段 5 之后，两个大控件按“由哪几部分组成”拆开：
+
+| 文件 | 行数 | 装什么 |
+|---|---|---|
+| `ai_bar.go` | 307 | 对话条本身：开合、页头、输入区、模型选择 |
+| `ai_ask.go` | 220 | 问：发出什么、回来的片段、结束后怎么处理 |
+| `ai_talk.go` | 154 | 说了什么：一轮一轮的呈现 |
+| `ai_session.go` | 110 | 一场对话的数据与落盘 |
+| `file_tree.go` | 289 | 树的数据与面板 |
+| `tree_rows.go` | 197 | 行：怎么画、怎么拖、右键菜单 |
+| `tree_paths.go` | 116 | 路径：定位、选中、滚到 |
+| `tree_vault.go` | 89 | 库切换 |
+
+五个阶段做完，`internal/view` 与 `internal/app` 里已没有超过 1100 行的文件
+（`settings_ai.go` 1069 是最大的一个，且它是单独一页）。
 
 阶段 1 先行：它把后面每一步的“落点”先定下来，且不碰任何行为。
 
