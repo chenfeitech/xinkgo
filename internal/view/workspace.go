@@ -39,6 +39,13 @@ const (
 	// other, which is what the padding is for.
 	editorInsetLeft  float32 = 8
 	editorInsetRight float32 = 14
+	// editorTrack is the room of the editor's own scroll bar, which it
+	// draws over the last of what it is given while the pointer rests
+	// on it, and not beside it: a line it breaks keeps clear of the bar
+	// and of four DIPs besides, which is the editorInsetRight above,
+	// but a line it does not break is cut at the very edge of what it
+	// is given, bar and all.
+	editorTrack float32 = 10
 	// layoutSettle is how long the panels stay as they were dragged
 	// before what the user chose is written down.
 	layoutSettle = 400 * time.Millisecond
@@ -603,7 +610,19 @@ func (w *Workspace) editorPadLeft() float32 {
 	return max(w.editorPadX()-editorInsetLeft, 0)
 }
 
+// editorPadRight is how much room the pane keeps on the right of the
+// editor, which is not what it keeps on the left of it: a line the
+// editor breaks is given the room the editor keeps beside it — its
+// scroll bar's, and four — out of the width the editor is given, so
+// that room comes off the padding the user chose. A line it does not
+// break is cut at the very edge of what it is given, and the bar is
+// drawn over the last of it: nothing of the editor's own is taken out
+// of what the user chose, and the room of the bar is kept besides it,
+// so that no word is written where the bar will stand.
 func (w *Workspace) editorPadRight() float32 {
+	if !w.Config.Editor.SoftWrap {
+		return w.editorPadX() + editorTrack
+	}
 	return max(w.editorPadX()-editorInsetRight, 0)
 }
 

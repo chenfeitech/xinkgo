@@ -205,3 +205,32 @@ func TestPad_thePaneEndsWhereTheRailBegins(t *testing.T) {
 			"it ends at with it shut", open.X+open.W, end)
 	}
 }
+
+// TestPad_aLineThatIsNotBrokenKeepsItsRoomBesideTheEditor checks the
+// padding of a note whose lines the editor does not break: such a line is
+// cut at the very edge of what the editor is given, and the editor draws
+// its scroll bar over the last of it, so the pane keeps the room the user
+// chose and the room of the bar besides, and no word is written where the
+// bar will stand.
+func TestPad_aLineThatIsNotBrokenKeepsItsRoomBesideTheEditor(t *testing.T) {
+	w, tt := zoomTester(t, 1100)
+	line, ok := tt.Find(cornerDivider)
+	if !ok {
+		t.Fatal("the line that parts the note from the preview is not drawn")
+	}
+	pane := line.X
+	w.Config.Editor.SoftWrap = false
+	for _, pad := range []uint32{16, 40} {
+		w.Config.Editor.PaddingX = pad
+		tt.Frame()
+		ed, ok := tt.Find(editorLabel)
+		if !ok {
+			t.Fatalf("with a padding of %d, the note is not drawn", pad)
+		}
+		if got := pane - (ed.X + ed.W); got != float32(pad)+editorTrack {
+			t.Errorf("with a padding of %d, the pane keeps %.0f beside "+
+				"the editor, want the %d the user chose and the %.0f "+
+				"of its scroll bar", pad, got, pad, editorTrack)
+		}
+	}
+}
