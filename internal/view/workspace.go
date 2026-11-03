@@ -66,6 +66,13 @@ const (
 	// than the room there is, so that the bar stands in the room the pane
 	// keeps beside its padding, and not against the words.
 	editorBarAir float32 = 10
+	// editorRailAir is the room the note's words keep beside the rail's
+	// buttons, on top of the padding, when its pane ends at the window's
+	// own edge, as the note's does widened over the preview: the buttons
+	// stand over that end of the pane, and half as much again as one of
+	// them is wide is no more than the note needs to read well beside
+	// them.
+	editorRailAir float32 = railWidth * 3 / 2
 	// layoutSettle is how long the panels stay as they were dragged
 	// before what the user chose is written down.
 	layoutSettle = 400 * time.Millisecond
@@ -692,6 +699,14 @@ func (w *Workspace) noteMinWidth() float32 {
 func (w *Workspace) wrapColumn(c *ui.Context, n *OpenNote) int {
 	room := w.editorWidth(c) - w.editorPadLeft() - w.editorPadRight()
 	room -= editorInsetLeft + editorInsetRight + editorBarAir
+	// Widened over the preview, or with no preview beside it at all, the
+	// note's pane ends at the window's own edge, and the rail's buttons
+	// stand over that end of it: the words keep their air as well as the
+	// padding, for the padding alone was chosen for a pane with a pane
+	// beside it and not the rail.
+	if w.notePaneAtRail() {
+		room -= editorRailAir
+	}
 	char := w.editorCharWidth(n)
 	if char <= 0 {
 		return 0

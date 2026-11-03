@@ -353,3 +353,32 @@ func TestPad_aPreviewNarrowerThanTheRailIsNoCoverForIt(t *testing.T) {
 			end, float32(width)-railStrip)
 	}
 }
+
+// TestPad_theWordsKeepTheRailsRoomBesideThePadding checks the pane that
+// ends at the window's own edge, as the note's does widened over the
+// preview: the rail's buttons stand over that end of it, so the words
+// keep their air beside the buttons on top of the padding — the padding
+// alone was chosen for a pane with a pane beside it, and not the rail.
+func TestPad_theWordsKeepTheRailsRoomBesideThePadding(t *testing.T) {
+	w, tt := zoomTester(t, 1100)
+	n := w.Tabs.ActiveNote()
+	if err := tt.Click(locale.WidenNote()); err != nil {
+		t.Fatalf("Click: %v", err)
+	}
+	tt.Advance(widenAnim.Duration)
+	tt.Frame()
+	ed, ok := tt.Find(editorLabel)
+	if !ok {
+		t.Fatal("the note is not drawn")
+	}
+	// Where the words would end were the line broken at the very room
+	// there is, and where they do end at the column they are broken at.
+	natural := ed.X + ed.W - editorInsetRight
+	broken := ed.X + editorInsetLeft +
+		float32(n.Editor.WrapColumn)*w.editorCharWidth(n)
+	if got := natural - broken; got < editorBarAir+editorRailAir {
+		t.Errorf("the words end %v short of the room there is, want the %v"+
+			" of air beside the bar and the rail's buttons", got,
+			editorBarAir+editorRailAir)
+	}
+}
