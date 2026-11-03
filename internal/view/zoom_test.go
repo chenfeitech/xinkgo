@@ -7,6 +7,7 @@ import (
 	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/config"
 	"github.com/helightxu/xinkgo/internal/locale"
+	"github.com/helightxu/xinkgo/internal/view/layout"
 )
 
 // editorLabel is how the editor of the note is named to the window: what
@@ -40,7 +41,7 @@ func TestZoom_theNoteTakesTheWholeWindow(t *testing.T) {
 	if err := tt.Click(locale.ZoomEditor()); err != nil {
 		t.Fatalf("Click: %v", err)
 	}
-	if w.zoom != zoomEditor {
+	if w.zoom != layout.ZoomEditor {
 		t.Fatalf("zoom = %v, want the note given the window", w.zoom)
 	}
 	// What the panels were given is kept: the note is given the window
@@ -77,7 +78,7 @@ func TestZoom_thePreviewTakesTheWholeWindow(t *testing.T) {
 	if err := tt.Click(locale.ZoomPreview()); err != nil {
 		t.Fatalf("Click: %v", err)
 	}
-	if w.zoom != zoomPreview {
+	if w.zoom != layout.ZoomPreview {
 		t.Fatalf("zoom = %v, want the preview given the window", w.zoom)
 	}
 	if w.Layout != before {
@@ -117,7 +118,7 @@ func TestZoom_pressedAgainGivesTheRoomBack(t *testing.T) {
 			t.Fatalf("Click %q: %v", label, err)
 		}
 	}
-	if w.zoom != zoomNone {
+	if w.zoom != layout.ZoomNone {
 		t.Fatalf("zoom = %v, want the panels as they were", w.zoom)
 	}
 	if w.Layout != before {
@@ -135,9 +136,9 @@ func TestZoom_pressedAgainGivesTheRoomBack(t *testing.T) {
 // from the other: two panes given the whole window is no shape at all.
 func TestZoom_onePaneAtATime(t *testing.T) {
 	w, _ := zoomTester(t, 900)
-	w.setZoom(zoomEditor)
-	w.setZoom(zoomPreview)
-	if w.zoom != zoomPreview {
+	w.setZoom(layout.ZoomEditor)
+	w.setZoom(layout.ZoomPreview)
+	if w.zoom != layout.ZoomPreview {
 		t.Fatalf("zoom = %v, want the preview, and not both", w.zoom)
 	}
 }
@@ -148,11 +149,11 @@ func TestZoom_onePaneAtATime(t *testing.T) {
 func TestZoom_theButtonSaysWhatItWillDo(t *testing.T) {
 	w, _ := zoomTester(t, 900)
 	label := locale.ZoomEditorTooltip()
-	if got := w.zoomTip(zoomEditor, label); got != label {
+	if got := w.zoomTip(layout.ZoomEditor, label); got != label {
 		t.Fatalf("tip = %q, want %q", got, label)
 	}
-	w.setZoom(zoomEditor)
-	if got := w.zoomTip(zoomEditor, label); got != locale.ZoomBackTooltip() {
+	w.setZoom(layout.ZoomEditor)
+	if got := w.zoomTip(layout.ZoomEditor, label); got != locale.ZoomBackTooltip() {
 		t.Fatalf("tip = %q, want the way back", got)
 	}
 }
@@ -188,7 +189,7 @@ func TestZoom_thePreviewSpreadsOverTheNote(t *testing.T) {
 	if err := tt.Click(locale.SpreadPreview()); err != nil {
 		t.Fatalf("Click: %v", err)
 	}
-	if w.zoom != zoomPreviewSpread {
+	if w.zoom != layout.ZoomPreviewSpread {
 		t.Fatalf("zoom = %v, want the preview spread over the note", w.zoom)
 	}
 	// What the panels were given is kept here too: the preview is given
@@ -216,7 +217,7 @@ func TestZoom_thePreviewSpreadsOverTheNote(t *testing.T) {
 		t.Errorf("what is read begins at %v, want it left of the %v it was",
 			spread.X, read.X)
 	}
-	want := float32(w.Layout.Left) + dividerGrip + w.previewPadX()
+	want := float32(w.Layout.Left) + layout.DividerGrip + w.geometry().PreviewPadX()
 	if d := spread.X - want; d < -8 || d > 8 {
 		t.Errorf("what is read begins at %v, want it beside the tree at %v",
 			spread.X, want)
@@ -237,7 +238,7 @@ func TestZoom_theSpreadButtonGivesTheRoomBack(t *testing.T) {
 	if err := tt.Click(locale.SpreadPreviewBack()); err != nil {
 		t.Fatalf("Click: %v", err)
 	}
-	if w.zoom != zoomNone {
+	if w.zoom != layout.ZoomNone {
 		t.Fatalf("zoom = %v, want the panels as they were", w.zoom)
 	}
 	if w.Layout != before {
@@ -263,7 +264,7 @@ func TestZoom_theCornerButtonStandsWithItsPane(t *testing.T) {
 		t.Error("the button is drawn with the preview shut")
 	}
 	w.SetPreviewShown(true)
-	w.setZoom(zoomPreview)
+	w.setZoom(layout.ZoomPreview)
 	tt.Frame()
 	if _, ok := tt.Find(locale.SpreadPreview()); ok {
 		t.Error("the button of the corner is drawn over the bar of the" +
@@ -292,7 +293,7 @@ func TestZoom_theSpreadButtonSaysWhatItWillDo(t *testing.T) {
 	if _, ok := tt.Find(locale.SpreadPreviewBack()); !ok {
 		t.Fatal("the button does not say the way back")
 	}
-	if w.zoom != zoomPreviewSpread {
+	if w.zoom != layout.ZoomPreviewSpread {
 		t.Fatalf("zoom = %v, want the preview spread", w.zoom)
 	}
 }
@@ -302,9 +303,9 @@ func TestZoom_theSpreadButtonSaysWhatItWillDo(t *testing.T) {
 // the room from the other.
 func TestZoom_theSpreadIsOneShapeAtATime(t *testing.T) {
 	w, _ := spreadTester(t, 1100)
-	w.setZoom(zoomPreviewSpread)
-	w.setZoom(zoomEditor)
-	if w.zoom != zoomEditor {
+	w.setZoom(layout.ZoomPreviewSpread)
+	w.setZoom(layout.ZoomEditor)
+	if w.zoom != layout.ZoomEditor {
 		t.Fatalf("zoom = %v, want the note, and not both", w.zoom)
 	}
 }
@@ -314,10 +315,10 @@ func TestZoom_theSpreadIsOneShapeAtATime(t *testing.T) {
 // left to spread, so the note comes back.
 func TestZoom_aSpreadPreviewShutGivesTheRoomBack(t *testing.T) {
 	w, tt := spreadTester(t, 1100)
-	w.setZoom(zoomPreviewSpread)
+	w.setZoom(layout.ZoomPreviewSpread)
 	w.SetPreviewShown(false)
 	tt.Frame()
-	if w.zoom != zoomNone {
+	if w.zoom != layout.ZoomNone {
 		t.Fatalf("zoom = %v, want the note back", w.zoom)
 	}
 	if _, ok := tt.Find(editorLabel); !ok {
@@ -365,10 +366,10 @@ func TestZoom_theCornerButtonIsItsPictureAlone(t *testing.T) {
 	}
 	// The rail's is the one that is lit, and it is lit only when the pane
 	// it gives the room has it.
-	w.setZoom(zoomNone)
+	w.setZoom(layout.ZoomNone)
 	tt.Frame()
 	trail, _ := buttonFaces(t, tt, locale.ZoomPreview())
-	w.setZoom(zoomPreview)
+	w.setZoom(layout.ZoomPreview)
 	tt.Frame()
 	if lit, _ := buttonFaces(t, tt, locale.ZoomPreview()); lit == trail {
 		t.Errorf("the rail's button keeps the face %v when the preview has"+

@@ -9,10 +9,11 @@ import (
 	"github.com/egoist/mygo/ui/markdown"
 	"github.com/helightxu/xinkgo/internal/locale"
 	xmd "github.com/helightxu/xinkgo/internal/markdown"
+	"github.com/helightxu/xinkgo/internal/view/layout"
 )
 
 // How wide the drawer is, and where it hangs. Its height is not one of
-// them: it is as tall as the panels it stands over. It hangs railGap in
+// them: it is as tall as the panels it stands over. It hangs layout.RailGap in
 // from the top, the right and the foot of them, as the preview begins at
 // the top of the window and not lower down.
 //
@@ -21,25 +22,12 @@ import (
 // own buttons stand in — the way out of a note, and the way out of the
 // preview as an article for WeChat — and the rail is not to stand on
 // them. The drawer itself stands level with the pane all the same.
+// Where the rail and the drawer hang is left to the rail's own file;
+// how wide they are is layout's, and is asked of it.
 const (
-	drawerWidth    float32 = 300
-	drawerTop              = railGap
-	drawerFoot             = railGap
+	drawerTop              = layout.RailGap
+	drawerFoot             = layout.RailGap
 	railButtonsTop float32 = 34
-	railWidth      float32 = 34
-	railGap        float32 = 6
-	// railLead is the air a pane keeps between what it writes and the
-	// rail's buttons: they stand railGap in from the window's edge, and
-	// what is written hard against them is not read beside them but
-	// under them, which is no plainer than writing on them.
-	railLead = 8
-	// railStrip is the room the rail's own buttons take at the right
-	// edge of the window: the strip no pane writes in, for the buttons
-	// have no background of their own and what is written under them is
-	// lost. The drawer beside them is a panel of its own, with a
-	// background and a shadow, and covers what it covers: it is not
-	// counted here, so that opening it does not move what is written.
-	railStrip = railWidth + railGap + railLead
 )
 
 // How the buttons of the rail are marked, each one a character that says
@@ -83,12 +71,12 @@ func (w *Workspace) rail(c *ui.Context) {
 	// under it: a drawer as tall as the window is must not push them
 	// down the note. It hangs below the row at the top of that pane,
 	// whose buttons it would otherwise cover.
-	ui.Row(c).Absolute().Right(railGap).Top(drawerTop).Bottom(drawerFoot).
+	ui.Row(c).Absolute().Right(layout.RailGap).Top(drawerTop).Bottom(drawerFoot).
 		AlignItems(ui.Start).Children(func() {
 		if w.drawer != "" {
 			w.drawerPanel(c)
 		}
-		ui.Column(c).Width(railWidth).
+		ui.Column(c).Width(layout.RailWidth).
 			Padding(railButtonsTop, 0).Children(func() {
 			w.railButton(c, drawerOutline, drawerOutlineMark,
 				locale.DrawerOutlineLabel())
@@ -101,10 +89,10 @@ func (w *Workspace) rail(c *ui.Context) {
 			// pane, so that the way out is there whichever pane has
 			// the window, and so that taking a pane out of the layout
 			// costs the note none of the room of its toolbar.
-			ui.Box(c).Height(railGap * 2)
-			w.zoomButton(c, "zoom-editor", zoomEditor, iconZoomEditor,
+			ui.Box(c).Height(layout.RailGap * 2)
+			w.zoomButton(c, "zoom-editor", layout.ZoomEditor, iconZoomEditor,
 				locale.ZoomEditor(), locale.ZoomEditorTooltip())
-			w.zoomButton(c, "zoom-preview", zoomPreview, iconZoomPreview,
+			w.zoomButton(c, "zoom-preview", layout.ZoomPreview, iconZoomPreview,
 				locale.ZoomPreview(), locale.ZoomPreviewTooltip())
 		})
 	})
@@ -137,7 +125,7 @@ func (w *Workspace) railButton(
 // than there is room for, as the note beside it is.
 func (w *Workspace) drawerPanel(c *ui.Context) {
 	th := c.Theme()
-	ui.Column(c).Width(drawerWidth).FillHeight().ClipY().
+	ui.Column(c).Width(layout.DrawerWidth).FillHeight().ClipY().
 		Padding(th.Space(2)).Background(th.Background).
 		Border(1, th.Border).Radius(th.Radius+2).
 		Shadow(0, 6, 20, 0, ui.RGBA(0, 0, 0, 0.18)).Children(func() {

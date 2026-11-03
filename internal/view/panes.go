@@ -9,6 +9,7 @@ import (
 	"github.com/helightxu/xinkgo/internal/datafile"
 	"github.com/helightxu/xinkgo/internal/locale"
 	xmd "github.com/helightxu/xinkgo/internal/markdown"
+	"github.com/helightxu/xinkgo/internal/view/layout"
 )
 
 // sidebar is the file tree, and the way to open a vault when there is
@@ -70,9 +71,9 @@ func (w *Workspace) center(c *ui.Context) {
 	// squeezed narrow — the note keeps the room it needs, and the panels
 	// are given what is left: a note written over the edge of its pane
 	// is a note half read.
-	note.MinWidth(w.noteMinWidth())
-	if w.notePaneAtRail() {
-		note.Padding(0, railStrip, 0, 0)
+	note.MinWidth(w.geometry().NoteMinWidth())
+	if w.geometry().NotePaneAtRail() {
+		note.Padding(0, layout.RailStrip, 0, 0)
 	}
 	note.Children(func() {
 		w.tabBar(c)
@@ -139,8 +140,11 @@ func (w *Workspace) editor(c *ui.Context) {
 	// What a long line is broken at: shorter than the room there is by
 	// the air the words keep beside the editor's bar. A line that is not
 	// broken is not broken at a column either.
+	win, _ := c.Size()
 	if w.Config.Editor.SoftWrap {
-		n.Editor.WrapColumn = w.wrapColumn(c, n)
+		geom := w.geometry()
+		n.Editor.WrapColumn = geom.WrapColumn(win,
+			layout.CharWidth(n.Editor.Font))
 	} else {
 		n.Editor.WrapColumn = 0
 	}
@@ -151,7 +155,7 @@ func (w *Workspace) editor(c *ui.Context) {
 	// painted no color at all: the bar stands over the last of the room
 	// the editor is given, and what is written there is the note's.
 	ui.Themed(c, w.editorTheme(c)).Fill().
-		Padding(0, w.editorPadRight(), 0, w.editorPadLeft()).
+		Padding(0, w.geometry().EditorPadRight(), 0, w.geometry().EditorPadLeft()).
 		Children(func() {
 			ed := editor.View(c, n.Editor).Fill()
 			// While a link is being written, what it may name is
@@ -222,4 +226,16 @@ func (w *Workspace) Format(f xmd.Format) {
 	ed.Insert(p.Text)
 	ed.Select(p.Caret, p.Caret)
 	w.Tabs.Edited(n)
+}
+
+// editorTheme is the theme the note is written in: the window's own, but
+// for the color of the thumb of a scroll bar, which is painted over the
+// last of the room the editor is given, and so over the words standing
+// there. Nothing of the bar is painted over the note now, and what shows
+// of it elsewhere — the note's pane beside it, the panes of the window —
+// is as it was.
+func (w *Workspace) editorTheme(c *ui.Context) *ui.Theme {
+	t := *c.Theme()
+	t.Scrollbar = ui.Transparent
+	return &t
 }

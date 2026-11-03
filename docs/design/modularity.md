@@ -75,6 +75,14 @@
 |---|---|---|---|
 | **1** | ✅ 已完成：`workspace.go` 拆成 `metrics.go` / `panes.go` / `preview.go` / `bars.go` / `modes.go`（纯搬运，零行为变更） | 低 | 构建 + 全量测试 + 声明清单比对（搬运前后 64 个 func、`const`/`var`/`type` 一个不差） |
 
+阶段 2 之后：
+
+| 文件 | 行数 | 装什么 |
+|---|---|---|
+| `internal/view/layout/layout.go` | 335 | **几何**：面板/编辑区/预览区宽度、留白、边距、换行列数、侧栏带、三种形态的枚举。不 import `view`，只依赖 `config` / `state` / `ui`，可脱离窗口单测 |
+| `internal/view/layout/layout_test.go` | 145 | 几何单测：不渲染、不建窗口 |
+| `internal/view/workspace.go` | 472 | `Workspace` 类型、`View` 骨架、面板显隐与拖拽 |
+
 阶段 1 之后 `internal/view` 的窗口部分：
 
 | 文件 | 行数 | 装什么 |
@@ -85,7 +93,7 @@
 | `metrics.go` | 287 | 几何：宽度、留白、换行列数、侧栏带 |
 | `panes.go` | 225 | 树 / 编辑区 / 预览区的组装 |
 | `modes.go` | 51 | 三种形态与切换 |
-| **2** | 把 `metrics.go` 提成子包 `internal/view/layout`：导出一个 `layout.Metrics`，`Workspace` 持有一份 | 中 | 同上 + `pad_test.go` 迁过去 |
+| **2** | ✅ 已完成：几何提成子包 `internal/view/layout`，导出 `layout.Geometry` 与 `layout.Zoom`；`Workspace` 每次用时现取 `w.geometry()`，不做缓存（避免过期） | 中 | 同上 + `layout` 自有单测（不渲染窗口即可验几何） |
 | **3** | `Workspace` 的状态分组：`mode`（三模式）+ `panels`（宽度）+ 其余交互状态各自成组，字段带前缀、不再是一张平表 | 中 | 同上 |
 | **4** | `internal/app/settings/` 独立成包，按页分文件 | 中 | 设置窗口人工验收（ACCEPTANCE 里那几条） |
 | **5** | `ai_bar.go`（756）按“消息列表 / 输入区 / 快捷词”拆；`file_tree.go` 拆出“行绘制 / 图标 / 选中与滚动” | 中 | 对话条与目录树人工验收 |

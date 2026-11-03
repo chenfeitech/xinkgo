@@ -6,6 +6,7 @@ import (
 
 	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/locale"
+	"github.com/helightxu/xinkgo/internal/view/layout"
 )
 
 // railOf is where the rail's buttons stand in a window of the width given,
@@ -140,8 +141,8 @@ func drawerEdge(t *testing.T, height int) (top, bottom int) {
 	img := tt.Image()
 	border := ui.LightTheme().Border
 	// The drawer stands its own width and the rail's in from the right
-	// edge, as the rail stands railGap in from it.
-	x := width - int(railWidth) - int(drawerWidth) - int(railGap)
+	// edge, as the rail stands layout.RailGap in from it.
+	x := width - int(layout.RailWidth) - int(layout.DrawerWidth) - int(layout.RailGap)
 	top, bottom = -1, -1
 	for y := 0; y < height; y++ {
 		r, g, b, _ := img.At(x, y).RGBA()

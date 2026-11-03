@@ -26,7 +26,7 @@ func (w *Workspace) followScroll(c *ui.Context) {
 	// The preview is not there to follow the note when the note has been
 	// given the whole window: it is not drawn, and what it would say is
 	// not said.
-	if n == nil || w.previewPaneWidth() <= 0 ||
+	if n == nil || w.geometry().PreviewPaneWidth() <= 0 ||
 		!w.Config.Preview.SyncScroll {
 		return
 	}

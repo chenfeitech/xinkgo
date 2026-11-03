@@ -9,34 +9,15 @@ import (
 	"time"
 
 	"github.com/egoist/mygo/ui"
-)
 
-// zoom is which pane has been given the whole window: the note's or the
-// preview's. zoomNone is the usual, in which every panel keeps the room
-// the user gave it.
-type zoom int
-
-const (
-	zoomNone zoom = iota
-	// zoomEditor is the note's: the tree and the preview are not drawn,
-	// and the note is as wide as the window.
-	zoomEditor
-	// zoomPreview is the preview's, for reading: the note's own pane is
-	// not drawn, and the preview is as wide as the window.
-	zoomPreview
-	// zoomPreviewSpread is the preview's over the note alone: the
-	// preview reaches left as far as the tree, and the tree keeps the
-	// room it was given, so that another note may be chosen in it while
-	// one is read. It is what the button in the preview's own corner
-	// gives, and not the whole window, which is the rail's button.
-	zoomPreviewSpread
+	"github.com/helightxu/xinkgo/internal/view/layout"
 )
 
 // setZoom gives pane the whole window, or gives the room back when it has
 // it already: one button, and the same one out again.
-func (w *Workspace) setZoom(pane zoom) {
+func (w *Workspace) setZoom(pane layout.Zoom) {
 	if w.zoom == pane {
-		w.zoom = zoomNone
+		w.zoom = layout.ZoomNone
 		return
 	}
 	w.zoom = pane

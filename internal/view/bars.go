@@ -8,6 +8,7 @@ import (
 	"github.com/helightxu/xinkgo/internal/datafile"
 	"github.com/helightxu/xinkgo/internal/locale"
 	xmd "github.com/helightxu/xinkgo/internal/markdown"
+	"github.com/helightxu/xinkgo/internal/view/layout"
 )
 
 // iconClose is the × a tab is closed by: two strokes of a 24 by 24 box,
@@ -41,6 +42,20 @@ const (
 	headHeight = tabHeight + 8
 )
 
+// markdownWidth is how wide the row of the Markdown buttons may be: what
+// the panels leave, less the room the way to the model takes beside it, so
+// that it stands beside the row and not under the rail.
+func (w *Workspace) markdownWidth(c *ui.Context) float32 {
+	win, _ := c.Size()
+	room := w.geometry().EditorWidth(win) - aiBand
+	// Narrower than a few buttons there is nothing to show but the menu
+	// at the end, which is still worth its place.
+	if room < iconSize*3 {
+		return iconSize * 3
+	}
+	return room
+}
+
 // tabBar is one tab per open note, and the way to make a new one: the
 // tabs are read from left to right, and the strip is scrolled sideways
 // when there are more of them than there is room for, as the tabs of the
@@ -49,7 +64,7 @@ const (
 func (w *Workspace) tabBar(c *ui.Context) {
 	paths := w.Tabs.Paths()
 	ui.Row(c).AlignItems(ui.Center).
-		PaddingEnd(w.railClear() + cornerGap).Children(func() {
+		PaddingEnd(w.geometry().RailClear() + cornerGap).Children(func() {
 		ui.ScrollHorizontal(c).Grow(1).Height(headHeight).
 			Children(func() {
 				ui.Row(c).Gap(2).Padding(4).AlignItems(ui.Center).
@@ -236,7 +251,8 @@ func (w *Workspace) toolbar(c *ui.Context) {
 // pane. Pressed again it gives the room back, and while the pane has the
 // window the button stands lit, as the way to the model does.
 func (w *Workspace) zoomButton(
-	c *ui.Context, key string, pane zoom, icon *ui.SVG, label, tip string,
+	c *ui.Context, key string, pane layout.Zoom, icon *ui.SVG,
+	label, tip string,
 ) {
 	// A pane that has the window is one this button takes it from, and
 	// so it says the way back: the picture of a pane giving up the room
@@ -260,7 +276,7 @@ func (w *Workspace) zoomButton(
 
 // zoomTip is what the button says when the pointer rests on it: what the
 // press will do, which is the room given back when the pane has it.
-func (w *Workspace) zoomTip(pane zoom, tip string) string {
+func (w *Workspace) zoomTip(pane layout.Zoom, tip string) string {
 	if w.zoom == pane {
 		return locale.ZoomBackTooltip()
 	}
