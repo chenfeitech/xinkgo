@@ -1154,6 +1154,26 @@ func (msgs Messages) SettingEditorPaddingNote() string {
 	return Catalog.Format(msgs.locale, "settingEditorPaddingNote", nil)
 }
 
+// SettingEditorMargin says "Margin, right"
+// in the language the app shows.
+func SettingEditorMargin() string { return In(i18n.Locale()).SettingEditorMargin() }
+
+// SettingEditorMargin says "Margin, right"
+// in the language of msgs.
+func (msgs Messages) SettingEditorMargin() string {
+	return Catalog.Format(msgs.locale, "settingEditorMargin", nil)
+}
+
+// SettingEditorMarginNote says "How far the note's words stand from the right edge of its pane, over and above the padding"
+// in the language the app shows.
+func SettingEditorMarginNote() string { return In(i18n.Locale()).SettingEditorMarginNote() }
+
+// SettingEditorMarginNote says "How far the note's words stand from the right edge of its pane, over and above the padding"
+// in the language of msgs.
+func (msgs Messages) SettingEditorMarginNote() string {
+	return Catalog.Format(msgs.locale, "settingEditorMarginNote", nil)
+}
+
 // SettingCodeTheme says "Code theme"
 // in the language the app shows.
 func SettingCodeTheme() string { return In(i18n.Locale()).SettingCodeTheme() }

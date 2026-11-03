@@ -71,7 +71,8 @@ type settings struct {
 	indent                     float64
 	// How far the text of a pane stands from its edges: the note's own,
 	// and the preview's, whose foot and top are a knob of their own.
-	editorPad, previewPadX, previewPadY float64
+	editorPad, editorMargin  float64
+	previewPadX, previewPadY float64
 	// The knobs of asking a model: how long it may take, how often it
 	// is tried again, how much of a note it is shown, and how much a
 	// tool may answer.
@@ -398,6 +399,9 @@ func (s *appState) editorSettings(c *ui.Context) {
 	slider(c, locale.SettingEditorPadding(),
 		locale.SettingEditorPaddingNote(), &s.draft.editorPad,
 		float64(config.MinPadding), float64(config.MaxPadding))
+	slider(c, locale.SettingEditorMargin(),
+		locale.SettingEditorMarginNote(), &s.draft.editorMargin,
+		float64(config.DefaultMarginRight), float64(config.MaxMarginRight))
 	choiceNamed(c, locale.SettingCodeTheme(),
 		locale.SettingCodeThemeNote(), &s.draft.cfg.Highlight.Theme,
 		highlightThemes, highlightName)
@@ -607,6 +611,7 @@ func (st *settings) read(c *config.AppConfig) {
 	st.delay = float64(c.Editor.AutoSaveDelayMs)
 	st.indent = float64(c.Editor.Indent.TabSize)
 	st.editorPad = float64(c.Editor.PaddingX)
+	st.editorMargin = float64(c.Editor.MarginRight)
 	st.previewPadX = float64(c.Preview.PaddingX)
 	st.previewPadY = float64(c.Preview.PaddingY)
 	st.timeout = float64(c.Ai.TimeoutSecs)
@@ -632,6 +637,7 @@ func (st *settings) write(c *config.AppConfig) {
 	c.Editor.AutoSaveDelayMs = uint64(st.delay)
 	c.Editor.Indent.TabSize = uint32(st.indent)
 	c.Editor.PaddingX = whole32(st.editorPad)
+	c.Editor.MarginRight = whole32(st.editorMargin)
 	c.Preview.PaddingX = whole32(st.previewPadX)
 	c.Preview.PaddingY = whole32(st.previewPadY)
 	c.Ai.TimeoutSecs = whole(st.timeout)

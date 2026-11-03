@@ -115,6 +115,8 @@
   "settingLineHeightNote": "行与行之间的距离",
   "settingEditorPadding": "边距",
   "settingEditorPaddingNote": "正文到编辑区左右边缘的距离",
+  "settingEditorMargin": "右边距",
+  "settingEditorMarginNote": "正文到编辑区右边缘的距离，在左右留白之外再加这么多",
   "settingCodeTheme": "代码主题",
   "settingCodeThemeNote": "笔记中代码的配色",
   "settingPreviewPadding": "边距",

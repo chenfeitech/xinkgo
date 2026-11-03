@@ -77,6 +77,14 @@ const (
 	DefaultPaddingY uint32 = 12
 	MinPadding      uint32 = 4
 	MaxPadding      uint32 = 64
+	// MarginRight is how far the note's words may be made to stand from
+	// the right edge of its pane over and above the padding, in DIPs: a
+	// margin of the note's own, and not of the pane. None is asked for at
+	// a first start, for none is needed: the room the editor's own bar
+	// and the rail's buttons stand in is kept whether it is asked for or
+	// not.
+	DefaultMarginRight uint32 = 0
+	MaxMarginRight     uint32 = 120
 )
 
 // FontConfig is a font and how it is set.
@@ -122,10 +130,18 @@ type EditorConfig struct {
 	// PaddingX is how far the note's text stands from the sides of its
 	// pane, in DIPs: the same on both, so that a note reads as a column
 	// in the middle of the room it was given.
-	PaddingX uint32            `json:"padding_x"`
-	Font     FontConfig        `json:"font"`
-	Keymap   map[string]string `json:"keymap"`
-	DataFile DataFileConfig    `json:"data_file"`
+	PaddingX uint32 `json:"padding_x"`
+	// MarginRight is how far the note's words stand from the right edge
+	// of its pane over and above that padding, in DIPs: a margin of the
+	// note's own, and not of the pane, asked for when a note reads better
+	// with more room on that side than on the other, as it does widened
+	// over the preview, with the rail standing at that end of it. A line
+	// is broken short of it, and of what the editor's own bar and the
+	// rail's buttons stand in besides, whichever of the two is the wider.
+	MarginRight uint32            `json:"margin_right"`
+	Font        FontConfig        `json:"font"`
+	Keymap      map[string]string `json:"keymap"`
+	DataFile    DataFileConfig    `json:"data_file"`
 }
 
 // PreviewConfig is the Markdown preview's settings.
@@ -210,6 +226,7 @@ func Default() AppConfig {
 			ShowLineNumbers: false,
 			SoftWrap:        true,
 			PaddingX:        DefaultPaddingX,
+			MarginRight:     DefaultMarginRight,
 			Font:            monoFont(),
 			Keymap:          map[string]string{},
 			DataFile:        DataFileConfig{Indent: 2, MaxFormatBytes: 1_000_000},
@@ -497,6 +514,7 @@ func (c *AppConfig) Sanitize() {
 	e.AutoSaveDelayMs = clampU64(e.AutoSaveDelayMs, 200, 60000)
 	e.Indent.TabSize = clampU32(e.Indent.TabSize, 1, 16)
 	e.PaddingX = clampU32(e.PaddingX, MinPadding, MaxPadding)
+	e.MarginRight = minU32(e.MarginRight, MaxMarginRight)
 	e.Font.sanitize(monoFont())
 	// A key that is stored but would not be honoured is not stored.
 	keymap.Sanitize(e.Keymap)

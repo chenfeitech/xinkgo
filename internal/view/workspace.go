@@ -64,16 +64,18 @@ const (
 	// them and the editor's own scroll bar: the editor draws the bar over
 	// the last of what it is given, four DIPs from a line it breaks, and
 	// four DIPs is no room at all. The line is broken this much shorter
-	// than the room there is, so that the bar stands in the room the pane
-	// keeps beside its padding, and not against the words.
-	editorBarAir float32 = 10
+	// than the room there is — half as much again as it was, for the words
+	// stood nearer the bar than a note reads well beside it — so that the
+	// bar stands in the room the pane keeps beside its padding, and not
+	// against the words.
+	editorBarAir float32 = 15
 	// editorRailAir is the room the note's words keep beside the rail's
 	// buttons, on top of the padding, when its pane ends at the window's
 	// own edge, as the note's does widened over the preview: the buttons
 	// stand over that end of the pane, and half as much again as one of
-	// them is wide is no more than the note needs to read well beside
-	// them.
-	editorRailAir float32 = railWidth * 3 / 2
+	// them is wide — and half as much again as that — is no more than the
+	// note needs to read well beside them.
+	editorRailAir float32 = railWidth * 9 / 4
 	// layoutSettle is how long the panels stay as they were dragged
 	// before what the user chose is written down.
 	layoutSettle = 400 * time.Millisecond
@@ -719,15 +721,7 @@ func (w *Workspace) noteMinWidth() float32 {
 // the words stand four DIPs from it however wide the padding is.
 func (w *Workspace) wrapColumn(c *ui.Context, n *OpenNote) int {
 	room := w.editorWidth(c) - w.editorPadLeft() - w.editorPadRight()
-	room -= editorInsetLeft + editorInsetRight + editorBarAir
-	// Widened over the preview, or with no preview beside it at all, the
-	// note's pane ends at the window's own edge, and the rail's buttons
-	// stand over that end of it: the words keep their air as well as the
-	// padding, for the padding alone was chosen for a pane with a pane
-	// beside it and not the rail.
-	if w.notePaneAtRail() {
-		room -= editorRailAir
-	}
+	room -= editorInsetLeft + editorInsetRight + w.editorMarginRight()
 	char := w.editorCharWidth(n)
 	if char <= 0 {
 		return 0
@@ -747,6 +741,23 @@ func (w *Workspace) editorTheme(c *ui.Context) *ui.Theme {
 	t := *c.Theme()
 	t.Scrollbar = ui.Transparent
 	return &t
+}
+
+// editorMarginRight is the room the note's words keep from the right edge
+// of its pane, over and above the padding: the padding is the same on
+// either side of the note, and this is a margin of the note's own, asked
+// for when a note reads better with more room on that side, as it does
+// widened over the preview, with the rail standing at that end of it. A
+// line is broken short of it — and of what the editor's own bar and the
+// rail's buttons stand in besides, whichever of the two is the wider, for
+// those stand at that end of the pane whether the margin is asked for or
+// not.
+func (w *Workspace) editorMarginRight() float32 {
+	margin := editorBarAir
+	if w.notePaneAtRail() {
+		margin += editorRailAir
+	}
+	return max(margin, float32(w.Config.Editor.MarginRight))
 }
 
 // editorCharWidth is how wide a character of the note's font is: the
