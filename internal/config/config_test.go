@@ -209,6 +209,33 @@ func TestLoad_aFileThatNamesNoPaddingKeepsTheDefaultRoom(t *testing.T) {
 	}
 }
 
+// TestDefault_theNoteAsksForNoMarginOfItsOwn checks the margin the note
+// keeps of its own: none at a first start, for the room its words keep
+// from the right edge of the pane is the padding's to give, and the room
+// the editor's own bar and the rail's buttons stand in is kept besides.
+func TestDefault_theNoteAsksForNoMarginOfItsOwn(t *testing.T) {
+	cfg := Default()
+	if cfg.Editor.MarginRight != DefaultMarginRight {
+		t.Errorf("the note's margin is %d, want %d", cfg.Editor.MarginRight,
+			DefaultMarginRight)
+	}
+	if DefaultMarginRight != 0 {
+		t.Errorf("a first start asks for a margin of %d, want none:"+
+			" the padding is the room a note is given", DefaultMarginRight)
+	}
+}
+
+// TestSanitize_theMarginStaysWithinItsRange checks the limit of the margin:
+// a margin wider than the pane has room for is a pane of nothing but
+// margin, and is not asked for.
+func TestSanitize_theMarginStaysWithinItsRange(t *testing.T) {
+	cfg := load(t, `{"editor":{"margin_right":9999}}`)
+	if cfg.Editor.MarginRight != MaxMarginRight {
+		t.Errorf("the note's margin is %d, want %d", cfg.Editor.MarginRight,
+			MaxMarginRight)
+	}
+}
+
 // TestSanitize_thePaddingStaysWithinItsRange checks the limits of the room
 // a pane may keep: a pane whose text touches its edges is not one to read,
 // and one of nothing but room is no pane at all.

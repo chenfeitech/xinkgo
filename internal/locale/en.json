@@ -140,6 +140,8 @@
   "settingLineHeightNote": "How far apart the lines stand",
   "settingEditorPadding": "Padding",
   "settingEditorPaddingNote": "How far the note stands from the sides of its pane",
+  "settingEditorMargin": "Margin, right",
+  "settingEditorMarginNote": "How far the note's words stand from the right edge of its pane, over and above the padding",
   "settingCodeTheme": "Code theme",
   "settingCodeThemeNote": "The colors the code in a note is shown in",
   "settingPreviewPadding": "Padding",

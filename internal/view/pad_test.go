@@ -421,3 +421,40 @@ func TestPad_theBarOfTheNoteIsPaintedNoColor(t *testing.T) {
 		}
 	}
 }
+
+// TestPad_theMarginIsRoomTheWordsKeepBesidesThePadding checks the note's
+// own margin: room its words keep from the right edge of the pane, over
+// and above the padding, which is the same on either side. A wider margin
+// brings the words in from the right, and leaves the left alone.
+func TestPad_theMarginIsRoomTheWordsKeepBesidesThePadding(t *testing.T) {
+	w, tt := zoomTester(t, 900)
+	n := w.Tabs.ActiveNote()
+	n.Editor.Buffer.Set(strings.Repeat("M", 400))
+	w.Config.Editor.PaddingX = 29
+	w.Config.Editor.MarginRight = 0
+	tt.Frame()
+	ed, ok := tt.Find(editorLabel)
+	if !ok {
+		t.Fatal("the note is not drawn")
+	}
+	near := ed.X + editorInsetLeft +
+		float32(n.Editor.WrapColumn)*w.editorCharWidth(n)
+	w.Config.Editor.MarginRight = 40
+	tt.Frame()
+	far, ok := tt.Find(editorLabel)
+	if !ok {
+		t.Fatal("the note is not drawn with a margin")
+	}
+	if far.X != ed.X {
+		t.Errorf("the note begins at %v with the margin and %v without,"+
+			" want it to begin in the same place", far.X, ed.X)
+	}
+	words := far.X + editorInsetLeft +
+		float32(n.Editor.WrapColumn)*w.editorCharWidth(n)
+	// A line is broken at a whole character, so what the words come in
+	// by is the margin asked for, less what is left of a character.
+	if got := near - words; got < 30 {
+		t.Errorf("the margin brought the words in %v, want the 40 asked"+
+			" for, but for the rest of a character", got)
+	}
+}
