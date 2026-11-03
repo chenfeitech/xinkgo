@@ -521,7 +521,7 @@ func (w *Workspace) center(c *ui.Context) {
 	// written there is written under the rail's buttons, and its
 	// padding with it.
 	note := ui.Column(c).Grow(1).FillHeight()
-	if w.previewPaneWidth() <= 0 {
+	if w.notePaneAtRail() {
 		note.Padding(0, railStrip, 0, 0)
 	}
 	note.Children(func() {
@@ -647,14 +647,29 @@ func (w *Workspace) railBand() float32 {
 	return band
 }
 
-// railClear is how much of that room a row has to give up: the rail
-// hangs from the top of the window over whatever ends there, so a row as
-// wide as the window, as the tab bar is when the preview is shut, would
-// end its last button under it. The preview, which ends at the window's
-// own edge, is not in the way: what it leaves of the band is what a row
-// beside it gives up.
+// notePaneAtRail is whether it is the note's pane that ends at the
+// window's own right edge, which is the one the rail hangs over: it is
+// when no preview stands beside the note, its room given over to the
+// note or shut altogether. A preview of less than a DIP is no pane at
+// all, and is not drawn: the note reaches the edge all the same.
+func (w *Workspace) notePaneAtRail() bool {
+	return w.previewPaneWidth() < 1
+}
+
+// railClear is how much of the rail's room a row of the note's has to
+// give up beside what its pane keeps already: the pane ends where the
+// rail's strip begins, when it is the pane the rail hangs over, so what
+// is left for the row is the drawer's own room, which covers what it
+// covers. A row of a note with a preview beside it gives up nothing: the
+// preview stands between it and the rail.
 func (w *Workspace) railClear() float32 {
 	clear := w.railBand() - w.previewPaneWidth()
+	// What the row gives up is what is left of the band beside that:
+	// when the note's pane is the one the rail hangs over, its pane
+	// keeps the strip already, and what is left is the drawer's room.
+	if w.notePaneAtRail() {
+		clear -= railStrip
+	}
 	if clear < 0 {
 		return 0
 	}
@@ -943,12 +958,28 @@ func (w *Workspace) toolbarDivider(c *ui.Context) {
 // rail and its drawer leave of it besides.
 func (w *Workspace) editorWidth(c *ui.Context) float32 {
 	width, _ := c.Size()
-	// Given the whole window, the note is as wide as it, less what the
-	// rail and its drawer keep to themselves.
-	if w.zoom == zoomEditor {
-		return max(width-w.railClear(), 0)
+	// What the pane keeps at the window's right edge: the rail's strip,
+	// when the note is the pane the rail hangs over, and the drawer's
+	// room on top of it while one stands open beside the rail.
+	clear := w.railClear()
+	if w.notePaneAtRail() {
+		clear += railStrip
 	}
-	return max(width-w.Layout.Left-w.previewPaneWidth()-w.railClear(), 0)
+	// Given the whole window, the note is as wide as it, less that.
+	if w.zoom == zoomEditor {
+		return max(width-clear, 0)
+	}
+	// Less the panels on either side, and the lines that part them from
+	// the note: a button of the row is to stand over the note, and not
+	// past the end of it.
+	side := w.Layout.Left + w.previewPaneWidth()
+	if w.Layout.Left > 0 {
+		side += dividerGrip
+	}
+	if w.previewPaneWidth() >= 1 {
+		side += dividerGrip
+	}
+	return max(width-side-clear, 0)
 }
 
 // dataBar is what the toolbar says of a file of data: which of the three

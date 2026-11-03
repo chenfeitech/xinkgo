@@ -22,13 +22,18 @@ const (
 	drawerFoot          = railGap
 	railWidth   float32 = 34
 	railGap     float32 = 6
+	// railLead is the air a pane keeps between what it writes and the
+	// rail's buttons: they stand railGap in from the window's edge, and
+	// what is written hard against them is not read beside them but
+	// under them, which is no plainer than writing on them.
+	railLead = 8
 	// railStrip is the room the rail's own buttons take at the right
 	// edge of the window: the strip no pane writes in, for the buttons
 	// have no background of their own and what is written under them is
 	// lost. The drawer beside them is a panel of its own, with a
 	// background and a shadow, and covers what it covers: it is not
 	// counted here, so that opening it does not move what is written.
-	railStrip = railWidth + railGap + 2
+	railStrip = railWidth + railGap + railLead
 )
 
 // How a link in the drawer says which line of which note it goes to, and
