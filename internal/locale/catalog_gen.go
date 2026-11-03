@@ -574,6 +574,166 @@ func (msgs Messages) PreviewExportLabel() string {
 	return Catalog.Format(msgs.locale, "previewExportLabel", nil)
 }
 
+// WechatStyle says "WeChat"
+// in the language the app shows.
+func WechatStyle() string { return In(i18n.Locale()).WechatStyle() }
+
+// WechatStyle says "WeChat"
+// in the language of msgs.
+func (msgs Messages) WechatStyle() string {
+	return Catalog.Format(msgs.locale, "wechatStyle", nil)
+}
+
+// WechatStyleLabel says "Set this note out as an article for WeChat: what you see is what you paste into its editor"
+// in the language the app shows.
+func WechatStyleLabel() string { return In(i18n.Locale()).WechatStyleLabel() }
+
+// WechatStyleLabel says "Set this note out as an article for WeChat: what you see is what you paste into its editor"
+// in the language of msgs.
+func (msgs Messages) WechatStyleLabel() string {
+	return Catalog.Format(msgs.locale, "wechatStyleLabel", nil)
+}
+
+// WechatStyleMarkdown says "Plain Markdown"
+// in the language the app shows.
+func WechatStyleMarkdown() string { return In(i18n.Locale()).WechatStyleMarkdown() }
+
+// WechatStyleMarkdown says "Plain Markdown"
+// in the language of msgs.
+func (msgs Messages) WechatStyleMarkdown() string {
+	return Catalog.Format(msgs.locale, "wechatStyleMarkdown", nil)
+}
+
+// WechatCopy says "Copy"
+// in the language the app shows.
+func WechatCopy() string { return In(i18n.Locale()).WechatCopy() }
+
+// WechatCopy says "Copy"
+// in the language of msgs.
+func (msgs Messages) WechatCopy() string {
+	return Catalog.Format(msgs.locale, "wechatCopy", nil)
+}
+
+// WechatCopyLabel says "Copy this note as it is set out, to paste into the editor of WeChat"
+// in the language the app shows.
+func WechatCopyLabel() string { return In(i18n.Locale()).WechatCopyLabel() }
+
+// WechatCopyLabel says "Copy this note as it is set out, to paste into the editor of WeChat"
+// in the language of msgs.
+func (msgs Messages) WechatCopyLabel() string {
+	return Catalog.Format(msgs.locale, "wechatCopyLabel", nil)
+}
+
+// SayWechatCopied says "copied as {name}"
+// in the language the app shows.
+func SayWechatCopied(name string) string { return In(i18n.Locale()).SayWechatCopied(name) }
+
+// SayWechatCopied says "copied as {name}"
+// in the language of msgs.
+func (msgs Messages) SayWechatCopied(name string) string {
+	return Catalog.Format(msgs.locale, "sayWechatCopied", map[string]any{"name": name})
+}
+
+// SayWechatNoNote says "there is no note to set out"
+// in the language the app shows.
+func SayWechatNoNote() string { return In(i18n.Locale()).SayWechatNoNote() }
+
+// SayWechatNoNote says "there is no note to set out"
+// in the language of msgs.
+func (msgs Messages) SayWechatNoNote() string {
+	return Catalog.Format(msgs.locale, "sayWechatNoNote", nil)
+}
+
+// SayWechatNoWebView says "showing a note as an article for WeChat needs the webview of this machine, which is not there"
+// in the language the app shows.
+func SayWechatNoWebView() string { return In(i18n.Locale()).SayWechatNoWebView() }
+
+// SayWechatNoWebView says "showing a note as an article for WeChat needs the webview of this machine, which is not there"
+// in the language of msgs.
+func (msgs Messages) SayWechatNoWebView() string {
+	return Catalog.Format(msgs.locale, "sayWechatNoWebView", nil)
+}
+
+// SayWechatFailed says "the note could not be copied"
+// in the language the app shows.
+func SayWechatFailed() string { return In(i18n.Locale()).SayWechatFailed() }
+
+// SayWechatFailed says "the note could not be copied"
+// in the language of msgs.
+func (msgs Messages) SayWechatFailed() string {
+	return Catalog.Format(msgs.locale, "sayWechatFailed", nil)
+}
+
+// GroupWechat says "WeChat"
+// in the language the app shows.
+func GroupWechat() string { return In(i18n.Locale()).GroupWechat() }
+
+// GroupWechat says "WeChat"
+// in the language of msgs.
+func (msgs Messages) GroupWechat() string {
+	return Catalog.Format(msgs.locale, "groupWechat", nil)
+}
+
+// SettingWechatDir says "Folder of the styles"
+// in the language the app shows.
+func SettingWechatDir() string { return In(i18n.Locale()).SettingWechatDir() }
+
+// SettingWechatDir says "Folder of the styles"
+// in the language of msgs.
+func (msgs Messages) SettingWechatDir() string {
+	return Catalog.Format(msgs.locale, "settingWechatDir", nil)
+}
+
+// SettingWechatDirNote says "One file of JSON to a style; empty is the app's own folder, {dir}"
+// in the language the app shows.
+func SettingWechatDirNote(dir string) string { return In(i18n.Locale()).SettingWechatDirNote(dir) }
+
+// SettingWechatDirNote says "One file of JSON to a style; empty is the app's own folder, {dir}"
+// in the language of msgs.
+func (msgs Messages) SettingWechatDirNote(dir string) string {
+	return Catalog.Format(msgs.locale, "settingWechatDirNote", map[string]any{"dir": dir})
+}
+
+// SettingWechatDirBrowse says "Browse…"
+// in the language the app shows.
+func SettingWechatDirBrowse() string { return In(i18n.Locale()).SettingWechatDirBrowse() }
+
+// SettingWechatDirBrowse says "Browse…"
+// in the language of msgs.
+func (msgs Messages) SettingWechatDirBrowse() string {
+	return Catalog.Format(msgs.locale, "settingWechatDirBrowse", nil)
+}
+
+// DialogWechatDir says "Choose the folder of the styles"
+// in the language the app shows.
+func DialogWechatDir() string { return In(i18n.Locale()).DialogWechatDir() }
+
+// DialogWechatDir says "Choose the folder of the styles"
+// in the language of msgs.
+func (msgs Messages) DialogWechatDir() string {
+	return Catalog.Format(msgs.locale, "dialogWechatDir", nil)
+}
+
+// WechatThemesNone says "no styles in that folder yet"
+// in the language the app shows.
+func WechatThemesNone() string { return In(i18n.Locale()).WechatThemesNone() }
+
+// WechatThemesNone says "no styles in that folder yet"
+// in the language of msgs.
+func (msgs Messages) WechatThemesNone() string {
+	return Catalog.Format(msgs.locale, "wechatThemesNone", nil)
+}
+
+// WechatThemesBuiltin says "besides the {count} the app was made with"
+// in the language the app shows.
+func WechatThemesBuiltin(count string) string { return In(i18n.Locale()).WechatThemesBuiltin(count) }
+
+// WechatThemesBuiltin says "besides the {count} the app was made with"
+// in the language of msgs.
+func (msgs Messages) WechatThemesBuiltin(count string) string {
+	return Catalog.Format(msgs.locale, "wechatThemesBuiltin", map[string]any{"count": count})
+}
+
 // SayExportWritten says "written out to {name}"
 // in the language the app shows.
 func SayExportWritten(name string) string { return In(i18n.Locale()).SayExportWritten(name) }

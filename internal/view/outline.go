@@ -14,14 +14,20 @@ import (
 // How wide the drawer is, and where it hangs. Its height is not one of
 // them: it is as tall as the panels it stands over. It hangs railGap in
 // from the top, the right and the foot of them, as the preview begins at
-// the top of the window and not lower down, and its buttons hang from
-// the top of it.
+// the top of the window and not lower down.
+//
+// Its buttons hang lower than the drawer does: the pane they float over
+// keeps a row at its own top, whose other end is the corner the pane's
+// own buttons stand in — the way out of a note, and the way out of the
+// preview as an article for WeChat — and the rail is not to stand on
+// them. The drawer itself stands level with the pane all the same.
 const (
-	drawerWidth float32 = 300
-	drawerTop           = railGap
-	drawerFoot          = railGap
-	railWidth   float32 = 34
-	railGap     float32 = 6
+	drawerWidth    float32 = 300
+	drawerTop              = railGap
+	drawerFoot             = railGap
+	railButtonsTop float32 = 34
+	railWidth      float32 = 34
+	railGap        float32 = 6
 	// railLead is the air a pane keeps between what it writes and the
 	// rail's buttons: they stand railGap in from the window's edge, and
 	// what is written hard against them is not read beside them but
@@ -34,6 +40,15 @@ const (
 	// background and a shadow, and covers what it covers: it is not
 	// counted here, so that opening it does not move what is written.
 	railStrip = railWidth + railGap + railLead
+)
+
+// How the buttons of the rail are marked, each one a character that says
+// what it opens: the headings of the note, who points at it, and what it
+// is tagged with.
+const (
+	drawerOutlineMark = "◫"
+	drawerLinksMark   = "⇄"
+	drawerTagsMark    = "＃"
 )
 
 // How a link in the drawer says which line of which note it goes to, and
@@ -66,18 +81,21 @@ func (w *Workspace) rail(c *ui.Context) {
 	// its place when the panels are dragged wider or shut. It hangs from
 	// the top of the window, where the preview begins, and its buttons
 	// under it: a drawer as tall as the window is must not push them
-	// down the note.
+	// down the note. It hangs below the row at the top of that pane,
+	// whose buttons it would otherwise cover.
 	ui.Row(c).Absolute().Right(railGap).Top(drawerTop).Bottom(drawerFoot).
 		AlignItems(ui.Start).Children(func() {
 		if w.drawer != "" {
 			w.drawerPanel(c)
 		}
-		ui.Column(c).Width(railWidth).Children(func() {
-			w.railButton(c, drawerOutline, "◫",
+		ui.Column(c).Width(railWidth).
+			Padding(railButtonsTop, 0).Children(func() {
+			w.railButton(c, drawerOutline, drawerOutlineMark,
 				locale.DrawerOutlineLabel())
-			w.railButton(c, drawerLinks, "⇄",
+			w.railButton(c, drawerLinks, drawerLinksMark,
 				locale.DrawerLinksLabel())
-			w.railButton(c, drawerTags, "＃", locale.DrawerTagsLabel())
+			w.railButton(c, drawerTags, drawerTagsMark,
+				locale.DrawerTagsLabel())
 			// The two panes given the whole window: they stand on the
 			// rail, which is the window's own and hangs over every
 			// pane, so that the way out is there whichever pane has

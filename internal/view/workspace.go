@@ -21,6 +21,7 @@ import (
 	"github.com/helightxu/xinkgo/internal/state"
 	"github.com/helightxu/xinkgo/internal/sync"
 	"github.com/helightxu/xinkgo/internal/theme"
+	"github.com/helightxu/xinkgo/internal/wechat"
 )
 
 // How wide a side panel may be dragged. Below the narrowest there is
@@ -113,6 +114,17 @@ type Workspace struct {
 	// followed from the settings.
 	aiPicked bool
 
+	// WechatPage is the page the preview shows the note in when it is
+	// set out as an article for WeChat, as internal/app filled it: the
+	// app is the one that makes it, of the window and on the main
+	// thread, and the one that fills it, for laying a note out is not
+	// the work of a frame. It is nil until a style is chosen, and where
+	// the machine has no webview at all.
+	WechatPage ui.NativeWebView
+	// WechatThemes are the styles a note may be set out in for WeChat:
+	// the ones the app was made with, and the ones the user has put in
+	// its folder, in the order the menu shows them.
+	WechatThemes []wechat.Theme
 	// OnOpenExternally opens a file with the program the machine has
 	// for it, as a PDF is previewed: the window shows it, and does not
 	// pretend to be the editor of it.
@@ -121,6 +133,15 @@ type Workspace struct {
 	// program reads: a page of HTML, or the PDF printed of it. It is the
 	// app that asks where it is to be put, and that writes it.
 	OnExport func(kind string)
+	// OnWechatStyle is told the style the preview is to set the note
+	// out in for WeChat: "" for the note as Markdown reads it, and the
+	// id of one of the styles for an article. It is the app that keeps
+	// the choice, and that fills the page the article stands in.
+	OnWechatStyle func(id string)
+	// OnWechatCopy puts the note on the clipboard as it is set out, to
+	// be pasted into the editor of WeChat: it is the app that reads the
+	// note's pictures, and that owns the clipboard.
+	OnWechatCopy func()
 	// OnOpenVault opens the dialog that chooses a folder, when there is
 	// no vault yet.
 	OnOpenVault func()
@@ -1166,6 +1187,14 @@ func (w *Workspace) previewPanel(c *ui.Context, width float32) {
 		if n == nil {
 			return
 		}
+		// A style chosen, the preview shows the note as an article for
+		// WeChat: what is seen is what the copy of it pastes, and it is
+		// seen as on the screen of a phone.
+		if w.wechatShown() {
+			room, _ := c.Size()
+			w.wechatArticle(c, room, width)
+			return
+		}
 		opts := w.markdownOptions(c, n.Path)
 		ui.Scroll(c).TrackScroll(&w.previewScroll).Fill().Children(func() {
 			room, _ := c.Size()
@@ -1269,6 +1298,7 @@ func (w *Workspace) previewHead(c *ui.Context) {
 		Gap(4).Padding(0, cornerGap).Children(func() {
 		w.spreadButton(c)
 		ui.Box(c).Grow(1)
+		w.wechatButtons(c)
 	})
 }
 
@@ -1323,6 +1353,7 @@ func (w *Workspace) previewBar(c *ui.Context) {
 		Padding(4, 6).PaddingEnd(w.railBand() - railStrip + 6).
 		Children(func() {
 			ui.Box(c).Grow(1)
+			w.wechatButtons(c)
 			w.zoomButton(c, "zoom-back", zoomPreview, iconZoomPreview,
 				locale.ZoomBack(), locale.ZoomBackTooltip())
 		})

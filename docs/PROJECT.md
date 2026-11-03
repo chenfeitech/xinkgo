@@ -61,6 +61,7 @@ xinkgo/
 │   ├── view/                窗口界面：由状态绘制（home.go + home_test.go）
 │   ├── config/              用户配置：读 / 写 / 校验（config.json）
 │   ├── export/              导出：把笔记写成自成一页的 HTML（PDF 由它打印）
+│   ├── wechat/              公众号排版：样式表（内建 + 用户目录 JSON）与行内样式渲染
 │   ├── theme/               配色方案表：每套方案明暗两套取色（纯数据 + ui）
 │   ├── logging/             slog 初始化（开发到终端，安装版到文件）
 │   └── sysinfo/             版本与运行环境信息（纯数据）

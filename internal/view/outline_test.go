@@ -106,8 +106,9 @@ func TestDrawerPanel_theDrawerStandsOnItsOwnFace(t *testing.T) {
 }
 
 // TestRailView_theButtonsKeepToTheTop checks that a drawer as tall as the
-// window does not take the buttons down with it: they hang from the top
-// of the rail, and stand there whether a drawer is open or not.
+// window does not take the buttons down with it: they hang below the row
+// at the top of the pane they float over, and stand there whether a
+// drawer is open or not.
 func TestRailView_theButtonsKeepToTheTop(t *testing.T) {
 	const width, preview = float32(1000), float32(320)
 	shut := railOf(t, width, preview, "")
@@ -116,9 +117,9 @@ func TestRailView_theButtonsKeepToTheTop(t *testing.T) {
 		t.Errorf("the buttons stand at %v with the drawer shut and %v "+
 			"with it open, want them not to move", shut.Y, open.Y)
 	}
-	if shut.Y != drawerTop {
-		t.Errorf("the buttons stand at %v, want them at the top of the "+
-			"rail, %v", shut.Y, drawerTop)
+	if want := drawerTop + railButtonsTop; shut.Y != want {
+		t.Errorf("the buttons stand at %v, want them %v below the top "+
+			"of the rail, %v", shut.Y, railButtonsTop, want)
 	}
 }
 

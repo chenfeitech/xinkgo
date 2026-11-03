@@ -1,6 +1,7 @@
 package app
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/egoist/mygo/ui"
@@ -104,6 +105,30 @@ func TestSettingsView_choosingAGroupShowsOnlyItsRows(t *testing.T) {
 	}
 	if tt.HasText("Show every file") {
 		t.Error("the basic rows are still on show")
+	}
+}
+
+// TestSettingsView_theStylesOfTheFolderAreSaidThere checks the folder of
+// the styles in the settings: the row that names it, and under it a row
+// to a style of the folder, saying its name, which of it this is, and who
+// made it.
+func TestSettingsView_theStylesOfTheFolderAreSaidThere(t *testing.T) {
+	s := &appState{}
+	tt := settingsShown(t, s)
+	dir := t.TempDir()
+	write(t, filepath.Join(dir, "mine.json"), []byte(
+		`{"id":"mine","name":"我的样式","version":"2.0",`+
+			`"author":"谁做的","description":"绿底红字"}`))
+	s.draft.tab = tabPreview
+	s.draft.wechatDir = dir
+	s.draft.wechatRead = "" // read again, as a folder named anew is
+	tt.Frame()
+	for _, want := range []string{
+		locale.SettingWechatDir(), "我的样式", "2.0 · 谁做的 — 绿底红字",
+	} {
+		if !tt.HasText(want) {
+			t.Errorf("the window says nothing of %q", want)
+		}
 	}
 }
 

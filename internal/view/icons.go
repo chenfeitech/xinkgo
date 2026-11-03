@@ -52,6 +52,12 @@ var (
 	// A spark, as the others are: the picture of what a model is asked
 	// for, which is not a talk but a favour. Lucide's "sparkles".
 	iconAi = svgIcon(`<path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/>`)
+
+	// The way out of the preview as an article for WeChat: the style it
+	// is set out in, and the copy of it that is pasted into the editor
+	// of WeChat. Both are Lucide's, as the rest are.
+	iconWechat = svgIcon(`<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>`)
+	iconCopy   = svgIcon(`<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>`)
 )
 
 // The pictures of the groups of the settings, as the list on the left

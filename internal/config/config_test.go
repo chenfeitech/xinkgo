@@ -292,6 +292,50 @@ func TestSanitize_unknownEnumFallsBack(t *testing.T) {
 	}
 }
 
+// TestDefaults_theNoteIsReadAsMarkdown checks the style a note is set out
+// in for WeChat on a first start: none, which is the note read as
+// Markdown reads it.
+func TestDefaults_theNoteIsReadAsMarkdown(t *testing.T) {
+	if got := Default().Preview.Wechat; got != "" {
+		t.Errorf("wechat %q, want none", got)
+	}
+}
+
+// TestDefaults_theStylesAreReadFromTheAppsOwnFolder checks a first start:
+// no folder of styles is named, so the styles are read from the folder of
+// the app's own.
+func TestDefaults_theStylesAreReadFromTheAppsOwnFolder(t *testing.T) {
+	if got := Default().Preview.WechatThemeDir; got != "" {
+		t.Errorf("the folder of the styles is %q, want the app's own", got)
+	}
+}
+
+// TestSanitize_theFolderOfTheStylesIsNamedPlainly checks the folder the
+// styles are read from: written as a folder is written, and empty for a
+// name of nothing but room.
+func TestSanitize_theFolderOfTheStylesIsNamedPlainly(t *testing.T) {
+	cfg := load(t, `{"preview":{"wechat_theme_dir":" /styles "}}`)
+	if cfg.Preview.WechatThemeDir != "/styles" {
+		t.Errorf("the folder is %q, want /styles", cfg.Preview.WechatThemeDir)
+	}
+	if cfg := load(t, `{"preview":{"wechat_theme_dir":"   "}}`); cfg.Preview.WechatThemeDir != "" {
+		t.Errorf("the folder is %q, want the app's own",
+			cfg.Preview.WechatThemeDir)
+	}
+}
+
+// TestSanitize_theStyleOfWeChatIsNamedPlainly checks the name of a style:
+// the app is told the styles by a folder of its own, so all that is asked
+// of the file is that it name one without the room around it.
+func TestSanitize_theStyleOfWeChatIsNamedPlainly(t *testing.T) {
+	if cfg := load(t, `{"preview":{"wechat":" jade "}}`); cfg.Preview.Wechat != "jade" {
+		t.Errorf("wechat %q, want jade", cfg.Preview.Wechat)
+	}
+	if cfg := load(t, `{"preview":{"wechat":"   "}}`); cfg.Preview.Wechat != "" {
+		t.Errorf("wechat %q, want none", cfg.Preview.Wechat)
+	}
+}
+
 // TestLoad_theLanguageOfAMachineIsFollowed checks a first start: no
 // language is chosen, so the app speaks the one the machine reads.
 func TestLoad_theLanguageOfAMachineIsFollowed(t *testing.T) {

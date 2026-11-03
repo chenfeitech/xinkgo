@@ -148,6 +148,16 @@ type PreviewConfig struct {
 	MaxWidth        uint32 `json:"max_width"`
 	Density         string `json:"density"`
 	DebugScrollSync bool   `json:"debug_scroll_sync"`
+	// Wechat is the style a note is set out in for WeChat, as
+	// internal/wechat names them: "" for the note as Markdown reads it,
+	// which is the way a first start has it, and the way it is read
+	// again when a style the user has taken away is named here.
+	Wechat string `json:"wechat"`
+	// WechatThemeDir is the folder the styles of WeChat are read from:
+	// one file of JSON to a style, which is how a style is made without
+	// touching the app. Empty is the folder of the app's own, which is
+	// the way a first start has it.
+	WechatThemeDir string `json:"wechat_theme_dir"`
 }
 
 // HighlightConfig is the theme of code blocks.
@@ -511,6 +521,13 @@ func (c *AppConfig) Sanitize() {
 	if !oneOf(p.Density, DensityCompact, DensityNormal, DensityRelaxed) {
 		p.Density = DensityNormal
 	}
+	// A style of WeChat is a name the app is told by a folder of its own,
+	// and not one this package knows: whether the name is one of them is
+	// for the app to say, and all that is asked of the file is that it
+	// names one plainly, and the folder it is read from as a folder is
+	// written.
+	p.Wechat = strings.TrimSpace(p.Wechat)
+	p.WechatThemeDir = strings.TrimSpace(p.WechatThemeDir)
 
 	if !oneOf(c.Highlight.Theme, HighlightXink, HighlightOcean,
 		HighlightSolarized) {

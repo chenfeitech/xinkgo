@@ -60,6 +60,16 @@ type appState struct {
 	// win is the window the workspace is drawn in, kept so that a second
 	// launch can bring it back rather than open another.
 	win *mygo.Window
+	// wechatView is the page the preview shows a note in when it is set
+	// out as an article for WeChat: made of win the first time a style
+	// is chosen, and kept, for a page is not made again and again.
+	wechatView *mygo.WebView
+	// wechatSeq is which filling of that page was asked for last, and
+	// wechatUp whether the window is up, and the note on show with it:
+	// only the last filling is put in the page, and none before the
+	// window is.
+	wechatSeq uint64
+	wechatUp  bool
 	// settingsWin is the window of the settings, which is where the
 	// vaults are kept too: one of it, brought back rather than opened
 	// again.
@@ -153,6 +163,12 @@ func Run() error {
 		})
 		openMainWindow()
 		st.restore()
+		// A style chosen the last time the app ran is the one the note
+		// is set out in now. The window is up, and the notes of the
+		// last run are open again: the one on show is set out, and not
+		// each of them as they were opened.
+		st.wechatUp = true
+		st.showWechat()
 		if err := st.watchVault(); err != nil {
 			slog.Warn("could not watch the vault", "err", err)
 		}
@@ -249,7 +265,12 @@ func boot(app *mygo.Application) (*appState, error) {
 	ws.Tree.OnOpenFolder = st.openVaultDialog
 	// What is open is written down every time it changes, so that a
 	// crash loses the words of a note and not which notes were open.
-	ws.Tabs.OnChange = st.saveOpenNotes
+	// Another note on show is another article for WeChat, if that is
+	// how the preview is set out.
+	ws.Tabs.OnChange = func() {
+		st.saveOpenNotes()
+		st.refreshWechat()
+	}
 	// The widths of the panels are written once a drag has settled, and
 	// not once a frame while it goes on.
 	ws.OnLayoutChanged = st.saveLayout
@@ -275,8 +296,17 @@ func boot(app *mygo.Application) (*appState, error) {
 	// A note is written out by the app: it is the app that asks where
 	// the file is to go, and that puts it there.
 	ws.OnExport = st.exportNote
+	// A note set out as an article for WeChat, and the styles it may be
+	// set out in: the app keeps the choice, fills the page, and owns
+	// the clipboard it is copied to.
+	st.loadWechatThemes()
+	ws.OnWechatStyle = st.setWechatStyle
+	ws.OnWechatCopy = st.copyWechat
 	ws.Tabs.OnSave = func(path string) {
 		slog.Debug("saved", "path", path)
+		// What is saved is what is set out: the article is laid out
+		// again, so that it is the note as it stands now.
+		st.refreshWechat()
 	}
 	slog.Info("starting", "data", dir, "development", development())
 	return st, nil
@@ -497,6 +527,9 @@ func (s *appState) applyConfig() {
 		s.shownAll = s.config.Basic.ShowAllFiles
 		s.rescan()
 	}
+	// The styles of WeChat are read from a folder the user names, which
+	// this may have changed.
+	s.loadWechatThemes()
 	// The menu says what the keys are, and the keys may have changed.
 	s.refreshMenu()
 }

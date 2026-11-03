@@ -25,6 +25,7 @@
 | `internal/config` | `config.json` 的读、写、校验 | 依赖应用对象（目录由参数传入） |
 | `internal/theme` | 配色方案表：每套方案明暗两套取色，视图上色用 | 依赖 `config` / `app`（它是纯数据，只依赖 `ui`） |
 | `internal/export` | 把笔记写成自成一页的 HTML（PDF 由系统 webview 打印它） | 读文件、弹对话框（那些是 `internal/app` 的事） |
+| `internal/wechat` | 公众号排版：样式表与行内样式渲染（剪贴板里的 HTML 片段） | 读笔记的图片、写剪贴板（那些是 `internal/app` 的事） |
 | `internal/logging` | 配置 slog 的默认 logger | 业务日志之外的输出策略 |
 | `internal/sysinfo` | 版本与环境信息（纯数据） | 任何 I/O |
 

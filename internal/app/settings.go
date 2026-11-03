@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strconv"
+	"strings"
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
@@ -14,7 +16,12 @@ import (
 	"github.com/helightxu/xinkgo/internal/locale"
 	"github.com/helightxu/xinkgo/internal/theme"
 	"github.com/helightxu/xinkgo/internal/view"
+	"github.com/helightxu/xinkgo/internal/wechat"
 )
+
+// How wide the row that names the folder of the styles is: as wide as a
+// path written in it is likely to be, and no wider.
+const wechatDirWidth float32 = 260
 
 // The options a setting may be one of, as the window says them and as
 // they are kept.
@@ -72,6 +79,18 @@ type settings struct {
 	tries, backoff      float64
 	steps               float64
 	ctxChars, toolChars float64
+	// wechatDir is the folder the styles of WeChat are read from, as it
+	// is being written in the row that names it, and wechatRead the one
+	// the styles below it were read from: a folder is read again when
+	// the user names another, and not once a frame as they write. The
+	// styles, and the files of the folder that are no styles, are what
+	// the last reading of it gave; wechatBase is the folder of the app's
+	// own, named when the row is empty.
+	wechatDir    string
+	wechatRead   string
+	wechatThemes []wechat.Theme
+	wechatBad    []string
+	wechatBase   string
 	// scroll is where the window is scrolled to: there is more in it
 	// than fits.
 	scroll ui.ScrollState
@@ -186,7 +205,8 @@ func (s *appState) openSettingsTab(tab string) {
 	if tab == "" {
 		tab = tabBasic
 	}
-	s.draft = settings{cfg: s.config, tab: tab}
+	s.draft = settings{cfg: s.config, tab: tab,
+		wechatBase: filepath.Join(s.dir, wechatFolder)}
 	s.draft.read(&s.config)
 	s.settingsWin = mygo.NewWindow(mygo.WindowOptions{
 		Title:     Name + " " + locale.TitleSettings(),
@@ -413,6 +433,90 @@ func (s *appState) previewSettings(c *ui.Context) {
 			locale.ExportImagesNote(), &s.draft.cfg.Export.Images,
 			exportImages, exportImagesName)
 	})
+	group(c, locale.GroupWechat(), func() {
+		s.wechatDirField(c)
+		s.wechatThemeRows(c)
+	})
+}
+
+// wechatDirField is the folder the styles of WeChat are read from: named
+// by hand, or asked of the machine with the button beside it. One file of
+// JSON in it is one style, so a folder of one's own is how a style is
+// added, and shared, without touching the app.
+func (s *appState) wechatDirField(c *ui.Context) {
+	th := c.Theme()
+	buttons(c, locale.SettingWechatDir(),
+		locale.SettingWechatDirNote(s.wechatDir()), func() {
+			ui.Row(c).Gap(th.Space(1)).AlignItems(ui.Center).
+				Children(func() {
+					ui.TextInput(c, &s.draft.wechatDir).
+						Placeholder(s.wechatDir()).Width(wechatDirWidth)
+					if ui.Button(c.Key("wechat-dir"),
+						locale.SettingWechatDirBrowse()).Clicked() {
+						s.chooseWechatDir()
+					}
+				})
+		})
+}
+
+// wechatThemeRows is what the folder named above holds: a row to a style,
+// saying its name, which of it this is, who made it, and what it says of
+// itself; and after them the files of the folder that are no styles, and
+// why. A folder is read again when another one is named, and not once a
+// frame while it is being written.
+func (s *appState) wechatThemeRows(c *ui.Context) {
+	th := c.Theme()
+	if s.draft.wechatRead != s.draft.wechatDir {
+		s.draft.wechatRead = s.draft.wechatDir
+		s.draft.wechatThemes, s.draft.wechatBad = wechat.OfDir(
+			s.draft.wechatDirOf())
+	}
+	themes, bad := s.draft.wechatThemes, s.draft.wechatBad
+	if len(themes) == 0 && len(bad) == 0 {
+		field(c, locale.WechatThemesNone(), "", func() {})
+		return
+	}
+	for _, t := range themes {
+		field(c, t.Name, wechatByOf(t), func() {})
+	}
+	if len(themes) > 0 {
+		ui.Column(c).FillWidth().Children(func() {
+			ui.Text(c, locale.WechatThemesBuiltin(
+				strconv.Itoa(len(wechat.Builtin())))).
+				FontSize(th.FontSize - 1).TextColor(th.TextMuted)
+		})
+	}
+	// What the folder holds that is no style: a file that will not
+	// read, or that names no id, or whose id another has taken.
+	for _, why := range bad {
+		ui.Column(c).FillWidth().Children(func() {
+			ui.Text(c, why).FontSize(th.FontSize - 1).
+				TextColor(th.Danger)
+		})
+	}
+}
+
+// wechatByOf is what a row of a style says under its name: which of it
+// this is, and who made it, when its file says, and what it says of
+// itself when it says anything at all.
+func wechatByOf(t wechat.Theme) string {
+	var b strings.Builder
+	if t.Version != "" {
+		b.WriteString(t.Version)
+	}
+	if t.Author != "" {
+		if b.Len() > 0 {
+			b.WriteString(" · ")
+		}
+		b.WriteString(t.Author)
+	}
+	if t.Description != "" {
+		if b.Len() > 0 {
+			b.WriteString(" — ")
+		}
+		b.WriteString(t.Description)
+	}
+	return b.String()
 }
 
 // configFile is the settings themselves: kept as a file, given away and
@@ -512,6 +616,11 @@ func (st *settings) read(c *config.AppConfig) {
 	st.steps = float64(c.Ai.MaxSteps)
 	st.ctxChars = float64(c.Ai.MaxContextChars)
 	st.toolChars = float64(c.Ai.MaxToolChars)
+	st.wechatDir = c.Preview.WechatThemeDir
+	// What the folder named holds is read now, and again only when
+	// another folder is named: not once a frame as the row is written.
+	st.wechatThemes, st.wechatBad = wechat.OfDir(st.wechatDirOf())
+	st.wechatRead = st.wechatDir
 }
 
 func (st *settings) write(c *config.AppConfig) {
@@ -532,6 +641,17 @@ func (st *settings) write(c *config.AppConfig) {
 	c.Ai.MaxSteps = whole(st.steps)
 	c.Ai.MaxContextChars = whole(st.ctxChars)
 	c.Ai.MaxToolChars = whole(st.toolChars)
+	c.Preview.WechatThemeDir = strings.TrimSpace(st.wechatDir)
+}
+
+// wechatDirOf is the folder the styles are read from, as the row names
+// it: the one written there, and the folder of the app's own when it is
+// left empty.
+func (st *settings) wechatDirOf() string {
+	if dir := strings.TrimSpace(st.wechatDir); dir != "" {
+		return dir
+	}
+	return st.wechatBase
 }
 
 // whole is a number as a whole one: these settings count in whole

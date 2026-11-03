@@ -54,6 +54,43 @@
   "exportImagesNone": "Left out",
   "previewExport": "Export",
   "previewExportLabel": "Write this note out as a page of HTML, or as a PDF",
+  "wechatStyle": "WeChat",
+  "wechatStyleLabel": "Set this note out as an article for WeChat: what you see is what you paste into its editor",
+  "wechatStyleMarkdown": "Plain Markdown",
+  "wechatCopy": "Copy",
+  "wechatCopyLabel": "Copy this note as it is set out, to paste into the editor of WeChat",
+  "sayWechatCopied": "copied as {name}",
+  "@sayWechatCopied": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sayWechatNoNote": "there is no note to set out",
+  "sayWechatNoWebView": "showing a note as an article for WeChat needs the webview of this machine, which is not there",
+  "sayWechatFailed": "the note could not be copied",
+  "groupWechat": "WeChat",
+  "settingWechatDir": "Folder of the styles",
+  "settingWechatDirNote": "One file of JSON to a style; empty is the app's own folder, {dir}",
+  "@settingWechatDirNote": {
+    "placeholders": {
+      "dir": {
+        "type": "String"
+      }
+    }
+  },
+  "settingWechatDirBrowse": "Browse…",
+  "dialogWechatDir": "Choose the folder of the styles",
+  "wechatThemesNone": "no styles in that folder yet",
+  "wechatThemesBuiltin": "besides the {count} the app was made with",
+  "@wechatThemesBuiltin": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "sayExportWritten": "written out to {name}",
   "@sayExportWritten": {
     "placeholders": {
@@ -448,7 +485,7 @@
   "aiQuickBuiltins": "Put the built-in ones back",
   "aiQuickNone": "No quick word yet",
   "aiQuickNothing": "no word of that name",
-  "statusQuickNoPrompt": "{name} has nothing to ask yet: write it in Settings \u25b8 AI",
+  "statusQuickNoPrompt": "{name} has nothing to ask yet: write it in Settings ▸ AI",
   "aiModelEnabled": "Turned on",
   "aiModelEarlier": "↑",
   "aiModelEarlierLabel": "Ask it earlier",
