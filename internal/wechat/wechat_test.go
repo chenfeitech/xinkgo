@@ -351,6 +351,45 @@ func TestOfDir_aStyleOfNoIdIsSaid(t *testing.T) {
 	}
 }
 
+// demoDir is where the styles the repo gives as examples stand, beside
+// the guide that says how one is made: they are styles like any other,
+// and this reads them as a folder of one's own is read.
+const demoDir = "../../docs/design/wechat-styles"
+
+// TestDemoStyles_theOnesTheRepoGivesAreStyles checks the examples the
+// guide points at: every one of them is a style that will be given — it
+// reads, it names an id, it says what it is called and what it is — and
+// every one of them sets a note out, with the looks in the tags.
+func TestDemoStyles_theOnesTheRepoGivesAreStyles(t *testing.T) {
+	themes, bad := OfDir(demoDir)
+	if len(bad) > 0 {
+		t.Fatalf("the examples are no styles: %v", bad)
+	}
+	if len(themes) == 0 {
+		t.Fatalf("no examples in %s: has the folder moved?", demoDir)
+	}
+	for _, th := range themes {
+		if th.Name == "" || th.Description == "" {
+			t.Errorf("%q says nothing of itself: %q %q", th.ID, th.Name,
+				th.Description)
+		}
+		got := Article(sample, Options{Theme: th})
+		if !strings.Contains(got, `style="`) {
+			t.Errorf("%q sets nothing out:\n%s", th.ID, got)
+		}
+	}
+	// One of them is made over one of the app's own: it keeps that one's
+	// looks where it says nothing of its own.
+	over := Get(themes, "demo-over-ink")
+	if over.Style["h2"] != Get(Builtin(), Ink).Style["h2"] {
+		t.Errorf("%q does not have the looks of %q, which it is made "+
+			"over: %q", over.ID, Ink, over.Style["h2"])
+	}
+	if over.Style["pre"] == Get(Builtin(), Ink).Style["pre"] {
+		t.Errorf("%q has none of its own looks", over.ID)
+	}
+}
+
 // TestThemes_theAppsOwnComeFirst checks the order the menu shows: the
 // styles the app was made with, and then the ones the user brought.
 func TestThemes_theAppsOwnComeFirst(t *testing.T) {

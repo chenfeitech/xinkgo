@@ -1,0 +1,13 @@
+{
+  "id": "demo-over-ink",
+  "name": "示例·墨黑改代码",
+  "version": "1.0",
+  "author": "Xinkgo",
+  "description": "演示 extends：整套沿用内建的墨黑，只把代码块换成深色",
+  "extends": "ink",
+  "style": {
+    "pre": "margin: 0 0 1.2em; padding: 1em 1.1em; background: #23241f; border-radius: 6px; font-size: 13px; line-height: 1.7; white-space: pre-wrap; word-break: break-word;",
+    "pre>code": "font-family: Menlo, Consolas, monospace; background: none; padding: 0; color: #d8d8d2;",
+    "code": "font-family: Menlo, Consolas, monospace; font-size: .88em; padding: .15em .4em; background: #f1edea; border-radius: 3px; color: #a94b2b;"
+  }
+}

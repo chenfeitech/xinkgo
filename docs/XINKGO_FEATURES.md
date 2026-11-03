@@ -75,6 +75,7 @@
 | 版面密度 / 最大宽度 | ✅ | `internal/view/apply.go:78` `spacing`、`previewWidth:91` | |
 | 链接点击行为 | ✅ | `internal/view/workspace.go:607` `openLink`、`internal/app/web.go:101` | 库内打开笔记；外部链接按设置走系统浏览器或应用内窗口 |
 | **畸形 Markdown 防御性预处理** | ➖ | — | 由框架解析器承担，未自研 |
+| 公众号样式目录可配置（多文件 + 元数据） | ✅ | `internal/wechat/theme.go` `OfDir`、`internal/app/settings.go` `wechatDirField` | 设置里指定任意目录，一个 `*.json` 一套样式；文件带 id/name/version/author/description/extends；坏文件、重复 id、extends 落空都会在设置里说明 |
 | 公众号排版（样式可选 + 一键复制） | ✅ | `internal/wechat/`、`internal/view/wechat.go`、`internal/app/wechat.go` | 预览右上角；默认正常 Markdown，另有内建 5 套 + `<用户数据>/wechat/*.json` 自加样式；行内样式，复制后可直接粘贴到公众号后台 |
 | 公众号模式下预览按手机宽度显示 | ✅ | `internal/view/wechat.go` `wechatScreen` / `wechatArticle`、`internal/wechat/html.go` `pagePad` | 414 DIP 居中（圆角 + 边框），内容左右各留 20；窗格窄时先让留白再让宽度；正常预览照旧自动适配 |
 

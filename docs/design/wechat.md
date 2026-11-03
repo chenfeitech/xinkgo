@@ -5,6 +5,9 @@
 的就是那篇文章，"复制"把它放到剪贴板上，粘贴进公众号后台即可发布。样式要能
 不断增加。
 
+**要写样式看这篇**：[wechat-style-guide.md](wechat-style-guide.md)（键位表、
+CSS 能做与不能做、改 → 看 → 试、排错清单），示例在 [wechat-styles/](wechat-styles/)。
+
 ## 1 两个前提
 
 1. **公众号编辑器不吃样式表**：它保留行内 `style`，丢掉 `<style>`、`<script>`、
@@ -55,25 +58,44 @@
 | 数学 | 预览未接渲染器，导出同样保留 TeX 文本（等宽字体） |
 | 脚注 | 保留 cmark 的 `<section class="footnotes">`，样式走 `section` 键 |
 
-## 4 主题从哪来
+## 4 主题从哪来：内建 + 一个可指定的目录
 
 - **内建**：`internal/wechat` 里几套（`ink` / `jade` / `lapis` / `amber` /
-  `rose`），名字是样式自己的名字（同 `theme.Scheme.Title` 的规矩，不进 catalog）。
-- **用户自加**：`<用户数据目录>/wechat/*.json`，每个文件一套：
+  `rose`），名字是样式自己的名字（同 `theme.Scheme.Title` 的规矩，不进 catalog），
+  另带 `version` / `author` / `description`。
+- **目录可指定**：设置 → 预览 → 公众号 →「样式目录」，手填或用「浏览…」选一个
+  文件夹；写进配置 `preview.wechat_theme_dir`，**留空**用应用自己的目录
+  （`<用户数据目录>/wechat`）。改了目录立刻重读，样式菜单与预览随之更新。
+- **一个目录多个文件**：目录里每个 `*.json` 是一套样式（不递归子目录），按文件名
+  顺序读入。文件里写什么：
 
   ```json
   {
     "id": "my-style",
     "name": "我的样式",
+    "version": "2.1.0",
+    "author": "谁做的",
+    "description": "绿底红字，标题居中",
+    "extends": "ink",
     "style": {
       "h2": "margin: 1.6em 0 .8em; border-left: 4px solid #0f9d58; padding-left: .6em;",
-      "code": "background: #f2faf5; color: #0f9d58;"
+      "code": "background: #f2faf5; color: #0f7a45;"
     }
   }
   ```
 
-  `id` 与内建撞了就用文件里的（`name` 与缺失的键按内建基底补齐）。启动时读入，
-  换一个样式时重读一次（新文件不用重启）。
+  | 键 | 必填 | 说明 |
+  |---|---|---|
+  | `id` | ✅ | 配置里存的就是它；两个文件不能同 id（同 id 后者被拒并说明） |
+  | `name` | | 菜单里显示的名字；不给就用 id |
+  | `version` / `author` / `description` | | 只作说明：设置里那一行说「版本 · 作者 — 说明」 |
+  | `extends` | | 以哪套为底：可以是内建之一，也可以是同目录里排在它前面的那套。它的键压在底子之上，没写的键沿用底子（没有底子就沿用基底）。指向不存在的样式会记一条警告并按基底处理 |
+  | `style` | | 「元素 → CSS 声明」，`p` / `h2` / `blockquote p` / `pre>code` 等；键位表与 CSS 规矩见 [wechat-style-guide.md](wechat-style-guide.md) |
+
+- **读不出来的文件**会记日志并在设置里列出来（读不了 / 没写 id / id 被占 /
+  `extends` 指向不存在），其余样式照常可用：一个坏文件不妨碍整个目录。
+- 设置里那一行下面是目录里读到的样式：名字 + `版本 · 作者 — 说明`，末尾一句
+  "此外还有应用自带的 N 套"。
 
 ## 5 代码落点
 

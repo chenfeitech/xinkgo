@@ -1,0 +1,12 @@
+{
+  "id": "demo-minimal",
+  "name": "示例·最小",
+  "version": "1.0",
+  "author": "Xinkgo",
+  "description": "最小的可用样式：只改正文与二级标题，其余沿用基底",
+  "style": {
+    "body": "font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 16px; line-height: 1.8; color: #333333; letter-spacing: .5px; word-break: break-word; padding: 4px 2px;",
+    "p": "margin: 0 0 1.4em;",
+    "h2": "margin: 1.8em 0 .9em; padding-left: .6em; font-size: 18px; font-weight: 700; color: #1a1a1a; border-left: 4px solid #c0392b;"
+  }
+}

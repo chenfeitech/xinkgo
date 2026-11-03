@@ -365,9 +365,11 @@ func OfDir(dir string) (themes []Theme, bad []string) {
 		files = append(files, t)
 	}
 	for _, t := range files {
+		// Extends is kept as the file wrote it, found or not: it says
+		// what the style was made over, which is what the settings tell
+		// of it. The looks are what may come of it going wrong.
 		if t.Extends != "" && !Has(read, t.Extends) {
 			bad = append(bad, t.file+": "+errNoExtends+t.Extends)
-			t.Extends = ""
 		}
 		t = t.withLooks(read)
 		read = append(read, t)
