@@ -117,8 +117,8 @@ type Host interface {
 
 | 文件 | 行数 | 装什么 |
 |---|---|---|
-| `internal/view/layout/layout.go` | 335 | **几何**：面板/编辑区/预览区宽度、留白、边距、换行列数、侧栏带、三种形态的枚举。不 import `view`，只依赖 `config` / `state` / `ui`，可脱离窗口单测 |
-| `internal/view/layout/layout_test.go` | 145 | 几何单测：不渲染、不建窗口 |
+| `internal/view/geom/geom.go` | 335 | **几何**：面板/编辑区/预览区宽度、留白、边距、换行列数、侧栏带、三种形态的枚举。不 import `view`，只依赖 `config` / `state` / `ui`，可脱离窗口单测 |
+| `internal/view/geom/geom_test.go` | 145 | 几何单测：不渲染、不建窗口 |
 | `internal/view/workspace.go` | 472 | `Workspace` 类型、`View` 骨架、面板显隐与拖拽 |
 
 阶段 1 之后 `internal/view` 的窗口部分：
@@ -131,7 +131,7 @@ type Host interface {
 | `metrics.go` | 287 | 几何：宽度、留白、换行列数、侧栏带 |
 | `panes.go` | 225 | 树 / 编辑区 / 预览区的组装 |
 | `modes.go` | 51 | 三种形态与切换 |
-| **2** | ✅ 已完成：几何提成子包 `internal/view/layout`，导出 `layout.Geometry` 与 `layout.Zoom`；`Workspace` 每次用时现取 `w.geometry()`，不做缓存（避免过期） | 中 | 同上 + `layout` 自有单测（不渲染窗口即可验几何） |
+| **2** | ✅ 已完成：几何提成子包 `internal/view/geom`，导出 `geom.Geometry` 与 `geom.Zoom`；`Workspace` 每次用时现取 `w.geometry()`，不做缓存（避免过期） | 中 | 同上 + `geom` 自有单测（不渲染窗口即可验几何） |
 | **3** | ✅ 已完成（一半）：`Workspace` 的状态分组 —— `mode`（三形态 + 抽屉）与 `scroll`（滚动同步的 12 个记账字段）各自成组，类型 `scrollFollow` 跟 `scroll.go` 走 | 中 | 同上 |
 | **4** | ✅ 已完成（改了做法）：设置窗口按页分文件（`settings_appearance` / `_editor` / `_preview` / `_config`），**不再独立成包** —— 理由见下 | 低 | 构建 + 全量测试 + 声明清单比对（43 个 func 一个不差）+ 设置窗口人工验收 |
 | **5** | ✅ 已完成：`ai_bar.go`（756）拆成 bar / session / talk / ask 四个文件；`file_tree.go`（641）拆成 tree / rows / vault / paths 四个文件 | 低 | 构建 + 全量测试 + 声明清单比对（32 / 31 个 func 一个不差）+ 对话条与目录树人工验收 |
@@ -156,7 +156,7 @@ type Host interface {
 
 ## 4 新约定（之后加代码按这个来）
 
-1. **几何只写在 `metrics.go`（阶段 2 后是 `internal/view/layout`）**：任何
+1. **几何只写在 `metrics.go`（阶段 2 后是 `internal/view/geom`）**：任何
    “多少 DIPs”的常量与计算都去那里，绘制代码只叫名字。
 2. **一块界面一个文件**：新增面板/对话条/抽屉，新建文件，不往 `workspace.go`
    里塞。

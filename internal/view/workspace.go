@@ -15,7 +15,7 @@ import (
 	"github.com/helightxu/xinkgo/internal/skill"
 	"github.com/helightxu/xinkgo/internal/state"
 	"github.com/helightxu/xinkgo/internal/theme"
-	"github.com/helightxu/xinkgo/internal/view/layout"
+	"github.com/helightxu/xinkgo/internal/view/geom"
 	"github.com/helightxu/xinkgo/internal/wechat"
 )
 
@@ -146,7 +146,7 @@ type Workspace struct {
 		// Zoom is which pane has been given the whole window, and
 		// ZoomNone for the usual, in which the panels stand as the
 		// user left them.
-		Zoom layout.Zoom
+		Zoom geom.Zoom
 		// Stretched is whether the note has been given the preview's
 		// room: it stands over the preview, out to the window's right
 		// edge, and the tree keeps the room it was given. What the
@@ -235,8 +235,8 @@ func milliseconds(ms uint64) time.Duration {
 // geometry is the geometry of the window as it stands now: the numbers the
 // panes ask for as they draw, made afresh so that they are never behind
 // the window they belong to.
-func (w *Workspace) geometry() layout.Geometry {
-	return layout.Of(&w.Config, w.Layout, layout.Shape{
+func (w *Workspace) geometry() geom.Geometry {
+	return geom.Of(&w.Config, w.Layout, geom.Shape{
 		Zoom:    w.mode.Zoom,
 		Stretch: w.mode.Stretch,
 		Drawer:  w.mode.Drawer != "",
@@ -282,14 +282,14 @@ func (w *Workspace) View(c *ui.Context) {
 		w.mode.Stretch = panels.AnimateTo("stretch", target, widenAnim)
 		panels.Children(func() {
 			switch w.mode.Zoom {
-			case layout.ZoomEditor:
+			case geom.ZoomEditor:
 				// The note takes the window: the tree and the preview
 				// are left out, without giving up the width they
 				// were given, so that they come back as they were.
 				w.center(c)
-			case layout.ZoomPreview:
+			case geom.ZoomPreview:
 				w.previewPanel(c, 0)
-			case layout.ZoomPreviewSpread:
+			case geom.ZoomPreviewSpread:
 				// The preview reaches over the note to the tree, which
 				// keeps its place: what is read is read beside the
 				// tree, and not over it, so that the note to read next
@@ -357,8 +357,8 @@ func (w *Workspace) SetPreviewShown(shown bool) {
 	w.setShown(shown, &w.Layout.Right, &w.Layout.LastRight)
 	if !shown {
 		w.mode.Stretched = false
-		if w.mode.Zoom == layout.ZoomPreviewSpread {
-			w.mode.Zoom = layout.ZoomNone
+		if w.mode.Zoom == geom.ZoomPreviewSpread {
+			w.mode.Zoom = geom.ZoomNone
 		}
 	}
 }
@@ -399,7 +399,7 @@ func (w *Workspace) defaultWidth(width *float32) float32 {
 func (w *Workspace) divider(
 	c *ui.Context, key string, width *float32, dir float32,
 ) {
-	line := ui.Box(c.Key(key)).Width(layout.DividerGrip).FillHeight().
+	line := ui.Box(c.Key(key)).Width(geom.DividerGrip).FillHeight().
 		Focusable().Role(ui.RoleSplitter).
 		Cursor(ui.CursorResizeEW).Label(key)
 	line.Draw(func(p *ui.Painter, r ui.Rect) {
@@ -410,8 +410,8 @@ func (w *Workspace) divider(
 		// The line is a hairline; the box around it is what catches the
 		// pointer.
 		strip := ui.Rect{
-			X: r.X + (r.W-layout.DividerThickness)/2, Y: r.Y,
-			W: layout.DividerThickness, H: r.H,
+			X: r.X + (r.W-geom.DividerThickness)/2, Y: r.Y,
+			W: geom.DividerThickness, H: r.H,
 		}
 		p.Fill(strip, color, 0)
 	})
@@ -436,14 +436,14 @@ func (w *Workspace) panelWidthDragged(
 	if width == &w.Layout.Right {
 		other = w.Layout.Left
 	}
-	room := win - other - w.geometry().NoteMinWidth() - 2*layout.DividerGrip
-	return min(v, max(room, layout.MinPanelWidth))
+	room := win - other - w.geometry().NoteMinWidth() - 2*geom.DividerGrip
+	return min(v, max(room, geom.MinPanelWidth))
 }
 
 // dragPanel is what a drag does to a panel's width: it is kept between
 // the narrowest and the widest, and written down once it settles.
 func (w *Workspace) dragPanel(width *float32, v float32) {
-	v = min(max(v, layout.MinPanelWidth), layout.MaxPanelWidth)
+	v = min(max(v, geom.MinPanelWidth), geom.MaxPanelWidth)
 	if v == *width {
 		return
 	}

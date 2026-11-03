@@ -9,7 +9,7 @@ import (
 	"github.com/helightxu/xinkgo/internal/datafile"
 	"github.com/helightxu/xinkgo/internal/locale"
 	xmd "github.com/helightxu/xinkgo/internal/markdown"
-	"github.com/helightxu/xinkgo/internal/view/layout"
+	"github.com/helightxu/xinkgo/internal/view/geom"
 )
 
 // sidebar is the file tree, and the way to open a vault when there is
@@ -73,7 +73,7 @@ func (w *Workspace) center(c *ui.Context) {
 	// is a note half read.
 	note.MinWidth(w.geometry().NoteMinWidth())
 	if w.geometry().NotePaneAtRail() {
-		note.Padding(0, layout.RailStrip, 0, 0)
+		note.Padding(0, geom.RailStrip, 0, 0)
 	}
 	note.Children(func() {
 		w.tabBar(c)
@@ -142,9 +142,9 @@ func (w *Workspace) editor(c *ui.Context) {
 	// broken is not broken at a column either.
 	win, _ := c.Size()
 	if w.Config.Editor.SoftWrap {
-		geom := w.geometry()
-		n.Editor.WrapColumn = geom.WrapColumn(win,
-			layout.CharWidth(n.Editor.Font))
+		room := w.geometry()
+		n.Editor.WrapColumn = room.WrapColumn(win,
+			geom.CharWidth(n.Editor.Font))
 	} else {
 		n.Editor.WrapColumn = 0
 	}

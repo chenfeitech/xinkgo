@@ -8,7 +8,7 @@ import (
 	"github.com/helightxu/xinkgo/internal/datafile"
 	"github.com/helightxu/xinkgo/internal/locale"
 	xmd "github.com/helightxu/xinkgo/internal/markdown"
-	"github.com/helightxu/xinkgo/internal/view/layout"
+	"github.com/helightxu/xinkgo/internal/view/geom"
 )
 
 // iconClose is the × a tab is closed by: two strokes of a 24 by 24 box,
@@ -251,7 +251,7 @@ func (w *Workspace) toolbar(c *ui.Context) {
 // pane. Pressed again it gives the room back, and while the pane has the
 // window the button stands lit, as the way to the model does.
 func (w *Workspace) zoomButton(
-	c *ui.Context, key string, pane layout.Zoom, icon *ui.SVG,
+	c *ui.Context, key string, pane geom.Zoom, icon *ui.SVG,
 	label, tip string,
 ) {
 	// A pane that has the window is one this button takes it from, and
@@ -276,7 +276,7 @@ func (w *Workspace) zoomButton(
 
 // zoomTip is what the button says when the pointer rests on it: what the
 // press will do, which is the room given back when the pane has it.
-func (w *Workspace) zoomTip(pane layout.Zoom, tip string) string {
+func (w *Workspace) zoomTip(pane geom.Zoom, tip string) string {
 	if w.mode.Zoom == pane {
 		return locale.ZoomBackTooltip()
 	}

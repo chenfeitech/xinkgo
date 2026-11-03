@@ -1,4 +1,4 @@
-// Package layout is the geometry of the window: how wide the panels and
+// Package geom is the geometry of the window: how wide the panels and
 // the note stand, and how far the text of a pane keeps from its edges.
 //
 // It draws nothing and reads no context. The window makes a Geometry from
@@ -6,7 +6,7 @@
 // the window is in, and the panes ask it as they draw. Keeping the numbers
 // here keeps them out of the drawing code, and lets them be checked
 // without a window to draw in.
-package layout
+package geom
 
 import (
 	"github.com/egoist/mygo/ui"

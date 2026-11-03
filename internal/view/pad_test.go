@@ -6,7 +6,7 @@ import (
 
 	"github.com/helightxu/xinkgo/internal/config"
 	"github.com/helightxu/xinkgo/internal/locale"
-	"github.com/helightxu/xinkgo/internal/view/layout"
+	"github.com/helightxu/xinkgo/internal/view/geom"
 )
 
 // TestPad_theNoteStandsAsFarFromOneSideAsTheOther checks what the padding
@@ -35,9 +35,9 @@ func TestPad_theNoteStandsAsFarFromOneSideAsTheOther(t *testing.T) {
 		// pane ends where the rail's strip begins, and not at the
 		// window's own edge.
 		for side, got := range map[string]float32{
-			"left": ed.X + layout.EditorInsetLeft,
-			"right": width - layout.RailStrip - (ed.X + ed.W) +
-				layout.EditorInsetRight,
+			"left": ed.X + geom.EditorInsetLeft,
+			"right": width - geom.RailStrip - (ed.X + ed.W) +
+				geom.EditorInsetRight,
 		} {
 			if got != float32(pad) {
 				t.Errorf("with a padding of %d, the note stands %.0f "+
@@ -68,7 +68,7 @@ func TestPad_aPaneGivenLessThanTheEditorKeepsKeepsNone(t *testing.T) {
 	}
 	// The other side of the pane is where the rail's strip begins: the
 	// pane keeps nothing beside it of its own.
-	if got := width - layout.RailStrip - (ed.X + ed.W); got != 0 {
+	if got := width - geom.RailStrip - (ed.X + ed.W); got != 0 {
 		t.Errorf("the note's pane keeps %.0f on the other side, want none",
 			got)
 	}
@@ -108,7 +108,7 @@ func TestPad_theRoomTheNoteIsGivenIsTheRoomItKeeps(t *testing.T) {
 // test, so that where its pane begins is not in question.
 func TestPad_whatIsReadStandsOffTheEdgesOfItsPane(t *testing.T) {
 	w, tt := zoomTester(t, 900)
-	w.setZoom(layout.ZoomPreview)
+	w.setZoom(geom.ZoomPreview)
 	for _, pad := range []uint32{config.MinPadding, 16, 40} {
 		w.Config.Preview.PaddingX = pad
 		tt.Frame()
@@ -152,7 +152,7 @@ func TestPad_whatIsReadStandsOffTheEdgesOfItsPane(t *testing.T) {
 func TestPad_whatIsReadKeepsItsPaddingSpreadOverTheNote(t *testing.T) {
 	const width = 1100
 	w, tt := zoomTester(t, width)
-	w.setZoom(layout.ZoomPreviewSpread)
+	w.setZoom(geom.ZoomPreviewSpread)
 	for _, pad := range []uint32{config.MinPadding, 16, 40} {
 		w.Config.Preview.PaddingX = pad
 		tt.Frame()
@@ -161,11 +161,11 @@ func TestPad_whatIsReadKeepsItsPaddingSpreadOverTheNote(t *testing.T) {
 			t.Fatalf("with a padding of %d, the note is not read", pad)
 		}
 		want := float32(pad)
-		if got := text.X - (w.Layout.Left + layout.DividerGrip); got != want {
+		if got := text.X - (w.Layout.Left + geom.DividerGrip); got != want {
 			t.Errorf("with a padding of %d, what is read stands %.0f "+
 				"from the line of the tree, want %d", pad, got, pad)
 		}
-		if got := float32(width) - layout.RailStrip - (text.X + text.W); got != want {
+		if got := float32(width) - geom.RailStrip - (text.X + text.W); got != want {
 			t.Errorf("with a padding of %d, what is read stands %.0f "+
 				"from the rail's strip, want %d", pad, got, pad)
 		}
@@ -190,7 +190,7 @@ func TestPad_thePaneEndsWhereTheRailBegins(t *testing.T) {
 		t.Fatal("the note is not drawn")
 	}
 	end := ed.X + ed.W
-	if got := float32(width) - layout.RailStrip - end; got != w.geometry().EditorPadRight() {
+	if got := float32(width) - geom.RailStrip - end; got != w.geometry().EditorPadRight() {
 		t.Errorf("the note's pane keeps %.0f beside the rail, want the "+
 			"%.0f of the padding", got, w.geometry().EditorPadRight())
 	}
@@ -229,10 +229,10 @@ func TestPad_aLineThatIsNotBrokenKeepsItsRoomBesideTheEditor(t *testing.T) {
 		if !ok {
 			t.Fatalf("with a padding of %d, the note is not drawn", pad)
 		}
-		if got := pane - (ed.X + ed.W); got != float32(pad)+layout.EditorTrack {
+		if got := pane - (ed.X + ed.W); got != float32(pad)+geom.EditorTrack {
 			t.Errorf("with a padding of %d, the pane keeps %.0f beside "+
 				"the editor, want the %d the user chose and the %.0f "+
-				"of its scroll bar", pad, got, pad, layout.EditorTrack)
+				"of its scroll bar", pad, got, pad, geom.EditorTrack)
 		}
 	}
 }
@@ -296,7 +296,7 @@ func TestPad_aDragTakesNoMoreThanTheWindowHasBesideTheNote(t *testing.T) {
 		t.Errorf("the drag left the note %v, want the %v it needs", ed.W, want)
 	}
 	if got, room := w.Layout.Right,
-		width-w.Layout.Left-w.geometry().NoteMinWidth()-2*layout.DividerGrip; got > room {
+		width-w.Layout.Left-w.geometry().NoteMinWidth()-2*geom.DividerGrip; got > room {
 		t.Errorf("the drag gave the preview %v, want no more than the %v"+
 			" beside the note", got, room)
 	}
@@ -320,14 +320,14 @@ func TestPad_theWordsKeepTheirAirBesideTheEditorBar(t *testing.T) {
 	}
 	// The room the editor breaks a line at when it is left to itself:
 	// what it is given, less what it keeps of its own beside the lines.
-	natural := ed.W - layout.EditorInsetLeft - layout.EditorInsetRight
-	broken := float32(n.Editor.WrapColumn) * layout.CharWidth(n.Editor.Font)
+	natural := ed.W - geom.EditorInsetLeft - geom.EditorInsetRight
+	broken := float32(n.Editor.WrapColumn) * geom.CharWidth(n.Editor.Font)
 	if n.Editor.WrapColumn <= 0 || broken > natural {
 		broken = natural
 	}
-	if got := natural - broken; got < layout.EditorBarAir {
+	if got := natural - broken; got < geom.EditorBarAir {
 		t.Errorf("the words end %v short of the room there is, want the %v"+
-			" of air they keep beside the bar", got, layout.EditorBarAir)
+			" of air they keep beside the bar", got, geom.EditorBarAir)
 	}
 }
 
@@ -348,10 +348,10 @@ func TestPad_aPreviewNarrowerThanTheRailIsNoCoverForIt(t *testing.T) {
 	if !ok {
 		t.Fatal("the note is not drawn")
 	}
-	if end := ed.X + ed.W + w.geometry().EditorPadRight(); end > float32(width)-layout.RailStrip {
+	if end := ed.X + ed.W + w.geometry().EditorPadRight(); end > float32(width)-geom.RailStrip {
 		t.Errorf("the note's pane ends at %v, want it to end at %v and no"+
 			" further: the rail's strip hangs over what is past it",
-			end, float32(width)-layout.RailStrip)
+			end, float32(width)-geom.RailStrip)
 	}
 }
 
@@ -374,13 +374,13 @@ func TestPad_theWordsKeepTheRailsRoomBesideThePadding(t *testing.T) {
 	}
 	// Where the words would end were the line broken at the very room
 	// there is, and where they do end at the column they are broken at.
-	natural := ed.X + ed.W - layout.EditorInsetRight
-	broken := ed.X + layout.EditorInsetLeft +
-		float32(n.Editor.WrapColumn)*layout.CharWidth(n.Editor.Font)
-	if got := natural - broken; got < layout.EditorBarAir+layout.EditorRailAir {
+	natural := ed.X + ed.W - geom.EditorInsetRight
+	broken := ed.X + geom.EditorInsetLeft +
+		float32(n.Editor.WrapColumn)*geom.CharWidth(n.Editor.Font)
+	if got := natural - broken; got < geom.EditorBarAir+geom.EditorRailAir {
 		t.Errorf("the words end %v short of the room there is, want the %v"+
 			" of air beside the bar and the rail's buttons", got,
-			layout.EditorBarAir+layout.EditorRailAir)
+			geom.EditorBarAir+geom.EditorRailAir)
 	}
 }
 
@@ -412,8 +412,8 @@ func TestPad_theBarOfTheNoteIsPaintedNoColor(t *testing.T) {
 	// The last of the pane's height is where a bar that runs along the
 	// foot of it stands, and is not this one's: the bar asked about runs
 	// down the side of the note.
-	for y := int(ed.Y); y < int(ed.Y+ed.H)-int(layout.EditorTrack); y++ {
-		for x := int(ed.X+ed.W) - int(layout.EditorTrack); x < int(ed.X+ed.W); x++ {
+	for y := int(ed.Y); y < int(ed.Y+ed.H)-int(geom.EditorTrack); y++ {
+		for x := int(ed.X+ed.W) - int(geom.EditorTrack); x < int(ed.X+ed.W); x++ {
 			r, g, b, _ := img.At(x, y).RGBA()
 			if (r>>8+g>>8+b>>8)/3 < 250 {
 				t.Fatalf("the bar paints at %v,%v: what stands there is"+
@@ -438,8 +438,8 @@ func TestPad_theMarginIsRoomTheWordsKeepBesidesThePadding(t *testing.T) {
 	if !ok {
 		t.Fatal("the note is not drawn")
 	}
-	near := ed.X + layout.EditorInsetLeft +
-		float32(n.Editor.WrapColumn)*layout.CharWidth(n.Editor.Font)
+	near := ed.X + geom.EditorInsetLeft +
+		float32(n.Editor.WrapColumn)*geom.CharWidth(n.Editor.Font)
 	w.Config.Editor.MarginRight = 90
 	tt.Frame()
 	far, ok := tt.Find(editorLabel)
@@ -450,8 +450,8 @@ func TestPad_theMarginIsRoomTheWordsKeepBesidesThePadding(t *testing.T) {
 		t.Errorf("the note begins at %v with the margin and %v without,"+
 			" want it to begin in the same place", far.X, ed.X)
 	}
-	words := far.X + layout.EditorInsetLeft +
-		float32(n.Editor.WrapColumn)*layout.CharWidth(n.Editor.Font)
+	words := far.X + geom.EditorInsetLeft +
+		float32(n.Editor.WrapColumn)*geom.CharWidth(n.Editor.Font)
 	// A line is broken at a whole character, and the room the editor's
 	// own bar stands in is kept whether the margin is asked for or not:
 	// what the words come in by is the margin asked for, less that room,
@@ -459,6 +459,6 @@ func TestPad_theMarginIsRoomTheWordsKeepBesidesThePadding(t *testing.T) {
 	if got := near - words; got < 60 {
 		t.Errorf("the margin brought the words in %v, want the 90 asked"+
 			" for, less the %v the bar stands in and the rest of a"+
-			" character", got, layout.EditorBarAir)
+			" character", got, geom.EditorBarAir)
 	}
 }

@@ -15,7 +15,7 @@ import (
 	"github.com/helightxu/xinkgo/internal/locale"
 	xmd "github.com/helightxu/xinkgo/internal/markdown"
 	"github.com/helightxu/xinkgo/internal/media"
-	"github.com/helightxu/xinkgo/internal/view/layout"
+	"github.com/helightxu/xinkgo/internal/view/geom"
 )
 
 // previewPanel is what the note looks like, on the right.
@@ -23,7 +23,7 @@ func (w *Workspace) previewPanel(c *ui.Context, width float32) {
 	// As the tree's panel: a note is read from its first line, and not
 	// from the middle of the window. A width of none is the whole
 	// window, which is what the pane is given when it is maximized.
-	pane := ui.Column(c).FillHeight().Padding(0, layout.RailStrip, 0, 0)
+	pane := ui.Column(c).FillHeight().Padding(0, geom.RailStrip, 0, 0)
 	if width > 0 {
 		pane.Width(width)
 	} else {
@@ -33,7 +33,7 @@ func (w *Workspace) previewPanel(c *ui.Context, width float32) {
 		// A preview given the whole window keeps the bar that is its
 		// way back. One in a pane of its own — spread over the note,
 		// or not — keeps the button of its corner instead.
-		if w.mode.Zoom == layout.ZoomPreview {
+		if w.mode.Zoom == geom.ZoomPreview {
 			w.previewBar(c)
 		} else {
 			w.previewHead(c)
@@ -163,7 +163,7 @@ func (w *Workspace) previewHead(c *ui.Context) {
 // the note comes back as wide as it was. It is the other half of the one
 // at the end of the tab bar, which stretches the note over the preview.
 func (w *Workspace) spreadButton(c *ui.Context) {
-	spread := w.mode.Zoom == layout.ZoomPreviewSpread
+	spread := w.mode.Zoom == geom.ZoomPreviewSpread
 	// A preview standing over the note is one this button takes it from,
 	// and so it says the way back: the arrow turned round, and the press
 	// named for what it does.
@@ -193,7 +193,7 @@ func (w *Workspace) spreadButton(c *ui.Context) {
 		}
 	})
 	if button.Clicked() {
-		w.setZoom(layout.ZoomPreviewSpread)
+		w.setZoom(geom.ZoomPreviewSpread)
 	}
 }
 
@@ -205,11 +205,11 @@ func (w *Workspace) spreadButton(c *ui.Context) {
 // instead, which is smaller and stands at the other end.
 func (w *Workspace) previewBar(c *ui.Context) {
 	ui.Row(c).FillWidth().AlignItems(ui.Center).Gap(4).
-		Padding(4, 6).PaddingEnd(w.geometry().RailBand() - layout.RailStrip + 6).
+		Padding(4, 6).PaddingEnd(w.geometry().RailBand() - geom.RailStrip + 6).
 		Children(func() {
 			ui.Box(c).Grow(1)
 			w.wechatButtons(c)
-			w.zoomButton(c, "zoom-back", layout.ZoomPreview, iconZoomPreview,
+			w.zoomButton(c, "zoom-back", geom.ZoomPreview, iconZoomPreview,
 				locale.ZoomBack(), locale.ZoomBackTooltip())
 		})
 }
