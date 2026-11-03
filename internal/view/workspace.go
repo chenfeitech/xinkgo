@@ -46,6 +46,19 @@ const (
 	// but a line it does not break is cut at the very edge of what it
 	// is given, bar and all.
 	editorTrack float32 = 10
+	// editorMinChars is how narrow the editor breaks a line: eight of
+	// its own characters, and not a one of them less, however little
+	// room it is given. A line broken that wide is written over the room
+	// the editor keeps beside its lines and over the pane's own padding
+	// besides, and is cut off at the very edge of the pane: so a pane
+	// narrower than those together is a pane the note is not written in,
+	// and none is ever made.
+	editorMinChars = 8
+	// monoCharRatio is how wide a character of the editor's font is, as
+	// a share of the font's size: the editor measures it itself and does
+	// not say what it measured, so it is said here, a little on the wide
+	// side, so that the room kept is never less than the room needed.
+	monoCharRatio float32 = 0.6
 	// layoutSettle is how long the panels stay as they were dragged
 	// before what the user chose is written down.
 	layoutSettle = 400 * time.Millisecond
@@ -451,8 +464,26 @@ func (w *Workspace) divider(
 	dx, _, dragging := line.Dragged()
 	if dragging && dx != 0 {
 		line.Focus()
-		w.dragPanel(width, *width+dir*dx)
+		win, _ := c.Size()
+		w.dragPanel(width, w.panelWidthDragged(win, width, *width+dir*dx))
 	}
+}
+
+// panelWidthDragged is how wide a drag may make a panel: what the drag
+// asks for, but never so much that the note's pane is left with less
+// than the note needs, once the other panel and the lines that part them
+// have taken theirs. A window with no room to spare gives the panel its
+// narrowest all the same: what is then too wide is cut off by the
+// window's own edge, and the note is not.
+func (w *Workspace) panelWidthDragged(
+	win float32, width *float32, v float32,
+) float32 {
+	other := w.previewPaneWidth()
+	if width == &w.Layout.Right {
+		other = w.Layout.Left
+	}
+	room := win - other - w.noteMinWidth() - 2*dividerGrip
+	return min(v, max(room, MinPanelWidth))
 }
 
 // dragPanel is what a drag does to a panel's width: it is kept between
@@ -528,6 +559,11 @@ func (w *Workspace) center(c *ui.Context) {
 	// written there is written under the rail's buttons, and its
 	// padding with it.
 	note := ui.Column(c).Grow(1).FillHeight()
+	// However the room is shared out — a panel dragged wide, a window
+	// squeezed narrow — the note keeps the room it needs, and the panels
+	// are given what is left: a note written over the edge of its pane
+	// is a note half read.
+	note.MinWidth(w.noteMinWidth())
 	if w.notePaneAtRail() {
 		note.Padding(0, railStrip, 0, 0)
 	}
@@ -624,6 +660,19 @@ func (w *Workspace) editorPadRight() float32 {
 		return w.editorPadX() + editorTrack
 	}
 	return max(w.editorPadX()-editorInsetRight, 0)
+}
+
+// noteMinWidth is the narrowest the note's pane may be made: the room
+// the pane keeps beside the editor on either side, and the room the
+// editor keeps of its own — beside its lines, and for its scroll bar —
+// and eight characters of the note besides, which is as narrow as the
+// editor breaks a line. A pane made narrower breaks no line at all: the
+// words are written over those rooms and cut off at the edge of the
+// pane, padding and all.
+func (w *Workspace) noteMinWidth() float32 {
+	chars := editorMinChars * monoCharRatio * w.Config.Editor.Font.Size
+	return w.editorPadLeft() + w.editorPadRight() +
+		editorInsetLeft + editorInsetRight + chars
 }
 
 // previewPadX is how far what the preview reads stands from the sides of

@@ -234,3 +234,68 @@ func TestPad_aLineThatIsNotBrokenKeepsItsRoomBesideTheEditor(t *testing.T) {
 		}
 	}
 }
+
+// TestPad_aPaneNarrowerThanTheNoteNeedsIsNeverMade checks the end of the
+// range the other way: a panel given more room than the window has beside
+// the note does not take the note's with it. The editor breaks a line no
+// narrower than eight of its own characters, so a pane narrower than
+// those and the rooms beside them writes its words over them and cuts
+// them off at the edge of the pane, padding and all.
+func TestPad_aPaneNarrowerThanTheNoteNeedsIsNeverMade(t *testing.T) {
+	w, tt := zoomTester(t, 900)
+	want := w.noteMinWidth() - w.editorPadLeft() - w.editorPadRight()
+	for _, name := range []string{
+		"the preview given more than there is", "the window squeezed",
+	} {
+		switch name {
+		case "the preview given more than there is":
+			w.Layout.Right = 700
+		case "the window squeezed":
+			w.Layout.Right = 300
+			tt.SetSize(420, 320)
+		}
+		tt.Frame()
+		ed, ok := tt.Find(editorLabel)
+		if !ok {
+			t.Fatalf("with %s, the note is not drawn", name)
+		}
+		if ed.W < want {
+			t.Errorf("with %s, the note is given %v, want the %v it needs:"+
+				" narrower than that it is written over the edge of its"+
+				" pane", name, ed.W, want)
+		}
+	}
+}
+
+// TestPad_aDragTakesNoMoreThanTheWindowHasBesideTheNote checks that a
+// drag does not put the note in a pane it cannot be written in: what the
+// panel is given by the drag is what the window has beside the note, so
+// that letting go and taking hold again does not find the room already
+// spent.
+func TestPad_aDragTakesNoMoreThanTheWindowHasBesideTheNote(t *testing.T) {
+	const width = 900
+	w, tt := zoomTester(t, width)
+	div, ok := tt.Find("divider-preview")
+	if !ok {
+		t.Fatal("there is no line to drag the preview by")
+	}
+	x, y := div.X+div.W/2, div.Y+80
+	tt.Move(x, y)
+	tt.Press(x, y)
+	tt.Move(x-400, y) // the preview asked for more than the window has
+	tt.Release(x-400, y)
+	tt.Frame()
+	ed, ok := tt.Find(editorLabel)
+	if !ok {
+		t.Fatal("the note is not drawn")
+	}
+	want := w.noteMinWidth() - w.editorPadLeft() - w.editorPadRight()
+	if ed.W < want {
+		t.Errorf("the drag left the note %v, want the %v it needs", ed.W, want)
+	}
+	if got, room := w.Layout.Right,
+		width-w.Layout.Left-w.noteMinWidth()-2*dividerGrip; got > room {
+		t.Errorf("the drag gave the preview %v, want no more than the %v"+
+			" beside the note", got, room)
+	}
+}
