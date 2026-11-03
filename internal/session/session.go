@@ -1,5 +1,7 @@
 // Package session holds the rules of the editor's tabs: which notes are
-// open, in which order, and which one is active.
+// open, in which order, and which one is active. It keeps no file of its
+// own — the notes that are open are `state`'s to write — and is rules
+// over paths alone.
 //
 // They are rules over paths alone, with no window and no application, so
 // they can be tested on their own, and so that opening a note at start-up
