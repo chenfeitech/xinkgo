@@ -73,7 +73,7 @@ const (
 // text touches its edges is not one to read, and one whose room is wider
 // than a few words is a pane of nothing but room.
 const (
-	DefaultPaddingX uint32 = 16
+	DefaultPaddingX uint32 = 26
 	DefaultPaddingY uint32 = 12
 	MinPadding      uint32 = 4
 	MaxPadding      uint32 = 64
