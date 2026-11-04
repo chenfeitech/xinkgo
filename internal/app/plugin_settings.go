@@ -96,6 +96,10 @@ func (h *pluginHost) installedRow(c *ui.Context, th *ui.Theme,
 			ui.Text(c, one.Name).Bold()
 			ui.Text(c, locale.PluginLevelLabel(one.Level.Code())).
 				FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+			if one.Degraded {
+				ui.Text(c, locale.PluginDegraded()).
+					FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+			}
 			if h.running(one.ID) {
 				ui.Text(c, locale.PluginEnabled()).
 					FontSize(th.FontSize - 2).TextColor(th.TextMuted)
@@ -177,7 +181,7 @@ func (h *pluginHost) browseView(c *ui.Context, th *ui.Theme,
 		ui.Text(c, locale.PluginCatalogFailed()).
 			TextColor(th.TextMuted)
 	}
-	items := h.browserItems(80)
+	items := h.browserItems(200)
 	if len(items) == 0 {
 		if h.ui.supportedOnly {
 			ui.Text(c, locale.PluginNoCompatible()).
@@ -198,6 +202,10 @@ func (h *pluginHost) browserRow(c *ui.Context, th *ui.Theme,
 			ui.Text(c, item.Name).Bold()
 			ui.Text(c, locale.PluginLevelLabel(item.Level)).
 				FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+			if item.Degraded {
+				ui.Text(c, locale.PluginDegraded()).
+					FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+			}
 			if h.installed(item.ID) {
 				ui.Text(c, locale.PluginInstalled()).
 					FontSize(th.FontSize - 2).TextColor(th.TextMuted)

@@ -76,21 +76,29 @@ module.exports=class extends o.Plugin{async onload(){this.addCommand({id:"x",nam
 	}
 }
 
-func TestScanSource_refusesNodeCM6AndDOM(t *testing.T) {
+func TestScanSource_degradesNodeCM6AndDOM(t *testing.T) {
 	cases := map[string]string{
 		"node":    `var fs=require("fs");module.exports=class extends require("obsidian").Plugin{}`,
 		"cm6":     `var cm=require("@codemirror/state");module.exports=class extends require("obsidian").Plugin{}`,
 		"view":    `module.exports=class extends require("obsidian").Plugin{onload(){this.registerView("x",()=>0)}}`,
 		"modal":   `var o=require("obsidian");module.exports=class extends o.Plugin{onload(){new o.Modal()}}`,
 		"dynamic": `var n="fs";require(n);module.exports=class extends require("obsidian").Plugin{}`,
-		"esm":     `import {Plugin} from "obsidian"; export default class extends Plugin{}`,
 	}
 	for name, src := range cases {
 		r := ScanSource([]byte(src))
-		if r.Supported || len(r.Issues) == 0 {
-			t.Errorf("%s: supported=%v issues=%v", name, r.Supported,
+		if !r.Supported || !r.Degraded || len(r.Issues) == 0 {
+			t.Errorf("%s: supported=%v degraded=%v issues=%v", name,
+				r.Supported, r.Degraded,
 				r.Issues)
 		}
+	}
+}
+
+func TestScanSource_stillRefusesESM(t *testing.T) {
+	r := ScanSource([]byte(`import {Plugin} from "obsidian";` +
+		`export default class extends Plugin{}`))
+	if r.Supported {
+		t.Errorf("an ES module was accepted: %+v", r)
 	}
 }
 

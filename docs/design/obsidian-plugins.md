@@ -1,7 +1,7 @@
 # Obsidian 插件兼容宿主
 
-日期：2026-11-04。状态：**P0 spike 已实现，P1/P2/P3 未实现**。本文先定边界、
-架构与路线，再记录 P0 的实际落点；完全兼容 Obsidian 仍不是本期目标。
+日期：2026-11-04。状态：**P0 spike 与降级兼容扩展已实现，完整 P1/P2/P3 未实现**。
+本文先定边界、架构与路线，再记录 P0 的实际落点；完全兼容 Obsidian 仍不是本期目标。
 
 参考的同类扩展设计：[wechat.md](wechat.md)（外部样式目录 + 元数据 + 发现规则）、
 [wechat-style-guide.md](wechat-style-guide.md)（面向扩展作者的指引）。项目分层见
@@ -135,10 +135,11 @@ P0 的实际口径：手工放进插件目录的包默认没有任何额外授�
 | C0 | 包布局 | manifest 合法、`main.js` 是 CommonJS、目录名与 id 一致、无 ESM 顶层语法 | P0 |
 | C1 | 无头核心 | 只用 `Plugin/Component/Events`、`loadData/saveData`、`addCommand`、`Notice`、少量纯函数 | P0 |
 | C2 | 原生 UI 映射 | 增加 ribbon/status/命令面板/设置 tab/Modal/Menu/Vault/Editor/requestUrl | P1 |
-| C3 | 插件 DOM 表面 | `registerView/ItemView`、`styles.css`、Markdown post processor | P2/P3 |
-| C4 | 编辑器与系统内部 | `registerEditorExtension`、`EditorSuggest`、CM6/Lezer、Node/Electron、DOM workspace、OS 协议 | 不支持，仅出报告 |
+| C3 | 插件 DOM 表面 | `registerView/ItemView`、`styles.css`、Markdown post processor | 受限兼容：DOM shim 能加载，UI/预览效果不保证 |
+| C4 | 编辑器与系统内部 | `registerEditorExtension`、`EditorSuggest`、CM6/Lezer、Node/Electron、DOM workspace、OS 协议 | 降级兼容：惰性 stub 让插件尽量加载，相关功能不可用 |
 
-“直接兼容”交付目标是 C0 + C1 + C2 的大部分；C3 分批做；C4 明确不支持。
+C0 到 C2 是原生适配目标；C3/C4 可以在浏览器里安装，但必须显示
+「受限/降级」标记和能力说明。ESM、缺少默认导出、真实系统能力依赖仍拒绝。
 官方样例插件用到 ribbon、Notice、命令、Modal、设置 tab、全局 click 事件、
 `setInterval`，属于 C2 + 少量 C3，可作为 P1 的人工验收目标。
 
@@ -449,9 +450,9 @@ Go 能力表为准。
 `community-plugin-stats.json`，默认只显示
 `resources/obsidian-plugins/compatible.json` 里已检查过的条目。安装时重新下载
 `manifest.json` / `main.js` / 可选 `styles.css`，再次跑能力扫描；扫描不过就拒绝
-安装。这样兼容清单过期也不会让 C4 插件被直接装进来。P0 的清单来自对官方目录
-前 180 条的静态扫描，筛出 8 个只依赖命令/Editor/Vault 子集的插件；事件驱动、
-DOM 表面、CM6 与 Node/Electron 插件不在这份清单里。
+安装。这样兼容清单过期也不会让硬不兼容的插件被直接装进来。清单来自对官方
+统计里最热门前 400 个插件的静态扫描，按下载量取前 120 个可加载候选，加上
+早期 8 个已检查核心插件，共 128 条；其中 120 条明确标为 C3/C4 降级兼容。
 
 每个可见的兼容插件还显示下载/安装次数、最近更新、版本、当前版本下载量、
 最低 Obsidian 版本、是否仅桌面端、仓库、作者主页、赞助、Stars、许可证、最近
@@ -467,8 +468,9 @@ P0 已实现：`internal/plugin` 纯解析与扫描、`plugins.json`、
 `Plugin.onload/onunload`、`loadData/saveData`、`addCommand/removeCommand`、
 `Notice`、`Vault`/`Editor`/`Workspace`/`MetadataCache` 子集、状态快照、
 命令面板、设置窗口的插件分组与浏览器、兼容清单、一键安装、官方统计与
-release 详情展示。实际 shim 用最小
-`moment` 实现而非完整 vendor，未实现的 API 抛 `XinkgoCapabilityError`。
+release 详情展示；另加惰性模块 stub、DOM/设置/菜单/View/CM6 占位 API，
+把可安装集合从 8 个扩到 128 个。实际 shim 用最小 `moment` 实现而非完整
+vendor；未知导出与 external 模块返回惰性 stub，硬不兼容项仍拒绝。
 fixture 形态如下：
 
 ```js
@@ -531,7 +533,7 @@ Windows/Linux 的 WebView 差异、无 WebView 时的回落。提交前跑
 | 把插件源码转译成 Go 原生扩展 | 不是“直接兼容”，且每个插件都要维护 | 原生插件 API 另行设计，独立路线 |
 | `mygo.BindAs` 暴露通用插件服务 | 非信任页不能调 Go；可信页又会把所有绑定服务暴露给插件 | 自定义 scheme + `CallerPage` + 显式方法表 |
 | `styles.css` 注入原生 UI | 原生 UI 没有 DOM/CSS | 插件自己的 WebView 表面 |
-| 静默 stub `registerEditorExtension` | 插件会以为功能生效，排障困难 | 抛 `CapabilityError` 并列入 C4 报告 |
+| 把降级 API 伪装成完整支持 | 插件会以为功能生效，排障困难 | 标 C3/C4 降级、显示所需能力，stub 只保证尽量加载 |
 
 需要拍板的三个默认口径（不阻塞 P0，按本文推荐值推进）：是否接受
 `.obsidian/plugins` 作为默认兼容入口（推荐是）、是否给 `vault.write`

@@ -25,6 +25,7 @@ type CompatibleEntry struct {
 	Repo       string `json:"repo"`
 	Level      string `json:"level"`
 	Note       string `json:"note"`
+	Degraded   bool   `json:"degraded,omitempty"`
 	VerifiedAt string `json:"verifiedAt"`
 }
 
@@ -34,6 +35,7 @@ type BrowserItem struct {
 	Compatible       bool
 	Level            string
 	Note             string
+	Degraded         bool
 	VerifiedAt       string
 	Downloads        int64
 	Updated          int64
@@ -137,6 +139,8 @@ func FilterCatalog(entries []CatalogEntry, compatible []CompatibleEntry,
 		}
 		item := BrowserItem{CatalogEntry: one, Compatible: ok,
 			Level: known.Level, Note: known.Note,
+			Degraded: known.Degraded || known.Level == "C3" ||
+				known.Level == "C4",
 			VerifiedAt: known.VerifiedAt}
 		if !ok {
 			item.Level = "C0"

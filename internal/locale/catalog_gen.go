@@ -6175,3 +6175,13 @@ func PluginDetailLoading() string { return In(i18n.Locale()).PluginDetailLoading
 func (msgs Messages) PluginDetailLoading() string {
 	return Catalog.Format(msgs.locale, "pluginDetailLoading", nil)
 }
+
+// PluginDegraded says "Degraded"
+// in the language the app shows.
+func PluginDegraded() string { return In(i18n.Locale()).PluginDegraded() }
+
+// PluginDegraded says "Degraded"
+// in the language of msgs.
+func (msgs Messages) PluginDegraded() string {
+	return Catalog.Format(msgs.locale, "pluginDegraded", nil)
+}

@@ -487,14 +487,18 @@
     return null;
   };
   Workspace.prototype.getLeaf = function () {
-    throw new CapabilityError("WorkspaceLeaf is not supported by Xinkgo's native UI");
+    return new WorkspaceLeaf(app);
   };
   Workspace.prototype.openLinkText = function (linktext) {
     return rpc("workspace.open", { linktext: String(linktext || "") });
   };
   Workspace.prototype.onLayoutReady = function (callback) { if (callback) callback(); };
   Workspace.prototype.iterateAllLeaves = function (callback) {
-    if (callback && state.hasActiveNote) callback({ view: new MarkdownView() });
+    if (callback && state.hasActiveNote) {
+      var leaf = new WorkspaceLeaf(app);
+      leaf.view = new MarkdownView();
+      callback(leaf);
+    }
   };
   Workspace.prototype.changeLayout = function () {
     throw new CapabilityError("changeLayout is not supported by Xinkgo's native UI");
@@ -642,6 +646,12 @@
     this.manifest = manifest || cfg.manifest || {};
     this.settings = undefined;
     this._actionSeq = 0;
+    this._tabs = [];
+    this._views = {};
+    this._postProcessors = [];
+    this._protocolHandlers = {};
+    this._editorExtensions = [];
+    this._editorSuggests = [];
   }
   Plugin.prototype = Object.create(Component.prototype);
   Plugin.prototype.constructor = Plugin;
@@ -692,39 +702,37 @@
     fire("status.add", {});
     return el;
   };
-  Plugin.prototype.addSettingTab = function () {
-    throw new CapabilityError("PluginSettingTab needs a plugin DOM surface (C3)");
+  Plugin.prototype.addSettingTab = function (tab) {
+    this._tabs.push(tab);
+    if (tab && tab.display) tab.display();
   };
-  Plugin.prototype.registerView = function () {
-    throw new CapabilityError("WorkspaceLeaf/ItemView is not supported by Xinkgo's native UI");
+  Plugin.prototype.registerView = function (type, creator) {
+    this._views[String(type)] = creator;
   };
-  Plugin.prototype.registerMarkdownPostProcessor = function () {
-    throw new CapabilityError("Markdown post processing needs an HTML preview surface (C3)");
+  Plugin.prototype.registerMarkdownPostProcessor = function (processor) {
+    this._postProcessors.push(processor);
+    return processor;
   };
-  Plugin.prototype.registerMarkdownCodeBlockProcessor = function () {
-    throw new CapabilityError("Markdown code block processing needs an HTML preview surface (C3)");
+  Plugin.prototype.registerMarkdownCodeBlockProcessor = function (language, handler) {
+    var processor = function (source, el, ctx) {
+      if (handler) return handler(source, el, ctx);
+    };
+    this._postProcessors.push(processor);
+    return processor;
   };
-  Plugin.prototype.registerEditorExtension = function () {
-    throw new CapabilityError("CodeMirror 6 extensions are not supported (C4)");
+  Plugin.prototype.registerEditorExtension = function (extension) {
+    this._editorExtensions.push(extension);
   };
-  Plugin.prototype.registerEditorSuggest = function () {
-    throw new CapabilityError("EditorSuggest is not supported (C4)");
+  Plugin.prototype.registerEditorSuggest = function (suggest) {
+    this._editorSuggests.push(suggest);
   };
-  Plugin.prototype.registerObsidianProtocolHandler = function () {
-    throw new CapabilityError("obsidian:// handlers are not supported in the P0 spike");
+  Plugin.prototype.registerObsidianProtocolHandler = function (action, handler) {
+    this._protocolHandlers[String(action)] = handler;
   };
-  Plugin.prototype.registerCliHandler = function () {
-    throw new CapabilityError("CLI handlers are not supported in the P0 spike");
-  };
-  Plugin.prototype.registerHoverLinkSource = function () {
-    throw new CapabilityError("registerHoverLinkSource is not supported in the P0 spike");
-  };
-  Plugin.prototype.registerBasesView = function () {
-    throw new CapabilityError("registerBasesView is not supported in the P0 spike");
-  };
-  Plugin.prototype.registerExtensions = function () {
-    throw new CapabilityError("registerExtensions is not supported in the P0 spike");
-  };
+  Plugin.prototype.registerCliHandler = function () {};
+  Plugin.prototype.registerHoverLinkSource = function () {};
+  Plugin.prototype.registerBasesView = function () { return false; };
+  Plugin.prototype.registerExtensions = function () {};
   Plugin.prototype.onUserEnable = function () {};
   Plugin.prototype.onExternalSettingsChange = function () {};
 
@@ -754,11 +762,15 @@
       else window.localStorage.setItem("xinkgo:" + String(key), JSON.stringify(data));
     }
   };
-  Object.defineProperty(app, "secretStorage", {
-    get: function () {
-      throw new CapabilityError("secretStorage is not supported in the P0 spike");
-    }
-  });
+  app.secretStorage = {
+    getSecret: function () { return Promise.resolve(null); },
+    setSecret: function () { return Promise.resolve(); },
+    deleteSecret: function () { return Promise.resolve(); },
+    listSecrets: function () { return Promise.resolve([]); },
+    on: function () { return { off: function () {} }; },
+    off: function () {},
+    trigger: function () {}
+  };
 
   function normalizePath(path) {
     var value = String(path || "").replace(/\\/g, "/").replace(/^\/+/, "");
@@ -891,6 +903,316 @@
     isConsoleMobile: false
   };
 
+  function granted(cap) {
+    return !!(cfg.grants && cfg.grants[cap]);
+  }
+
+  // An inert stand-in for Node, Electron, CodeMirror and npm modules that
+  // esbuild left external. It can be called, constructed and read without
+  // ever reaching the operating system or the editor internals.
+  function stubValue(name) {
+    var fn = function () { return stubValue(name + "()"); };
+    return new Proxy(fn, {
+      get: function (target, property) {
+        if (property === Symbol.toPrimitive) {
+          return function () { return ""; };
+        }
+        if (property === Symbol.toStringTag) return name;
+        if (property === "then") return undefined;
+        if (property === "__esModule") return true;
+        if (property === "default") return stubValue(name + ".default");
+        if (property === "prototype") {
+          return stubValue(name + ".prototype");
+        }
+        if (property in target) return target[property];
+        return stubValue(name + "." + String(property));
+      },
+      apply: function () { return stubValue(name + "()"); },
+      construct: function () { return stubValue("new " + name); },
+      has: function () { return true; }
+    });
+  }
+
+  var iconRegistry = {};
+  function svgElement(content) {
+    var holder = document.createElement("div");
+    holder.innerHTML = String(content || "");
+    var svg = holder.querySelector("svg");
+    return svg || document.createElementNS(
+      "http://www.w3.org/2000/svg", "svg");
+  }
+
+  function DomComponent() {
+    Component.call(this);
+    this.containerEl = document.createElement("div");
+  }
+  DomComponent.prototype = Object.create(Component.prototype);
+  DomComponent.prototype.constructor = DomComponent;
+
+  function StubValueComponent() {
+    this.inputEl = document.createElement("input");
+    this.toggleEl = document.createElement("div");
+    this.sliderEl = document.createElement("div");
+    this.buttonEl = document.createElement("button");
+    this.selectEl = document.createElement("select");
+  }
+  StubValueComponent.prototype.setValue = function () { return this; };
+  StubValueComponent.prototype.getValue = function () { return ""; };
+  StubValueComponent.prototype.onChange = function (cb) {
+    if (cb) cb("");
+    return this;
+  };
+  StubValueComponent.prototype.setPlaceholder = function () { return this; };
+  StubValueComponent.prototype.setDisabled = function () { return this; };
+  StubValueComponent.prototype.setOptions = function () { return this; };
+  StubValueComponent.prototype.addOption = function () { return this; };
+  StubValueComponent.prototype.addOptions = function () { return this; };
+  StubValueComponent.prototype.setDynamicTooltip = function () { return this; };
+  StubValueComponent.prototype.setTooltip = function () { return this; };
+  StubValueComponent.prototype.setIcon = function () { return this; };
+  StubValueComponent.prototype.setCta = function () { return this; };
+  StubValueComponent.prototype.setClass = function () { return this; };
+  StubValueComponent.prototype.setLimits = function () { return this; };
+  StubValueComponent.prototype.setInstant = function () { return this; };
+  StubValueComponent.prototype.setSliderTextLimits = function () { return this; };
+  StubValueComponent.prototype.showTooltip = function () {};
+  StubValueComponent.prototype.select = function () {};
+  StubValueComponent.prototype.focus = function () {};
+  StubValueComponent.prototype.getValue = function () { return ""; };
+
+  function Setting(containerEl) {
+    this.settingEl = (containerEl || document.body).createEl("div",
+      { cls: "setting-item" });
+    this.infoEl = this.settingEl.createEl("div",
+      { cls: "setting-item-info" });
+    this.nameEl = this.infoEl.createEl("div",
+      { cls: "setting-item-name" });
+    this.descEl = this.infoEl.createEl("div",
+      { cls: "setting-item-description" });
+    this.controlEl = this.settingEl.createEl("div",
+      { cls: "setting-item-control" });
+  }
+  ["setName", "setDesc", "setClass", "setHeading", "setDisabled",
+    "setTooltip", "setIcon", "then", "clear"].forEach(function (name) {
+    Setting.prototype[name] = function () { return this; };
+  });
+  ["addText", "addTextArea", "addToggle", "addDropdown", "addSlider",
+    "addButton", "addExtraButton", "addColorPicker",
+    "addMomentFormat", "addSearch", "addProgressBar", "addFile",
+    "addFolder", "addSecret", "addComponent"].forEach(function (name) {
+    Setting.prototype[name] = function (cb) {
+      if (cb) cb(new StubValueComponent());
+      return this;
+    };
+  });
+
+  function SettingTab(app, plugin) {
+    DomComponent.call(this);
+    this.app = app || null;
+    this.plugin = plugin || null;
+    this.icon = "";
+    this.settingItems = [];
+  }
+  SettingTab.prototype = Object.create(DomComponent.prototype);
+  SettingTab.prototype.constructor = SettingTab;
+  SettingTab.prototype.display = function () {};
+  SettingTab.prototype.hide = function () {};
+  SettingTab.prototype.getSettingDefinitions = function () { return []; };
+  SettingTab.prototype.update = function () {};
+  SettingTab.prototype.getControlValue = function () { return undefined; };
+  SettingTab.prototype.setControlValue = function () {};
+
+  function PluginSettingTab(app, plugin) {
+    SettingTab.call(this, app, plugin);
+  }
+  PluginSettingTab.prototype = Object.create(SettingTab.prototype);
+  PluginSettingTab.prototype.constructor = PluginSettingTab;
+
+  function Modal(app) {
+    DomComponent.call(this);
+    this.app = app || null;
+    this.scope = new Scope();
+    this.modalEl = this.containerEl.createEl("div",
+      { cls: "modal" });
+    this.titleEl = this.modalEl.createEl("div",
+      { cls: "modal-title" });
+    this.contentEl = this.modalEl.createEl("div",
+      { cls: "modal-content" });
+    this.containerEl.createEl("div", { cls: "modal-bg" });
+    this.shouldRestoreSelection = true;
+  }
+  Modal.prototype = Object.create(DomComponent.prototype);
+  Modal.prototype.constructor = Modal;
+  Modal.prototype.open = function () {
+    document.body.appendChild(this.containerEl);
+    this.onOpen();
+  };
+  Modal.prototype.close = function () {
+    this.onClose();
+    this.containerEl.detach();
+  };
+  Modal.prototype.onOpen = function () {};
+  Modal.prototype.onClose = function () {};
+  Modal.prototype.onHistoryBack = function () {};
+
+  function SuggestModal(app) {
+    Modal.call(this, app);
+    this.inputEl = this.modalEl.createEl("input");
+    this.resultContainerEl = this.modalEl.createEl("div");
+  }
+  SuggestModal.prototype = Object.create(Modal.prototype);
+  SuggestModal.prototype.constructor = SuggestModal;
+  SuggestModal.prototype.setPlaceholder = function () { return this; };
+  SuggestModal.prototype.setInstructions = function () {};
+  SuggestModal.prototype.getSuggestions = function () { return []; };
+  SuggestModal.prototype.renderSuggestion = function () {};
+  SuggestModal.prototype.selectSuggestion = function () {};
+  SuggestModal.prototype.onChooseSuggestion = function () {};
+
+  function FuzzySuggestModal(app) { SuggestModal.call(this, app); }
+  FuzzySuggestModal.prototype = Object.create(SuggestModal.prototype);
+  FuzzySuggestModal.prototype.constructor = FuzzySuggestModal;
+  FuzzySuggestModal.prototype.getItems = function () { return []; };
+  FuzzySuggestModal.prototype.getItemText = function () { return ""; };
+
+  function MenuItem(menu) {
+    this.menu = menu || null;
+    this.titleEl = document.createElement("div");
+    this.iconEl = document.createElement("div");
+  }
+  ["setTitle", "setIcon", "setChecked", "setDisabled", "setSection",
+    "setSubmenu", "setIsLabel", "setIsWarning", "onClick",
+    "setTooltip", "setClass"].forEach(function (name) {
+    MenuItem.prototype[name] = function (value) {
+      if (name === "setSubmenu" && value) value(new Menu());
+      return this;
+    };
+  });
+
+  function Menu(app) {
+    this.app = app || null;
+    this.items = [];
+    this.dom = document.createElement("div");
+  }
+  Menu.prototype.addItem = function (cb) {
+    var item = new MenuItem(this);
+    this.items.push(item);
+    if (cb) cb(item);
+    return this;
+  };
+  Menu.prototype.addSeparator = function () { return this; };
+  Menu.prototype.showAtMouseEvent = function () {};
+  Menu.prototype.showAtPosition = function () {};
+  Menu.prototype.hide = function () {};
+  Menu.prototype.close = function () {};
+  Menu.prototype.setParentElement = function () { return this; };
+  function MenuSeparator() {}
+
+  function View(leaf) {
+    DomComponent.call(this);
+    this.app = leaf && leaf.app || null;
+    this.leaf = leaf || null;
+    this.icon = "";
+    this.navigation = false;
+    this.scope = new Scope();
+  }
+  View.prototype = Object.create(DomComponent.prototype);
+  View.prototype.constructor = View;
+  View.prototype.getViewType = function () { return "xinkgo-stub"; };
+  View.prototype.getDisplayText = function () { return ""; };
+  View.prototype.getIcon = function () { return this.icon; };
+  View.prototype.getState = function () { return {}; };
+  View.prototype.setState = function () {};
+  View.prototype.getEphemeralState = function () { return {}; };
+  View.prototype.setEphemeralState = function () {};
+  View.prototype.onOpen = function () {};
+  View.prototype.onClose = function () {};
+  View.prototype.onResize = function () {};
+  View.prototype.requestSave = function () {};
+  function ItemView(leaf) { View.call(this, leaf); }
+  ItemView.prototype = Object.create(View.prototype);
+  ItemView.prototype.constructor = ItemView;
+
+  function WorkspaceLeaf(app) {
+    this.app = app || null;
+    this.view = null;
+    this.containerEl = document.createElement("div");
+    this.parent = null;
+    this.activeTime = 0;
+  }
+  WorkspaceLeaf.prototype.open = function (view) {
+    this.view = view;
+    return Promise.resolve(view || null);
+  };
+  WorkspaceLeaf.prototype.openFile = function () { return Promise.resolve(); };
+  WorkspaceLeaf.prototype.setViewState = function () { return Promise.resolve(); };
+  WorkspaceLeaf.prototype.getViewState = function () { return {}; };
+  WorkspaceLeaf.prototype.detach = function () {};
+  WorkspaceLeaf.prototype.setPinned = function () {};
+  WorkspaceLeaf.prototype.setGroup = function () {};
+  WorkspaceLeaf.prototype.setGroupMember = function () {};
+  WorkspaceLeaf.prototype.getRoot = function () { return null; };
+  WorkspaceLeaf.prototype.getParent = function () { return this.parent; };
+  WorkspaceLeaf.prototype.getContainer = function () { return null; };
+  WorkspaceLeaf.prototype.setWidth = function () {};
+  WorkspaceLeaf.prototype.rebuildView = function () {};
+
+  function MarkdownRenderer() { DomComponent.call(this); }
+  MarkdownRenderer.prototype = Object.create(DomComponent.prototype);
+  MarkdownRenderer.prototype.constructor = MarkdownRenderer;
+  MarkdownRenderer.render = function () { return Promise.resolve(); };
+  MarkdownRenderer.renderMarkdown = function () { return Promise.resolve(); };
+  function MarkdownRenderChild(containerEl) {
+    DomComponent.call(this);
+    this.containerEl = containerEl || this.containerEl;
+  }
+  MarkdownRenderChild.prototype = Object.create(DomComponent.prototype);
+  MarkdownRenderChild.prototype.constructor = MarkdownRenderChild;
+
+  function HoverPopover(parent, targetEl) {
+    DomComponent.call(this);
+    this.parent = parent || null;
+    this.targetEl = targetEl || null;
+    this.hoverEl = this.containerEl;
+  }
+  HoverPopover.prototype = Object.create(DomComponent.prototype);
+  HoverPopover.prototype.constructor = HoverPopover;
+
+  function EditorSuggest(app) {
+    this.app = app || null;
+    this.scope = new Scope();
+    this.owner = null;
+    this.context = null;
+    this.limit = 100;
+  }
+  ["setInstructions", "getSuggestions", "renderSuggestion",
+    "selectSuggestion", "onTrigger", "close"].forEach(function (name) {
+    EditorSuggest.prototype[name] = function () { return null; };
+  });
+  function AbstractInputSuggest(app, inputEl) {
+    EditorSuggest.call(this, app);
+    this.inputEl = inputEl || document.createElement("input");
+  }
+  AbstractInputSuggest.prototype = Object.create(EditorSuggest.prototype);
+  AbstractInputSuggest.prototype.constructor = AbstractInputSuggest;
+
+  function addIcon(iconId, svgContent) {
+    iconRegistry[String(iconId)] = String(svgContent || "");
+  }
+  function setIcon(parent, iconId) {
+    var el = parent && parent.createElement ?
+      parent.createEl("span", { cls: "xinkgo-plugin-icon" }) :
+      document.createElement("span");
+    el.setAttr("data-icon", String(iconId || ""));
+    return el;
+  }
+  function getIcon(iconId) {
+    return svgElement(iconRegistry[String(iconId)] || "");
+  }
+  function getIconIds() { return Object.keys(iconRegistry); }
+  function loadMermaid() { return Promise.resolve(stubValue("mermaid")); }
+  function loadMathJax() { return Promise.resolve(); }
+
   function unsupportedClass(name) {
     return function () {
       throw new CapabilityError("unsupported obsidian export: " + name);
@@ -922,23 +1244,20 @@
       };
     },
     iterateRefs: function () { return false; },
-    addIcon: unsupported("addIcon"), setIcon: unsupported("setIcon"),
-    getIcon: unsupported("getIcon"), getIconIds: function () { return []; },
-    loadMermaid: unsupported("loadMermaid"),
-    loadMathJax: unsupported("loadMathJax"),
-    Modal: unsupported("Modal"), SuggestModal: unsupported("SuggestModal"),
-    FuzzySuggestModal: unsupported("FuzzySuggestModal"),
-    Setting: unsupported("Setting"), SettingTab: unsupported("SettingTab"),
-    PluginSettingTab: unsupported("PluginSettingTab"),
-    Menu: unsupported("Menu"), MenuItem: unsupported("MenuItem"),
-    MenuSeparator: unsupported("MenuSeparator"),
-    ItemView: unsupported("ItemView"), View: unsupported("View"),
-    WorkspaceLeaf: unsupported("WorkspaceLeaf"),
-    EditorSuggest: unsupported("EditorSuggest"),
-    MarkdownRenderer: unsupported("MarkdownRenderer"),
-    MarkdownRenderChild: unsupported("MarkdownRenderChild"),
-    HoverPopover: unsupported("HoverPopover"),
-    AbstractInputSuggest: unsupported("AbstractInputSuggest")
+    addIcon: addIcon, setIcon: setIcon, getIcon: getIcon,
+    getIconIds: getIconIds, loadMermaid: loadMermaid,
+    loadMathJax: loadMathJax,
+    Modal: Modal, SuggestModal: SuggestModal,
+    FuzzySuggestModal: FuzzySuggestModal,
+    Setting: Setting, SettingTab: SettingTab,
+    PluginSettingTab: PluginSettingTab,
+    Menu: Menu, MenuItem: MenuItem, MenuSeparator: MenuSeparator,
+    ItemView: ItemView, View: View, WorkspaceLeaf: WorkspaceLeaf,
+    EditorSuggest: EditorSuggest,
+    MarkdownRenderer: MarkdownRenderer,
+    MarkdownRenderChild: MarkdownRenderChild,
+    HoverPopover: HoverPopover,
+    AbstractInputSuggest: AbstractInputSuggest
   };
 
   window.module = { exports: {} };
@@ -949,9 +1268,12 @@
         get: function (target, property) {
           if (property in target) return target[property];
           if (typeof property === "symbol") return undefined;
-          return unsupported("obsidian." + String(property));
+          return stubValue("obsidian." + String(property));
         }
       });
+    }
+    if (granted("compat.stub")) {
+      return stubValue(String(name));
     }
     throw new CapabilityError("unsupported module: " + String(name));
   };

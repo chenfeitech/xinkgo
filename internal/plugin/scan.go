@@ -5,9 +5,9 @@ import (
 	"strings"
 )
 
-// The imports esbuild leaves external in a typical Obsidian plugin. A
-// plugin needing one of these must run inside Obsidian or a host that
-// reimplements Electron/Node/CodeMirror.
+// The imports esbuild leaves external in a typical Obsidian plugin. The
+// runtime shim returns inert stubs for these; it never gives a plugin
+// Node, Electron or CodeMirror internals.
 var deniedImports = map[string]bool{
 	"electron": true, "fs": true, "path": true, "os": true,
 	"child_process": true, "crypto": true, "util": true, "url": true,
@@ -24,150 +24,145 @@ var (
 	exportPattern  = regexp.MustCompile(`(?:module\.exports|exports\.default|__toCommonJS)`)
 )
 
-// apiRule is one API pattern and what it means for compatibility.
+// apiRule is one API pattern and what the tolerant shim needs for it.
+// Unsupported APIs are no longer a hard stop: they raise the level and
+// add a capability, so the manager can say the plugin is degraded.
 type apiRule struct {
-	Name        string
-	Level       Level
-	Capability  Capability
-	Unsupported bool
+	Name       string
+	Level      Level
+	Capability Capability
 }
 
-// apiRules are conservative textual probes. They are not a security
-// boundary: the runtime require proxy and Go bridge still enforce every
-// capability.
 var apiRules = []apiRule{
-	{"registerEditorExtension", LevelEditor, "", true},
-	{"registerEditorSuggest", LevelEditor, "", true},
-	{"EditorSuggest", LevelEditor, "", true},
-	{"WorkspaceLeaf", LevelDOM, "", true},
-	{"ItemView", LevelDOM, "", true},
-	{"containerEl", LevelDOM, "", true},
-	{"registerView", LevelDOM, "", true},
-	{"addSettingTab", LevelDOM, "", true},
-	{"PluginSettingTab", LevelDOM, "", true},
-	{"SettingTab", LevelDOM, "", true},
-	{"new Setting(", LevelDOM, "", true},
-	{"extends Modal", LevelDOM, "", true},
-	{"new Modal", LevelDOM, "", true},
-	{"Modal", LevelDOM, "", true},
-	{"FuzzySuggestModal", LevelDOM, "", true},
-	{"SuggestModal", LevelDOM, "", true},
-	{"new Menu(", LevelDOM, "", true},
-	{"MenuItem", LevelDOM, "", true},
-	{"registerMarkdownPostProcessor", LevelDOM, "", true},
-	{"registerMarkdownCodeBlockProcessor", LevelDOM, "", true},
-	{"MarkdownRenderer", LevelDOM, "", true},
-	{"registerHoverLinkSource", LevelDOM, "", true},
-	{"registerBasesView", LevelDOM, "", true},
-	{"registerExtensions", LevelDOM, "", true},
-	{"registerObsidianProtocolHandler", LevelDOM, "", true},
-	{"registerCliHandler", LevelDOM, "", true},
-	{"secretStorage", LevelDOM, "", true},
-	{"activeDocument", LevelDOM, "", true},
-	{"activeWindow", LevelDOM, "", true},
-	{"addIcon", LevelDOM, "", true},
-	{"setIcon", LevelDOM, "", true},
-	{"addRibbonIcon", LevelNative, CapabilityUI, false},
-	{"addStatusBarItem", LevelNative, CapabilityUI, false},
-	{"registerInterval", LevelNative, CapabilityEvents, false},
-	{"registerDomEvent", LevelNative, CapabilityEvents, false},
-	{"requestUrl", LevelNative, CapabilityNetwork, false},
-	{"MetadataCache", LevelNative, CapabilityMetadata, false},
-	{"getFileCache", LevelNative, CapabilityMetadata, false},
-	{"getFirstLinkpathDest", LevelNative, CapabilityMetadata, false},
-	{"vault.read", LevelNative, CapabilityVaultRead, false},
-	{"cachedRead", LevelNative, CapabilityVaultRead, false},
-	{"adapter.read", LevelNative, CapabilityVaultRead, false},
-	{"vault.modify", LevelNative, CapabilityVaultWrite, false},
-	{"vault.create", LevelNative, CapabilityVaultWrite, false},
-	{"vault.delete", LevelNative, CapabilityVaultWrite, false},
-	{"vault.rename", LevelNative, CapabilityVaultWrite, false},
-	{"replaceSelection", LevelNative, CapabilityEditorWrite, false},
-	{"editor.setValue", LevelNative, CapabilityEditorWrite, false},
-	{"getValue", LevelNative, CapabilityEditorRead, false},
-	{"getSelection", LevelNative, CapabilityEditorRead, false},
-	{"getActiveViewOfType", LevelNative, CapabilityEditorRead, false},
-	{"addCommand", LevelCore, CapabilityCommands, false},
-	{"removeCommand", LevelCore, CapabilityCommands, false},
-	{"new Notice", LevelCore, CapabilityNotice, false},
-	{"Notice(", LevelCore, CapabilityNotice, false},
-	{"loadData", LevelCore, CapabilityData, false},
-	{"saveData", LevelCore, CapabilityData, false},
+	{"registerEditorExtension", LevelEditor, CapabilityEditorExt},
+	{"registerEditorSuggest", LevelEditor, CapabilityEditorExt},
+	{"EditorSuggest", LevelEditor, CapabilityEditorExt},
+	{"WorkspaceLeaf", LevelDOM, CapabilityDOM},
+	{"ItemView", LevelDOM, CapabilityDOM},
+	{"containerEl", LevelDOM, CapabilityDOM},
+	{"registerView", LevelDOM, CapabilityDOM},
+	{"addSettingTab", LevelDOM, CapabilityDOM},
+	{"PluginSettingTab", LevelDOM, CapabilityDOM},
+	{"SettingTab", LevelDOM, CapabilityDOM},
+	{"new Setting(", LevelDOM, CapabilityDOM},
+	{"extends Modal", LevelDOM, CapabilityDOM},
+	{"new Modal", LevelDOM, CapabilityDOM},
+	{"Modal", LevelDOM, CapabilityDOM},
+	{"FuzzySuggestModal", LevelDOM, CapabilityDOM},
+	{"SuggestModal", LevelDOM, CapabilityDOM},
+	{"new Menu(", LevelDOM, CapabilityDOM},
+	{"MenuItem", LevelDOM, CapabilityDOM},
+	{"registerMarkdownPostProcessor", LevelDOM, CapabilityDOM},
+	{"registerMarkdownCodeBlockProcessor", LevelDOM, CapabilityDOM},
+	{"MarkdownRenderer", LevelDOM, CapabilityDOM},
+	{"registerHoverLinkSource", LevelDOM, CapabilityDOM},
+	{"registerBasesView", LevelDOM, CapabilityDOM},
+	{"registerExtensions", LevelDOM, CapabilityDOM},
+	{"registerObsidianProtocolHandler", LevelDOM, CapabilityDOM},
+	{"registerCliHandler", LevelDOM, CapabilityDOM},
+	{"secretStorage", LevelDOM, CapabilityDOM},
+	{"activeDocument", LevelDOM, CapabilityEvents},
+	{"activeWindow", LevelDOM, CapabilityEvents},
+	{"addIcon", LevelDOM, CapabilityUI},
+	{"setIcon", LevelDOM, CapabilityUI},
+	{"addRibbonIcon", LevelNative, CapabilityUI},
+	{"addStatusBarItem", LevelNative, CapabilityUI},
+	{"registerInterval", LevelNative, CapabilityEvents},
+	{"registerDomEvent", LevelNative, CapabilityEvents},
+	{"requestUrl", LevelNative, CapabilityNetwork},
+	{"MetadataCache", LevelNative, CapabilityMetadata},
+	{"getFileCache", LevelNative, CapabilityMetadata},
+	{"getFirstLinkpathDest", LevelNative, CapabilityMetadata},
+	{"vault.read", LevelNative, CapabilityVaultRead},
+	{"cachedRead", LevelNative, CapabilityVaultRead},
+	{"adapter.read", LevelNative, CapabilityVaultRead},
+	{"vault.modify", LevelNative, CapabilityVaultWrite},
+	{"vault.create", LevelNative, CapabilityVaultWrite},
+	{"vault.delete", LevelNative, CapabilityVaultWrite},
+	{"vault.rename", LevelNative, CapabilityVaultWrite},
+	{"replaceSelection", LevelNative, CapabilityEditorWrite},
+	{"editor.setValue", LevelNative, CapabilityEditorWrite},
+	{"getValue", LevelNative, CapabilityEditorRead},
+	{"getSelection", LevelNative, CapabilityEditorRead},
+	{"getActiveViewOfType", LevelNative, CapabilityEditorRead},
+	{"addCommand", LevelCore, CapabilityCommands},
+	{"removeCommand", LevelCore, CapabilityCommands},
+	{"new Notice", LevelCore, CapabilityNotice},
+	{"Notice(", LevelCore, CapabilityNotice},
+	{"loadData", LevelCore, CapabilityData},
+	{"saveData", LevelCore, CapabilityData},
 }
 
 // ScanResult is what a textual scan of main.js found.
 type ScanResult struct {
 	Level        Level
 	Supported    bool
+	Degraded     bool
 	Imports      []string
 	APIs         []string
 	Capabilities []Capability
 	Issues       []Issue
 }
 
-// ScanSource scans a CommonJS bundle without executing it.
+// ScanSource scans a CommonJS bundle without executing it. ESM is the
+// only hard stop; imports and APIs the host cannot fully implement become
+// explicit degraded issues and capabilities.
 func ScanSource(mainJS []byte) ScanResult {
 	src := string(mainJS)
 	out := ScanResult{Level: LevelCore, Supported: true}
+	hard := false
+	raise := func(level Level, capability Capability, issue Issue) {
+		out.Issues = append(out.Issues, issue)
+		if level > out.Level {
+			out.Level = level
+		}
+		if capability != "" {
+			out.Capabilities = append(out.Capabilities, capability)
+		}
+	}
 	for _, match := range requirePattern.FindAllStringSubmatch(src, -1) {
 		name := match[1]
 		out.Imports = append(out.Imports, name)
-		if name == "obsidian" || strings.HasPrefix(name, "./") ||
-			strings.HasPrefix(name, "../") {
+		if name == "obsidian" {
 			continue
 		}
-		if deniedImports[name] || strings.HasPrefix(name, "@codemirror/") ||
+		if strings.HasPrefix(name, "./") || strings.HasPrefix(name, "../") {
+			raise(LevelEditor, CapabilityCompatStub,
+				Issue{Code: "relativeImport", Arg: name})
+			continue
+		}
+		if deniedImports[name] ||
+			strings.HasPrefix(name, "@codemirror/") ||
 			strings.HasPrefix(name, "@lezer/") ||
-			strings.HasPrefix(name, "node:") {
-			out.Issues = append(out.Issues, Issue{
-				Code: "externalImport", Arg: name,
-			})
-			out.Level = LevelEditor
-			out.Supported = false
+			strings.HasPrefix(name, "node:") ||
+			strings.HasPrefix(name, "@electron/") {
+			raise(LevelEditor, CapabilityCompatStub,
+				Issue{Code: "stubImport", Arg: name})
 			continue
 		}
-		out.Issues = append(out.Issues, Issue{
-			Code: "unknownImport", Arg: name,
-		})
-		out.Level = LevelEditor
-		out.Supported = false
+		raise(LevelEditor, CapabilityCompatStub,
+			Issue{Code: "unknownImport", Arg: name})
 	}
 	if dynamicRequire.MatchString(src) {
-		out.Issues = append(out.Issues, Issue{Code: "dynamicRequire"})
-		out.Level = LevelEditor
-		out.Supported = false
+		raise(LevelEditor, CapabilityCompatStub,
+			Issue{Code: "dynamicRequire"})
 	}
 	if esmPattern.MatchString(src) {
+		hard = true
 		out.Issues = append(out.Issues, Issue{Code: "esmSyntax"})
-		out.Level = LevelUnsupported
-		out.Supported = false
 	}
 	if !exportPattern.MatchString(src) {
-		out.Issues = append(out.Issues, Issue{Code: "missingDefaultExport"})
-		out.Level = LevelUnsupported
-		out.Supported = false
+		hard = true
+		out.Issues = append(out.Issues,
+			Issue{Code: "missingDefaultExport"})
 	}
 	for _, rule := range apiRules {
 		if !strings.Contains(src, rule.Name) {
 			continue
 		}
 		out.APIs = append(out.APIs, rule.Name)
-		if rule.Capability != "" {
-			out.Capabilities = append(out.Capabilities, rule.Capability)
-		}
-		if rule.Unsupported {
-			out.Issues = append(out.Issues, Issue{
-				Code: "unsupportedAPI", Arg: rule.Name,
-			})
-			if rule.Level > out.Level {
-				out.Level = rule.Level
-			}
-			out.Supported = false
-			continue
-		}
-		if rule.Level > out.Level {
-			out.Level = rule.Level
-		}
+		raise(rule.Level, rule.Capability,
+			Issue{Code: "shimAPI", Arg: rule.Name})
 	}
 	out.Imports = unique(out.Imports)
 	out.APIs = unique(out.APIs)
@@ -179,6 +174,12 @@ func ScanSource(mainJS []byte) ScanResult {
 	out.Capabilities = make([]Capability, 0, len(caps))
 	for _, c := range caps {
 		out.Capabilities = append(out.Capabilities, Capability(c))
+	}
+	out.Degraded = out.Level.Degraded()
+	out.Supported = out.Level != LevelUnsupported
+	if hard {
+		out.Level, out.Supported, out.Degraded = LevelUnsupported,
+			false, false
 	}
 	return out
 }
@@ -192,7 +193,8 @@ func ScanPackage(m Manifest, mainJS []byte, dir, source string, hasCSS bool) Rep
 		Dir: dir, Source: source,
 	}
 	scan := ScanSource(mainJS)
-	r.Level, r.Supported = scan.Level, scan.Supported
+	r.Level, r.Supported, r.Degraded = scan.Level, scan.Supported,
+		scan.Degraded
 	r.Imports, r.APIs = scan.Imports, scan.APIs
 	r.Capabilities = scan.Capabilities
 	r.Issues = append(r.Issues, scan.Issues...)
@@ -200,7 +202,8 @@ func ScanPackage(m Manifest, mainJS []byte, dir, source string, hasCSS bool) Rep
 		r.Issues = append(r.Issues, Issue{
 			Code: "badManifest", Arg: err.Error(),
 		})
-		r.Level, r.Supported = LevelUnsupported, false
+		r.Level, r.Supported, r.Degraded = LevelUnsupported, false,
+			false
 	} else if !RequireAPIVersion(m.MinAppVersion) {
 		r.Issues = append(r.Issues, Issue{
 			Code: "apiProfile", Arg: m.MinAppVersion,

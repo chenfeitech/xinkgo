@@ -39,10 +39,17 @@ func (l Level) Code() string {
 	}
 }
 
-// Supported reports whether the spike host can run a plugin of this level.
-// C3 needs a plugin DOM surface and C4 needs CodeMirror 6 or Electron;
-// neither is part of the P0 host.
-func (l Level) Supported() bool { return l == LevelCore || l == LevelNative }
+// Supported reports whether the host can at least load a plugin of this
+// level. C3 and C4 load through the tolerant shim, but their DOM, CM6 and
+// system APIs are degraded; Report.Degraded says so explicitly.
+func (l Level) Supported() bool {
+	return l == LevelCore || l == LevelNative || l == LevelDOM ||
+		l == LevelEditor
+}
+
+// Degraded reports whether a plugin needs the tolerant shim instead of
+// the native UI and Editor adapters alone.
+func (l Level) Degraded() bool { return l == LevelDOM || l == LevelEditor }
 
 // Capability is one permission a plugin may need at runtime.
 type Capability string
@@ -61,6 +68,9 @@ const (
 	CapabilityNetwork     Capability = "network"
 	CapabilityEvents      Capability = "events.app"
 	CapabilityUI          Capability = "ui"
+	CapabilityDOM         Capability = "dom"
+	CapabilityEditorExt   Capability = "editor.extension"
+	CapabilityCompatStub  Capability = "compat.stub"
 )
 
 // AllCapabilities is every capability the manager may show, in order.
@@ -69,7 +79,8 @@ var AllCapabilities = []Capability{
 	CapabilityVaultRead, CapabilityVaultWrite,
 	CapabilityEditorRead, CapabilityEditorWrite,
 	CapabilityMetadata, CapabilityNetwork, CapabilityEvents,
-	CapabilityUI,
+	CapabilityUI, CapabilityDOM, CapabilityEditorExt,
+	CapabilityCompatStub,
 }
 
 // Issue is one reason a plugin is held back. Code is a stable identifier
@@ -90,6 +101,7 @@ type Report struct {
 	Source       string       `json:"source"`
 	Level        Level        `json:"level"`
 	Supported    bool         `json:"supported"`
+	Degraded     bool         `json:"degraded"`
 	Capabilities []Capability `json:"capabilities,omitempty"`
 	Imports      []string     `json:"imports,omitempty"`
 	APIs         []string     `json:"apis,omitempty"`

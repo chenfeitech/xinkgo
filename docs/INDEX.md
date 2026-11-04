@@ -65,7 +65,8 @@
   [design/modularity.md](design/modularity.md)。
 - **Obsidian 插件兼容**：P0 spike 已实现：插件发现/静态能力扫描、隔离宿主、
   命令与 Editor/Vault 子集、设置窗口里的插件分组、默认只看兼容插件的浏览器、
-  安装/下载次数与 release 详情。P1/P2/P3 仍待做，全部插件直接兼容不是目标，见
+  安装/下载次数与 release 详情；兼容清单扩到 128 个，其中 C3/C4 明确标为降级。
+  P1/P2/P3 仍待做，全部插件直接兼容不是目标，见
   [design/obsidian-plugins.md](design/obsidian-plugins.md)。
 
 ## 还剩什么

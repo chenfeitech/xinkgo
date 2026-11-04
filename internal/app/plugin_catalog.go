@@ -170,7 +170,7 @@ func (h *pluginHost) prepareSettings() {
 // loadDetails fetches release metadata for the visible compatible rows.
 // Unsupported rows keep the catalog's own metadata; no plugin code runs.
 func (h *pluginHost) loadDetails() {
-	for _, item := range h.detailCandidates(80) {
+	for _, item := range h.detailCandidates(40) {
 		if !item.Compatible {
 			continue
 		}

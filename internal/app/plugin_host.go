@@ -687,6 +687,13 @@ func (h *pluginHost) serveAsset(w http.ResponseWriter, name, contentType string)
 }
 
 func (h *pluginHost) configJS(inst *pluginInstance) []byte {
+	h.mu.RLock()
+	granted := h.saved.GrantsOf(inst.id)
+	h.mu.RUnlock()
+	grants := make(map[string]bool, len(granted))
+	for _, one := range granted {
+		grants[one] = true
+	}
 	cfg := map[string]any{
 		"pluginID":   inst.id,
 		"pluginName": inst.manifest.Name,
@@ -694,6 +701,7 @@ func (h *pluginHost) configJS(inst *pluginInstance) []byte {
 		"token":      inst.token,
 		"apiVersion": plugin.APIProfile,
 		"manifest":   inst.manifest,
+		"grants":     grants,
 	}
 	data, _ := json.Marshal(cfg)
 	return []byte("window.__XINKGO__ = " + string(data) + ";\n" +

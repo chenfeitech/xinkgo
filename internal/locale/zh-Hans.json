@@ -623,5 +623,6 @@
   "pluginDetailLastCommit": "最近提交",
   "pluginDetailYes": "是",
   "pluginDetailNo": "否",
-  "pluginDetailLoading": "正在读取插件详细信息…"
+  "pluginDetailLoading": "正在读取插件详细信息…",
+  "pluginDegraded": "受限"
 }
