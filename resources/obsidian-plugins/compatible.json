@@ -141,7 +141,8 @@
     "level": "C4",
     "degraded": true,
     "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
-    "verifiedAt": "2026-11-04"
+    "verifiedAt": "2026-11-04",
+    "core": true
   },
   {
     "id": "excalibrain",
@@ -523,7 +524,8 @@
     "level": "C4",
     "degraded": true,
     "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
-    "verifiedAt": "2026-11-04"
+    "verifiedAt": "2026-11-04",
+    "core": true
   },
   {
     "id": "obsidian-file-color",
@@ -546,7 +548,8 @@
     "level": "C4",
     "degraded": true,
     "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
-    "verifiedAt": "2026-11-04"
+    "verifiedAt": "2026-11-04",
+    "core": true
   },
   {
     "id": "obsidian-hider",
@@ -570,7 +573,8 @@
     "level": "C4",
     "degraded": true,
     "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
-    "verifiedAt": "2026-11-04"
+    "verifiedAt": "2026-11-04",
+    "core": true
   },
   {
     "id": "obsidian-image-auto-upload-plugin",
@@ -673,7 +677,8 @@
     "level": "C3",
     "degraded": true,
     "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
-    "verifiedAt": "2026-11-04"
+    "verifiedAt": "2026-11-04",
+    "core": true
   },
   {
     "id": "obsidian-omnivore",
@@ -689,7 +694,8 @@
     "level": "C4",
     "degraded": true,
     "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
-    "verifiedAt": "2026-11-04"
+    "verifiedAt": "2026-11-04",
+    "core": true
   },
   {
     "id": "obsidian-paste-image-rename",
@@ -776,7 +782,8 @@
     "level": "C4",
     "degraded": true,
     "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
-    "verifiedAt": "2026-11-04"
+    "verifiedAt": "2026-11-04",
+    "core": true
   },
   {
     "id": "obsidian-text-format",
@@ -838,7 +845,8 @@
     "level": "C4",
     "degraded": true,
     "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
-    "verifiedAt": "2026-11-04"
+    "verifiedAt": "2026-11-04",
+    "core": true
   },
   {
     "id": "pdf-plus",
@@ -894,7 +902,8 @@
     "level": "C4",
     "degraded": true,
     "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
-    "verifiedAt": "2026-11-04"
+    "verifiedAt": "2026-11-04",
+    "core": true
   },
   {
     "id": "readwise-official",
@@ -966,7 +975,8 @@
     "level": "C4",
     "degraded": true,
     "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
-    "verifiedAt": "2026-11-04"
+    "verifiedAt": "2026-11-04",
+    "core": true
   },
   {
     "id": "tag-wrangler",

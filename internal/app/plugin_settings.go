@@ -1,7 +1,9 @@
 package app
 
 import (
+	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/egoist/mygo"
@@ -30,6 +32,15 @@ func (h *pluginHost) uiSnapshot() pluginViewState {
 		busy:   map[string]bool{},
 	}
 	state.installed = append([]plugin.Report(nil), h.ui.installed...)
+	sort.SliceStable(state.installed, func(i, j int) bool {
+		left := h.stats[state.installed[i].ID].Downloads
+		right := h.stats[state.installed[j].ID].Downloads
+		if left != right {
+			return left > right
+		}
+		return strings.ToLower(state.installed[i].Name) <
+			strings.ToLower(state.installed[j].Name)
+	})
 	for id, on := range h.ui.busy {
 		state.busy[id] = on
 	}
@@ -200,6 +211,10 @@ func (h *pluginHost) browserRow(c *ui.Context, th *ui.Theme,
 	ui.Column(c).FillWidth().Gap(2).Children(func() {
 		ui.Row(c).Gap(6).AlignItems(ui.Center).Children(func() {
 			ui.Text(c, item.Name).Bold()
+			if item.Core {
+				ui.Text(c, locale.PluginCore()).
+					FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+			}
 			ui.Text(c, locale.PluginLevelLabel(item.Level)).
 				FontSize(th.FontSize - 2).TextColor(th.TextMuted)
 			if item.Degraded {

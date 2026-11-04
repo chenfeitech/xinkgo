@@ -324,6 +324,7 @@ func boot(app *mygo.Application) (*appState, error) {
 	ws.OnWechatCopy = st.copyWechat
 	if st.plugins != nil {
 		ws.OnPluginCommand = st.plugins.runCommand
+		ws.OnPluginAction = st.plugins.runAction
 	}
 	ws.Tabs.OnSave = func(path string) {
 		slog.Debug("saved", "path", path)

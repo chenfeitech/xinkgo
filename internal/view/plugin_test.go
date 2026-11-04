@@ -1,6 +1,10 @@
 package view
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/egoist/mygo/ui"
+)
 
 func TestPalette_pluginCommandsAreListedAndChosen(t *testing.T) {
 	w := &Workspace{
@@ -21,5 +25,20 @@ func TestPalette_pluginCommandsAreListedAndChosen(t *testing.T) {
 	w.choose(0)
 	if called != "demo:one" {
 		t.Errorf("chosen command = %q, want demo:one", called)
+	}
+}
+
+func TestPluginRibbon_clickReportsAction(t *testing.T) {
+	w := &Workspace{
+		PluginRibbon: []PluginAction{{ID: "demo:one", Name: "Demo One"}},
+	}
+	called := ""
+	w.OnPluginAction = func(id string) { called = id }
+	tt := ui.NewTester(w.pluginRibbon, 100, 200)
+	if err := tt.Click("Demo One"); err != nil {
+		t.Fatal(err)
+	}
+	if called != "demo:one" {
+		t.Errorf("clicked action = %q, want demo:one", called)
 	}
 }

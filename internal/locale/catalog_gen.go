@@ -6185,3 +6185,13 @@ func PluginDegraded() string { return In(i18n.Locale()).PluginDegraded() }
 func (msgs Messages) PluginDegraded() string {
 	return Catalog.Format(msgs.locale, "pluginDegraded", nil)
 }
+
+// PluginCore says "Core"
+// in the language the app shows.
+func PluginCore() string { return In(i18n.Locale()).PluginCore() }
+
+// PluginCore says "Core"
+// in the language of msgs.
+func (msgs Messages) PluginCore() string {
+	return Catalog.Format(msgs.locale, "pluginCore", nil)
+}

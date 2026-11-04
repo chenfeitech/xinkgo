@@ -105,6 +105,7 @@ type pluginInstance struct {
 	unloadID string
 	timer    *time.Timer
 	commands map[string]view.PluginCommand
+	ribbon   map[string]view.PluginAction
 }
 
 // pluginUI is the state of the plugin settings pane. View functions read
@@ -330,6 +331,7 @@ func (h *pluginHost) notifyState(name string) {
 func (h *pluginHost) refreshCommands() {
 	h.mu.RLock()
 	commands := []view.PluginCommand{}
+	ribbon := []view.PluginAction{}
 	for _, inst := range h.instances {
 		if !inst.ready {
 			continue
@@ -337,17 +339,52 @@ func (h *pluginHost) refreshCommands() {
 		for _, one := range inst.commands {
 			commands = append(commands, one)
 		}
+		for _, one := range inst.ribbon {
+			ribbon = append(ribbon, one)
+		}
 	}
 	h.mu.RUnlock()
 	sort.Slice(commands, func(i, j int) bool {
 		return strings.ToLower(commands[i].Name) <
 			strings.ToLower(commands[j].Name)
 	})
+	sort.Slice(ribbon, func(i, j int) bool {
+		return strings.ToLower(ribbon[i].Name) <
+			strings.ToLower(ribbon[j].Name)
+	})
 	mygo.RunOnMain(func() {
 		if h.st.ws != nil {
 			h.st.ws.PluginCommands = commands
+			h.st.ws.PluginRibbon = ribbon
 		}
 	})
+}
+
+// runAction delivers a ribbon click to the plugin page that registered it.
+func (h *pluginHost) runAction(id string) {
+	h.mu.RLock()
+	var inst *pluginInstance
+	for _, one := range h.instances {
+		if _, ok := one.ribbon[id]; ok {
+			inst = one
+			break
+		}
+	}
+	if inst == nil {
+		h.mu.RUnlock()
+		return
+	}
+	page, ready := inst.page, inst.ready
+	h.mu.RUnlock()
+	if !ready || page == nil {
+		h.setStatus(locale.PluginStatus(locale.PluginCommandNotReady()))
+		return
+	}
+	if err := pluginEvents.EmitPage(page.Page(), pluginEvent{
+		Type: "action", ActionID: id,
+	}); err != nil {
+		slog.Warn("plugin ribbon event", "id", id, "err", err)
+	}
 }
 
 // runCommand delivers a palette choice to the plugin page that owns it.
@@ -416,7 +453,9 @@ func (h *pluginHost) enable(id string, save bool) {
 	inst := &pluginInstance{
 		id: id, host: host, token: token, dir: report.Dir,
 		source: report.Source, manifest: m, report: report,
-		grants: map[string]bool{}, commands: map[string]view.PluginCommand{},
+		grants:   map[string]bool{},
+		commands: map[string]view.PluginCommand{},
+		ribbon:   map[string]view.PluginAction{},
 	}
 	for _, one := range h.saved.GrantsOf(id) {
 		inst.grants[one] = true

@@ -624,5 +624,6 @@
   "pluginDetailYes": "是",
   "pluginDetailNo": "否",
   "pluginDetailLoading": "正在读取插件详细信息…",
-  "pluginDegraded": "受限"
+  "pluginDegraded": "受限",
+  "pluginCore": "核心"
 }

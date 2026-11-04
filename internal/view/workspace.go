@@ -49,6 +49,11 @@ type Workspace struct {
 	// OnPluginCommand is told the ID of a plugin command chosen in the
 	// palette. It is the app's work to deliver it to the plugin runtime.
 	OnPluginCommand func(id string)
+	// PluginRibbon are the icons plugins put on the left ribbon. The app
+	// fills the list; the view draws them and reports which was clicked.
+	PluginRibbon []PluginAction
+	// OnPluginAction is told the ID of a ribbon icon that was clicked.
+	OnPluginAction func(id string)
 	// AiModel is the model the bar asks, of the ones the settings hold:
 	// the one the settings name until another is picked in the bar, and
 	// that one again when the picked one is gone or turned off. It is

@@ -16,6 +16,7 @@
 | [design/tree-follows-note.md](design/tree-follows-note.md) | 目录树跟随当前笔记：谁触发、展开+选中+滚动怎么落地、边界与取舍 | 动目录树定位前 |
 | [design/wechat.md](design/wechat.md) | 公众号排版：样式菜单、手机宽度预览、行内样式的由来、样式目录与文件格式 | 动公众号排版前 |
 | [design/obsidian-plugins.md](design/obsidian-plugins.md) | **Obsidian 插件兼容（P0 spike 已实现）**：机制调研、兼容边界、非信任 WebView 宿主、API 映射与分阶段路线 | 做插件兼容前 |
+| [design/obsidian-core-plugins.md](design/obsidian-core-plugins.md) | **Obsidian 核心插件对照**：内置能力映射、下载榜前 20、Core 兼容插件与后续路线 | 规划核心插件前 |
 | [design/modularity.md](design/modularity.md) | 模块化梳理：现状量出来的问题、`view`/`app` 的目标文件划分、分阶段计划与新约定 | 加功能前、觉得文件太大时 |
 | [design/wechat-style-guide.md](design/wechat-style-guide.md) | **写公众号样式的指引**：键位表、CSS 能做与不能做、改 → 看 → 试、排错清单 | 写/改一套公众号样式时 |
 | [exec-plans/xinkgo-port.md](exec-plans/xinkgo-port.md) | 研发计划与状态（T-1 ~ T-46） | 接着做、看进度 |
@@ -65,7 +66,8 @@
   [design/modularity.md](design/modularity.md)。
 - **Obsidian 插件兼容**：P0 spike 已实现：插件发现/静态能力扫描、隔离宿主、
   命令与 Editor/Vault 子集、设置窗口里的插件分组、默认只看兼容插件的浏览器、
-  安装/下载次数与 release 详情；兼容清单扩到 128 个，其中 C3/C4 明确标为降级。
+  安装/下载次数与 release 详情；兼容清单扩到 128 个，按下载量排序，其中
+  C3/C4 明确标为降级、10 个常用插件标为 Core，并预留左侧 plugin ribbon。
   P1/P2/P3 仍待做，全部插件直接兼容不是目标，见
   [design/obsidian-plugins.md](design/obsidian-plugins.md)。
 

@@ -892,5 +892,6 @@
   "pluginDetailYes": "yes",
   "pluginDetailNo": "no",
   "pluginDetailLoading": "Loading plugin details...",
-  "pluginDegraded": "Degraded"
+  "pluginDegraded": "Degraded",
+  "pluginCore": "Core"
 }

@@ -689,7 +689,10 @@
     el.className = "xinkgo-plugin-ribbon";
     el.setAttr("data-icon", icon || "");
     el.setText(title || "");
-    fire("action.add", { id: id, name: String(title || "Plugin action"), kind: "ribbon" });
+    fire("action.add", {
+      id: id, name: String(title || "Plugin action"),
+      kind: "ribbon", icon: String(icon || "")
+    });
     return el;
   };
   Plugin.prototype.addStatusBarItem = function () {

@@ -134,6 +134,31 @@ func TestFilterCatalog_supportedOnlyHidesUncheckedPlugins(t *testing.T) {
 	}
 }
 
+func TestSortByDownloads_putsPopularPluginsFirst(t *testing.T) {
+	items := []BrowserItem{
+		{CatalogEntry: CatalogEntry{ID: "small", Name: "Small"},
+			Downloads: 10},
+		{CatalogEntry: CatalogEntry{ID: "big", Name: "Big"},
+			Downloads: 9000},
+		{CatalogEntry: CatalogEntry{ID: "none", Name: "None"}},
+	}
+	got := SortByDownloads(items)
+	if got[0].ID != "big" || got[1].ID != "small" ||
+		got[2].ID != "none" {
+		t.Fatalf("sorted = %+v", got)
+	}
+}
+
+func TestFilterCatalog_marksCorePlugins(t *testing.T) {
+	entries := []CatalogEntry{{ID: "one", Name: "One", Repo: "a/one"}}
+	compatible := []CompatibleEntry{{ID: "one", Repo: "a/one",
+		Level: "C4", Core: true}}
+	got := FilterCatalog(entries, compatible, "", true, 0)
+	if len(got) != 1 || !got[0].Core || !got[0].Degraded {
+		t.Fatalf("core item = %+v", got)
+	}
+}
+
 func TestParseStats_readsOfficialShape(t *testing.T) {
 	stats, err := ParseStats([]byte(`{
   "demo-addon": {"downloads": 101154, "updated": 1639000981000,

@@ -236,14 +236,14 @@ func (h *pluginHost) handleRPC(inst *pluginInstance, method string,
 			ID   string `json:"id"`
 			Name string `json:"name"`
 			Kind string `json:"kind"`
+			Icon string `json:"icon"`
 		}
 		if err := decodePluginParams(raw, &p); err != nil {
 			return nil, err
 		}
-		commandID := inst.id + ":action:" + p.ID
 		h.mu.Lock()
-		inst.commands[commandID] = view.PluginCommand{
-			ID: commandID, Name: p.Name, Visible: true,
+		inst.ribbon[p.ID] = view.PluginAction{
+			ID: p.ID, Name: p.Name, Icon: p.Icon,
 		}
 		h.mu.Unlock()
 		h.refreshCommands()

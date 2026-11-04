@@ -1,0 +1,90 @@
+# Obsidian 核心插件对照与 Xinkgo 核心插件
+
+日期：2026-11-04。状态：**设计梳理 + 浏览器 Core 标记已落地**。本文回答两件事：
+Obsidian 的「核心插件」在 Xinkgo 里对应什么；哪些最常用的社区插件值得当作
+Xinkgo 的核心兼容插件优先维护。
+
+这里把「核心插件」分成两层，避免把内置功能和外部插件混为一谈：
+
+1. **内置核心能力**：Xinkgo 自己实现，不依赖插件宿主，也不进 `plugins.json`。
+2. **核心兼容插件**：来自社区目录，经过静态扫描后放进兼容清单，浏览器里打
+   `Core` 标记；用户仍需安装，宿主仍按能力授权，不自动启用。
+
+## 1 Obsidian 核心插件对照
+
+| Obsidian 核心插件 | Xinkgo 对应 | 状态 | 说明 |
+|---|---|---|---|
+| File explorer | 文件树 | 已内置 | 全量扫描、目录树跟随当前笔记、右键菜单、外部变更刷新 |
+| Quick switcher | 命令面板 | 已内置 | `Cmd+P`，模糊匹配笔记、Skills、AI 动作和插件命令 |
+| Global search | 全文搜索 | 已内置 | 防抖、后台读盘、点击跳行 |
+| Backlinks | 反链面板 | 已内置 | 索引驱动，右侧抽屉 |
+| Outgoing links | 双链解析与补全 | 部分内置 | 能解析、补全、点击，但没有独立「出链」面板 |
+| Tag pane | 标签面板 | 已内置 | 聚合、展开、frontmatter 标签 |
+| Outline | 大纲面板 | 已内置 | 实时解析，点击跳行 |
+| Command palette | 命令面板 | 已内置 | 与 Quick switcher 共用入口 |
+| Editor status bar | 底部状态行 | 部分内置 | 有状态提示，但没有字数、行数、光标位置等常驻统计 |
+| Format converter | Markdown 工具栏 | 部分内置 | 14 个格式按钮；没有 Obsidian 的完整转换命令集 |
+| Page preview | 无 | 未内置 | 悬停预览双链尚未实现 |
+| Daily notes | 无 | 未内置 | 日期笔记、模板、导航均未实现 |
+| Templates | 无 | 未内置 | 可考虑复用 AI 动作与 Skills，但不是模板系统 |
+| Note composer | 无 | 未内置 | 合并/拆分笔记尚未实现 |
+| Slash commands | 无 | 未内置 | 编辑器不是 CodeMirror 6 |
+| Bookmarks | 无 | 未内置 | 无书签数据模型与面板 |
+| Canvas | 无 | 未内置 | 原生 UI 没有画布场景 |
+| Graph view | 无 | 未内置 | 索引有双链数据，但没有图视图 |
+| Word count | 无 | 未内置 | 状态栏未做统计 |
+| Sync | 无 | 未内置 | 无官方同步；外部云同步由社区插件承担 |
+| Bases / Properties | 无 | 未内置 | 无数据库式属性查询 |
+
+建议按收益排序补内置能力：字数/光标统计、最近文件、书签、Daily notes、
+Templates、Page preview、Graph view。前四个是轻量原生 UI；后三个需要新的数据模型
+或 DOM 表面，放到 P2/P3。
+
+## 2 最常用的社区插件
+
+数据来自官方 `community-plugin-stats.json` 的 `downloads` 总量。浏览器已按该值
+降序排列；下表是前 20 个，其中 10 个已在兼容清单里并标记为 Core，另外 10 个
+因 ESM、缺少默认导出或静态扫描未通过暂列「待补」，不会伪装成可安装。
+
+| 插件 ID | 下载量 | 名称 | Xinkgo 处理 |
+|---|---:|---|---|
+| `obsidian-excalidraw-plugin` | 8,893,111 | Excalidraw | Core，C4 降级兼容 |
+| `templater-obsidian` | 6,095,437 | Templater | 待补；优先补模板类内置能力 |
+| `dataview` | 5,256,385 | Dataview | 待补；需要查询语言和结果视图 |
+| `obsidian-tasks-plugin` | 4,563,879 | Tasks | Core，C4 降级兼容 |
+| `obsidian-git` | 3,398,865 | Git | Core，C4 降级兼容 |
+| `table-editor-obsidian` | 3,338,242 | Advanced Tables | Core，C4 降级兼容 |
+| `calendar` | 3,245,094 | Calendar | 待补；与 Daily notes 一起规划 |
+| `copilot` | 3,212,173 | Copilot | 待补；与 Xinkgo 内置 AI 能力重叠，优先复用 |
+| `obsidian-style-settings` | 2,823,021 | Style Settings | 待补；需要主题变量模型 |
+| `obsidian-kanban` | 2,811,211 | Kanban | 待补；需要 DOM 看板表面 |
+| `realclaudian` | 2,613,196 | Claudian | 待补；与内置 AI 能力重叠 |
+| `tasknotes` | 2,566,270 | TaskNotes | 待补；与 Tasks/Daily notes 一起规划 |
+| `remotely-save` | 2,355,287 | Remotely Save | 待补；需要网络与凭据授权 |
+| `quickadd` | 2,302,138 | QuickAdd | Core，C4 降级兼容 |
+| `obsidian-icon-folder` | 2,293,044 | Iconize | Core，C3 降级兼容 |
+| `editing-toolbar` | 2,127,523 | Editing Toolbar | Core，C4 降级兼容 |
+| `omnisearch` | 2,099,360 | Omnisearch | Core，C4 降级兼容 |
+| `obsidian-importer` | 1,880,688 | Importer | 待补；需要各来源解析器 |
+| `obsidian-minimal-settings` | 1,876,624 | Minimal Theme Settings | Core，C3 降级兼容 |
+| `obsidian-outliner` | 1,478,525 | Outliner | Core，C4 降级兼容 |
+
+Core 不是「保证全部功能可用」：它表示这个插件在维护优先级、兼容清单和浏览器展示上
+被当作一等公民，仍按 C3/C4 规则显示降级标记和能力授权。待补项需要继续扩展 shim、
+补内置能力或等待 DOM 表面，不能只靠放宽扫描器塞进清单。
+
+## 3 已落地的界面约定
+
+- 浏览器和已安装列表都按官方 `downloads` 降序；没有统计数据的排在后面，按名称排序。
+- 目录树左侧预留固定 34 DIP 的 plugin ribbon。`addRibbonIcon` 注册到这里，不再混入
+  命令面板；点击图标通过 `action` 事件回到插件回调。
+- Core 插件在浏览器里显示 `Core` 徽标；C3/C4 仍显示「受限/降级」徽标。
+- 核心内置能力不写进 `plugins.json`；核心兼容插件仍走发现、安装、授权、启用流程。
+
+## 4 参考
+
+- Obsidian 核心插件清单：<https://help.obsidian.md/Plugins>
+- 官方社区目录：<https://github.com/obsidianmd/obsidian-releases/blob/master/community-plugins.json>
+- 官方下载统计：<https://github.com/obsidianmd/obsidian-releases/blob/master/community-plugin-stats.json>
+- Xinkgo 功能清单：[../XINKGO_FEATURES.md](../XINKGO_FEATURES.md)
+- 插件宿主设计：[obsidian-plugins.md](obsidian-plugins.md)

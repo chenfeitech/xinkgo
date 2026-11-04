@@ -26,6 +26,7 @@ type CompatibleEntry struct {
 	Level      string `json:"level"`
 	Note       string `json:"note"`
 	Degraded   bool   `json:"degraded,omitempty"`
+	Core       bool   `json:"core,omitempty"`
 	VerifiedAt string `json:"verifiedAt"`
 }
 
@@ -36,6 +37,7 @@ type BrowserItem struct {
 	Level            string
 	Note             string
 	Degraded         bool
+	Core             bool
 	VerifiedAt       string
 	Downloads        int64
 	Updated          int64
@@ -141,6 +143,7 @@ func FilterCatalog(entries []CatalogEntry, compatible []CompatibleEntry,
 			Level: known.Level, Note: known.Note,
 			Degraded: known.Degraded || known.Level == "C3" ||
 				known.Level == "C4",
+			Core:       known.Core,
 			VerifiedAt: known.VerifiedAt}
 		if !ok {
 			item.Level = "C0"
@@ -151,6 +154,20 @@ func FilterCatalog(entries []CatalogEntry, compatible []CompatibleEntry,
 			break
 		}
 	}
+	return out
+}
+
+// SortByDownloads puts the most-installed plugins first. Plugins with no
+// statistics keep their name order at the end.
+func SortByDownloads(items []BrowserItem) []BrowserItem {
+	out := append([]BrowserItem(nil), items...)
+	sort.SliceStable(out, func(i, j int) bool {
+		if out[i].Downloads != out[j].Downloads {
+			return out[i].Downloads > out[j].Downloads
+		}
+		return strings.ToLower(out[i].Name) <
+			strings.ToLower(out[j].Name)
+	})
 	return out
 }
 

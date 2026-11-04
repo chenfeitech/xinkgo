@@ -142,8 +142,12 @@ func (h *pluginHost) browserItems(limit int) []plugin.BrowserItem {
 	supportedOnly := h.ui.supportedOnly
 	h.mu.RUnlock()
 	items := plugin.FilterCatalog(entries, compatible, query,
-		supportedOnly, limit)
+		supportedOnly, 0)
 	items = plugin.AnnotateCatalog(items, stats, details)
+	items = plugin.SortByDownloads(items)
+	if limit > 0 && len(items) > limit {
+		items = items[:limit]
+	}
 	h.mu.Lock()
 	h.browserKey = key
 	h.browser = items
@@ -195,8 +199,19 @@ func (h *pluginHost) detailCandidates(limit int) []plugin.BrowserItem {
 	h.mu.RLock()
 	entries := append([]plugin.CatalogEntry(nil), h.catalog...)
 	compatible := append([]plugin.CompatibleEntry(nil), h.compatible...)
+	stats := make(map[string]plugin.PluginStats, len(h.stats))
+	for id, one := range h.stats {
+		stats[id] = one
+	}
 	h.mu.RUnlock()
-	return plugin.FilterCatalog(entries, compatible, "", true, limit)
+	items := plugin.FilterCatalog(entries, compatible, "", true, 0)
+	items = plugin.AnnotateCatalog(items, stats,
+		map[string]plugin.PluginDetail{})
+	items = plugin.SortByDownloads(items)
+	if limit > 0 && len(items) > limit {
+		items = items[:limit]
+	}
+	return items
 }
 
 func (h *pluginHost) clearDetailLoading(id string) {
