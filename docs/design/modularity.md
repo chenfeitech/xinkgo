@@ -119,7 +119,7 @@ type Host interface {
 |---|---|---|
 | `internal/view/geom/geom.go` | 335 | **几何**：面板/编辑区/预览区宽度、留白、边距、换行列数、侧栏带、三种形态的枚举。不 import `view`，只依赖 `config` / `state` / `ui`，可脱离窗口单测 |
 | `internal/view/geom/geom_test.go` | 145 | 几何单测：不渲染、不建窗口 |
-| `internal/view/workspace.go` | 472 | `Workspace` 类型、`View` 骨架、面板显隐与拖拽 |
+| `internal/view/file_tree.go:196` | 472 | `Workspace` 类型、`View` 骨架、面板显隐与拖拽 |
 
 阶段 1 之后 `internal/view` 的窗口部分：
 
@@ -149,7 +149,7 @@ type Host interface {
 | `tree_paths.go` | 116 | 路径：定位、选中、滚到 |
 | `tree_vault.go` | 89 | 库切换 |
 
-五个阶段做完，`internal/view` 与 `internal/app` 里已没有超过 1100 行的文件
+五个阶段做完（已合并到 `main`），`internal/view` 与 `internal/app` 里已没有超过 1100 行的文件
 （`settings_ai.go` 1069 是最大的一个，且它是单独一页）。
 
 阶段 1 先行：它把后面每一步的“落点”先定下来，且不碰任何行为。

@@ -148,10 +148,10 @@ Everything passed.
 最后一次 `scripts/check.sh`：
 
 ```
-== go test ./... ==       22 个包全 ok
+== go test ./... ==       27 个包全 ok
 == 全平台编译 ==          ok darwin/arm64 · darwin/amd64 · windows/amd64
                           ok windows/arm64 · linux/amd64
-== versions agree ==      ok 0.1.0
+== versions agree ==      ok 0.1.1
 Everything passed.
 ```
 

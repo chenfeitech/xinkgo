@@ -52,19 +52,34 @@ xinkgo/
 ├── cmd/
 │   └── xinkgo/main.go       入口：只做装配，不含逻辑
 ├── internal/
-│   ├── app/                 应用生命周期：命名、启动、菜单、窗口、IPC 绑定
-│   │   ├── app.go               Run/start：装配与初始化
-│   │   ├── window.go            主窗口（原生 UI）
-│   │   ├── menu.go              菜单栏
-│   │   ├── web.go               Web 窗口预留 + 供页面调用的 Go 服务
+│   ├── app/                 生命周期与外壳：装配、菜单、窗口、IPC、设置窗口
+│   │   ├── app.go               装配与生命周期；app_vault.go 库；app_apply.go 配置生效
+│   │   ├── window.go / host.go / web.go   主窗口 / IPC 绑定 / Web 窗口预留
+│   │   ├── menu.go / files.go / export.go / wechat.go / ask.go   菜单与各处编排
+│   │   ├── watch.go              盯库的外部改动，交回主线程
+│   │   ├── settings*.go          设置窗口，一页一个文件
 │   │   └── platform_darwin.go / platform_other.go   平台差异（退出行为）
-│   ├── view/                窗口界面：由状态绘制（home.go + home_test.go）
-│   ├── config/              用户配置：读 / 写 / 校验（config.json）
-│   ├── export/              导出：把笔记写成自成一页的 HTML（PDF 由它打印）
-│   ├── wechat/              公众号排版：样式表（内建 + 用户目录 JSON）与行内样式渲染
-│   ├── theme/               配色方案表：每套方案明暗两套取色（纯数据 + ui）
-│   ├── logging/             slog 初始化（开发到终端，安装版到文件）
-│   └── sysinfo/             版本与运行环境信息（纯数据）
+│   ├── view/                窗口界面：由状态绘制（一屏一块，一文件一职）
+│   │   ├── workspace.go         Workspace 类型与窗口骨架；panes.go 三块面板
+│   │   ├── preview.go / bars.go  预览区 / 标签栏与工具栏
+│   │   ├── geom/                 几何：宽度、留白、边距、换行列数（不画东西，可单测）
+│   │   ├── ai_bar.go ai_ask.go ai_talk.go ai_session.go   对话条的四个部分
+│   │   ├── file_tree.go tree_rows.go tree_paths.go tree_vault.go   目录树的四个部分
+│   │   └── tabs.go scroll.go outline.go palette.go …   标签页、滚动同步、抽屉、命令面板
+│   ├── 领域与数据（不碰磁盘、不弹对话框）
+│   │   ├── vault/ note/ index/ search/      库、笔记、双链索引、全文搜索
+│   │   ├── ai/ task/ skill/ sync/ snapshot/  模型、任务、技能、滚动锚点、改前快照
+│   │   ├── markdown/ highlight/ datafile/ media/   正文、代码着色、数据文件、图片
+│   │   └── wechat/ export/ theme/            公众号排版、导出、配色方案
+│   ├── 持久化（各管各的文件，见 ARCHITECTURE.md 第 7 节）
+│   │   ├── config/   设置 config.json
+│   │   ├── state/    窗口状态 open_notes / vaults / layout / ai_sessions
+│   │   ├── session/  标签页的规则（不存文件）
+│   │   └── secret/ fs/   钥匙串 / 库内文件操作
+│   ├── 工具（纯函数，谁都可以 import）
+│   │   ├── locale/   文案 catalog（生成物 + 两份 JSON）
+│   │   └── fuzzy/ keymap/ logging/ sysinfo/
+│   └── …共 28 个包
 ├── assets/                  不随产物发布的素材：应用图标的 .icns 与它的 PNG
 │   ├── xink.icns            macOS 应用图标（打包时原样写进 .app）
 │   └── icon.png             同一图标的 PNG：Windows 图标资源与 Linux
@@ -86,11 +101,14 @@ xinkgo/
 
 ```
 cmd/xinkgo  →  internal/app  →  internal/{view, config, logging, sysinfo,
-                                            export, theme}
-                                   view   → sysinfo, theme
+                                            export, theme, wechat, ai, …}
+                                   view   → sysinfo, theme, config, geom, …
+                                   geom   → config, state, ui
                                    logging → config
                                    config  → theme
                                    export  → theme
+
+方向只有一条：箭头右边的包不认识箭头左边的包。view 与 config 都不 import app。
 ```
 
 - `internal/view`、`config`、`sysinfo`、`export` **不 import `internal/app`**：它们必须在

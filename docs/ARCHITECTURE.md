@@ -28,6 +28,9 @@
 | `internal/wechat` | 公众号排版：样式表与行内样式渲染（剪贴板里的 HTML 片段） | 读笔记的图片、写剪贴板（那些是 `internal/app` 的事） |
 | `internal/logging` | 配置 slog 的默认 logger | 业务日志之外的输出策略 |
 | `internal/sysinfo` | 版本与环境信息（纯数据） | 任何 I/O |
+| `internal/view/geom` | 几何：面板与编辑区宽度、留白、边距、换行列数、侧栏带 | 画东西、读 `ui.Context`；它是纯计算，可脱离窗口单测 |
+| 领域包 `vault` `note` `index` `search` `ai` `task` `skill` `sync` `snapshot` `markdown` `highlight` `datafile` `media` `wechat` `theme` | 数据与算法：笔记、库、索引、模型、样式 | 碰磁盘、弹对话框（那是 `internal/app` 的事） |
+| 持久化 `config` `state` `secret` `fs` | 各管各的文件，见第 7 节 | 互相写对方的文件 |
 
 ## 2 启动时序
 
