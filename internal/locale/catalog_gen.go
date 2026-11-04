@@ -6195,3 +6195,63 @@ func PluginCore() string { return In(i18n.Locale()).PluginCore() }
 func (msgs Messages) PluginCore() string {
 	return Catalog.Format(msgs.locale, "pluginCore", nil)
 }
+
+// PluginTabCore says "Core plugins"
+// in the language the app shows.
+func PluginTabCore() string { return In(i18n.Locale()).PluginTabCore() }
+
+// PluginTabCore says "Core plugins"
+// in the language of msgs.
+func (msgs Messages) PluginTabCore() string {
+	return Catalog.Format(msgs.locale, "pluginTabCore", nil)
+}
+
+// PluginTabOther says "Other plugins"
+// in the language the app shows.
+func PluginTabOther() string { return In(i18n.Locale()).PluginTabOther() }
+
+// PluginTabOther says "Other plugins"
+// in the language of msgs.
+func (msgs Messages) PluginTabOther() string {
+	return Catalog.Format(msgs.locale, "pluginTabOther", nil)
+}
+
+// PluginCoreEmpty says "No core plugins in the checked list."
+// in the language the app shows.
+func PluginCoreEmpty() string { return In(i18n.Locale()).PluginCoreEmpty() }
+
+// PluginCoreEmpty says "No core plugins in the checked list."
+// in the language of msgs.
+func (msgs Messages) PluginCoreEmpty() string {
+	return Catalog.Format(msgs.locale, "pluginCoreEmpty", nil)
+}
+
+// PluginCoreToggle says "Enabled"
+// in the language the app shows.
+func PluginCoreToggle() string { return In(i18n.Locale()).PluginCoreToggle() }
+
+// PluginCoreToggle says "Enabled"
+// in the language of msgs.
+func (msgs Messages) PluginCoreToggle() string {
+	return Catalog.Format(msgs.locale, "pluginCoreToggle", nil)
+}
+
+// PluginCoreNote says "Core plugins are curated compatible plugins; they still run third-party code."
+// in the language the app shows.
+func PluginCoreNote() string { return In(i18n.Locale()).PluginCoreNote() }
+
+// PluginCoreNote says "Core plugins are curated compatible plugins; they still run third-party code."
+// in the language of msgs.
+func (msgs Messages) PluginCoreNote() string {
+	return Catalog.Format(msgs.locale, "pluginCoreNote", nil)
+}
+
+// PluginCoreInstallFirst says "Install before enabling"
+// in the language the app shows.
+func PluginCoreInstallFirst() string { return In(i18n.Locale()).PluginCoreInstallFirst() }
+
+// PluginCoreInstallFirst says "Install before enabling"
+// in the language of msgs.
+func (msgs Messages) PluginCoreInstallFirst() string {
+	return Catalog.Format(msgs.locale, "pluginCoreInstallFirst", nil)
+}

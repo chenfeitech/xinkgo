@@ -893,5 +893,11 @@
   "pluginDetailNo": "no",
   "pluginDetailLoading": "Loading plugin details...",
   "pluginDegraded": "Degraded",
-  "pluginCore": "Core"
+  "pluginCore": "Core",
+  "pluginTabCore": "Core plugins",
+  "pluginTabOther": "Other plugins",
+  "pluginCoreEmpty": "No core plugins in the checked list.",
+  "pluginCoreToggle": "Enabled",
+  "pluginCoreNote": "Core plugins are curated compatible plugins; they still run third-party code.",
+  "pluginCoreInstallFirst": "Install before enabling"
 }

@@ -625,5 +625,11 @@
   "pluginDetailNo": "否",
   "pluginDetailLoading": "正在读取插件详细信息…",
   "pluginDegraded": "受限",
-  "pluginCore": "核心"
+  "pluginCore": "核心",
+  "pluginTabCore": "核心插件",
+  "pluginTabOther": "其他插件",
+  "pluginCoreEmpty": "当前清单里没有核心插件。",
+  "pluginCoreToggle": "启用",
+  "pluginCoreNote": "核心插件为精选兼容插件，仍会运行第三方代码。",
+  "pluginCoreInstallFirst": "安装后可启用"
 }

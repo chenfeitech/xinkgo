@@ -1,6 +1,7 @@
 package app
 
 import (
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -16,6 +17,7 @@ type pluginViewState struct {
 	status    string
 	installed []plugin.Report
 	busy      map[string]bool
+	coreIDs   map[string]bool
 }
 
 // openPlugins opens the plugin group of the settings window. The plugin
@@ -28,10 +30,20 @@ func (h *pluginHost) uiSnapshot() pluginViewState {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	state := pluginViewState{
-		status: h.ui.status,
-		busy:   map[string]bool{},
+		status:  h.ui.status,
+		busy:    map[string]bool{},
+		coreIDs: map[string]bool{},
 	}
-	state.installed = append([]plugin.Report(nil), h.ui.installed...)
+	for _, one := range h.compatible {
+		if one.Core {
+			state.coreIDs[one.ID] = true
+		}
+	}
+	for _, one := range h.ui.installed {
+		if !state.coreIDs[one.ID] {
+			state.installed = append(state.installed, one)
+		}
+	}
 	sort.SliceStable(state.installed, func(i, j int) bool {
 		left := h.stats[state.installed[i].ID].Downloads
 		right := h.stats[state.installed[j].ID].Downloads
@@ -52,39 +64,128 @@ func (h *pluginHost) uiSnapshot() pluginViewState {
 func (h *pluginHost) settingsView(c *ui.Context) {
 	th := c.Theme()
 	state := h.uiSnapshot()
+	coreLabel := locale.PluginTabCore()
 	installedLabel := locale.PluginTabInstalled()
 	browseLabel := locale.PluginTabBrowse()
-	selected := installedLabel
-	if h.ui.tab == "browse" {
+	selected := coreLabel
+	if h.ui.tab == "installed" {
+		selected = installedLabel
+	} else if h.ui.tab == "browse" {
 		selected = browseLabel
 	}
 	ui.Column(c).FillWidth().Gap(8).Children(func() {
 		ui.Row(c).Gap(6).AlignItems(ui.Center).Children(func() {
 			ui.Select(c.Key("plugin-tab"), &selected,
-				[]string{installedLabel, browseLabel})
+				[]string{coreLabel, installedLabel, browseLabel})
 			if ui.Button(c.Key("plugin-refresh"),
 				locale.PluginRefresh()).Clicked() {
 				h.refresh()
 				h.refreshCatalog()
 			}
 		})
-		if selected == browseLabel {
+		switch selected {
+		case coreLabel:
+			h.ui.tab = "core"
+		case browseLabel:
 			h.ui.tab = "browse"
-		} else {
+		default:
 			h.ui.tab = "installed"
 		}
 		ui.Box(c).FillWidth().Height(1).Background(th.Border)
-		ui.Text(c, locale.PluginThirdParty()).FontSize(th.FontSize - 2).
-			TextColor(th.TextMuted)
+		if h.ui.tab == "core" {
+			ui.Text(c, locale.PluginCoreNote()).
+				FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+			h.coreView(c, th, state)
+		} else {
+			ui.Text(c, locale.PluginTabOther()).Bold().
+				FontSize(th.FontSize - 2)
+			ui.Text(c, locale.PluginThirdParty()).
+				FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+		}
 		if h.ui.tab == "browse" {
 			h.browseView(c, th, state)
-		} else {
+		} else if h.ui.tab == "installed" {
 			h.installedView(c, th, state)
 		}
 		if state.status != "" {
 			ui.Text(c, state.status).FontSize(th.FontSize - 2).
 				TextColor(th.TextMuted)
 		}
+	})
+}
+
+func (h *pluginHost) coreView(c *ui.Context, th *ui.Theme,
+	state pluginViewState) {
+	items := h.coreItems()
+	if len(items) == 0 {
+		ui.Text(c, locale.PluginCoreEmpty()).TextColor(th.TextMuted)
+		return
+	}
+	for _, item := range items {
+		h.coreRow(c, th, item, state.busy)
+		ui.Box(c).FillWidth().Height(1).Background(th.Border)
+	}
+}
+
+func (h *pluginHost) coreRow(c *ui.Context, th *ui.Theme,
+	item plugin.BrowserItem, busy map[string]bool) {
+	ui.Column(c).FillWidth().Gap(2).Children(func() {
+		ui.Row(c).Gap(6).AlignItems(ui.Center).Children(func() {
+			ui.Text(c, item.Name).Bold()
+			ui.Text(c, locale.PluginCore()).
+				FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+			ui.Text(c, locale.PluginLevelLabel(item.Level)).
+				FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+			if item.Degraded {
+				ui.Text(c, locale.PluginDegraded()).
+					FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+			}
+			if item.Downloads > 0 {
+				ui.Text(c, formatPluginCount(item.Downloads)).
+					FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+			}
+			if busy[item.ID] {
+				ui.Text(c, locale.PluginCatalogLoading()).
+					FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+			}
+		})
+		if item.Description != "" {
+			ui.Text(c, item.Description).FontSize(th.FontSize - 2)
+		}
+		h.detailView(c, th, item)
+		if !h.installed(item.ID) {
+			ui.Text(c, locale.PluginCoreInstallFirst()).
+				FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+			if !busy[item.ID] {
+				if ui.Button(c.Key("plugin-core-install-"+item.ID),
+					locale.PluginInstall()).Clicked() {
+					go h.install(item)
+				}
+			}
+			return
+		}
+		checked := h.enabled(item.ID)
+		if ui.Checkbox(c.Key("plugin-core-toggle-"+item.ID),
+			&checked, locale.PluginCoreToggle()).Changed() {
+			h.setEnabled(item.ID, checked)
+		}
+		if h.running(item.ID) {
+			ui.Text(c, locale.PluginEnabled()).
+				FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+		} else {
+			ui.Text(c, locale.PluginDisabled()).
+				FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+		}
+		ui.Row(c).Gap(6).Children(func() {
+			if ui.Button(c.Key("plugin-core-reload-"+item.ID),
+				locale.PluginReload()).Clicked() {
+				h.reload(item.ID)
+			}
+			if ui.Button(c.Key("plugin-core-folder-"+item.ID),
+				locale.PluginOpenFolder()).Clicked() {
+				_ = mygo.Shell.OpenPath(filepath.Join(h.userDir, item.ID))
+			}
+		})
 	})
 }
 

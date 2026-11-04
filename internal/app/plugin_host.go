@@ -170,7 +170,7 @@ func newPluginHost(st *appState, dir, resources string,
 		detailLoading: map[string]bool{},
 		saved:         saved,
 		ui: pluginUI{
-			tab:           "installed",
+			tab:           "core",
 			supportedOnly: true,
 			busy:          map[string]bool{},
 		},

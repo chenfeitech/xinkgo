@@ -472,7 +472,8 @@ release 详情展示；另加惰性模块 stub、DOM/设置/菜单/View/CM6 占�
 把可安装集合从 8 个扩到 128 个。实际 shim 用最小 `moment` 实现而非完整
 vendor；未知导出与 external 模块返回惰性 stub，硬不兼容项仍拒绝。
 浏览器与已安装列表按官方 `downloads` 降序；目录树左侧预留固定 plugin ribbon；
-最常用的社区插件按 [obsidian-core-plugins.md](obsidian-core-plugins.md) 标为 Core。
+最常用的社区插件按 [obsidian-core-plugins.md](obsidian-core-plugins.md) 标为 Core；
+Core 插件单独一页管理，可安装后启用/停用，其他插件不重复出现在 Core 页。
 fixture 形态如下：
 
 ```js

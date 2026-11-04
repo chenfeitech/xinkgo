@@ -145,6 +145,13 @@ func (h *pluginHost) browserItems(limit int) []plugin.BrowserItem {
 		supportedOnly, 0)
 	items = plugin.AnnotateCatalog(items, stats, details)
 	items = plugin.SortByDownloads(items)
+	other := make([]plugin.BrowserItem, 0, len(items))
+	for _, one := range items {
+		if !one.Core {
+			other = append(other, one)
+		}
+	}
+	items = other
 	if limit > 0 && len(items) > limit {
 		items = items[:limit]
 	}
@@ -153,6 +160,34 @@ func (h *pluginHost) browserItems(limit int) []plugin.BrowserItem {
 	h.browser = items
 	h.mu.Unlock()
 	return items
+}
+
+// coreItems is the curated Core plugin list with the same statistics and
+// release details as the browser. It is kept out of browserItems so the
+// Core and Other plugin pages do not manage the same rows twice.
+func (h *pluginHost) coreItems() []plugin.BrowserItem {
+	h.mu.RLock()
+	entries := append([]plugin.CatalogEntry(nil), h.catalog...)
+	compatible := append([]plugin.CompatibleEntry(nil), h.compatible...)
+	stats := make(map[string]plugin.PluginStats, len(h.stats))
+	for id, one := range h.stats {
+		stats[id] = one
+	}
+	details := make(map[string]plugin.PluginDetail, len(h.details))
+	for id, one := range h.details {
+		details[id] = one
+	}
+	h.mu.RUnlock()
+	items := plugin.FilterCatalog(entries, compatible, "", true, 0)
+	items = plugin.AnnotateCatalog(items, stats, details)
+	items = plugin.SortByDownloads(items)
+	core := []plugin.BrowserItem{}
+	for _, one := range items {
+		if one.Core {
+			core = append(core, one)
+		}
+	}
+	return core
 }
 
 func (h *pluginHost) catalogState() (loaded, loading bool) {

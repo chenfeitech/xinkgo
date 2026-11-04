@@ -89,3 +89,41 @@ func TestVaultPath_refusesTraversal(t *testing.T) {
 		t.Errorf("a normal vault path was refused: %v", err)
 	}
 }
+
+func TestPluginCatalog_coreAndOtherPagesDoNotOverlap(t *testing.T) {
+	h := testPluginHost(t)
+	h.catalog = []plugin.CatalogEntry{
+		{ID: "core-addon", Name: "Core", Repo: "a/core"},
+		{ID: "other-addon", Name: "Other", Repo: "b/other"},
+	}
+	h.compatible = []plugin.CompatibleEntry{
+		{ID: "core-addon", Repo: "a/core", Level: "C4", Core: true},
+		{ID: "other-addon", Repo: "b/other", Level: "C2"},
+	}
+	core := h.coreItems()
+	other := h.browserItems(10)
+	if len(core) != 1 || core[0].ID != "core-addon" {
+		t.Fatalf("core items = %+v", core)
+	}
+	if len(other) != 1 || other[0].ID != "other-addon" {
+		t.Fatalf("other items = %+v", other)
+	}
+}
+
+func TestPluginViewState_hidesCoreFromOtherInstalled(t *testing.T) {
+	h := testPluginHost(t)
+	h.compatible = []plugin.CompatibleEntry{
+		{ID: "core-addon", Repo: "a/core", Level: "C4", Core: true},
+	}
+	h.ui.installed = []plugin.Report{
+		{ID: "core-addon", Name: "Core"},
+		{ID: "other-addon", Name: "Other"},
+	}
+	state := h.uiSnapshot()
+	if len(state.installed) != 1 ||
+		state.installed[0].ID != "other-addon" ||
+		!state.coreIDs["core-addon"] {
+		t.Fatalf("installed = %+v coreIDs = %v", state.installed,
+			state.coreIDs)
+	}
+}
