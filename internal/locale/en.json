@@ -899,5 +899,6 @@
   "pluginCoreEmpty": "No core plugins in the checked list.",
   "pluginCoreToggle": "Enabled",
   "pluginCoreNote": "Core plugins are curated compatible plugins; they still run third-party code.",
-  "pluginCoreInstallFirst": "Install before enabling"
+  "pluginCoreInstallFirst": "Install before enabling",
+  "pluginShowMore": "Show more"
 }

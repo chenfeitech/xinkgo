@@ -275,15 +275,28 @@ func (h *pluginHost) installedRow(c *ui.Context, th *ui.Theme,
 func (h *pluginHost) browseView(c *ui.Context, th *ui.Theme,
 	state pluginViewState) {
 	ui.Row(c).Gap(6).AlignItems(ui.Center).Children(func() {
-		ui.TextInput(c.Key("plugin-search"), &h.ui.query).
+		field := ui.TextInput(c.Key("plugin-search"), &h.ui.query).
 			Placeholder(locale.PluginSearchPlaceholder()).Grow(1)
-		ui.Checkbox(c.Key("plugin-supported"), &h.ui.supportedOnly,
-			locale.PluginSupportedOnly())
+		if field.Changed() {
+			h.ui.browseLimit = 40
+			h.ui.lastQuery = h.ui.query
+		}
+		if ui.Checkbox(c.Key("plugin-supported"), &h.ui.supportedOnly,
+			locale.PluginSupportedOnly()).Changed() {
+			h.ui.browseLimit = 40
+			h.ui.lastSupported = h.ui.supportedOnly
+		}
 		if ui.Button(c.Key("plugin-catalog-refresh"),
 			locale.PluginRefresh()).Clicked() {
 			h.refreshCatalog()
 		}
 	})
+	if h.ui.query != h.ui.lastQuery ||
+		h.ui.supportedOnly != h.ui.lastSupported {
+		h.ui.lastQuery = h.ui.query
+		h.ui.lastSupported = h.ui.supportedOnly
+		h.ui.browseLimit = 40
+	}
 	loaded, loading := h.catalogState()
 	if loading {
 		ui.Text(c, locale.PluginCatalogLoading()).
@@ -293,7 +306,7 @@ func (h *pluginHost) browseView(c *ui.Context, th *ui.Theme,
 		ui.Text(c, locale.PluginCatalogFailed()).
 			TextColor(th.TextMuted)
 	}
-	items := h.browserItems(200)
+	items := h.browserItems(h.ui.browseLimit)
 	if len(items) == 0 {
 		if h.ui.supportedOnly {
 			ui.Text(c, locale.PluginNoCompatible()).
@@ -304,6 +317,12 @@ func (h *pluginHost) browseView(c *ui.Context, th *ui.Theme,
 	for _, item := range items {
 		h.browserRow(c, th, item, state.busy)
 		ui.Box(c).FillWidth().Height(1).Background(th.Border)
+	}
+	if len(items) >= h.ui.browseLimit && h.ui.browseLimit < 200 {
+		if ui.Button(c.Key("plugin-show-more"),
+			locale.PluginShowMore()).Clicked() {
+			h.ui.browseLimit = min(h.ui.browseLimit+40, 200)
+		}
 	}
 }
 

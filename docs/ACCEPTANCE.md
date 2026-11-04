@@ -138,7 +138,7 @@
 
 | # | 项 | 怎么验 | 预期 |
 |---|---|---|---|
-| J1 | 兼容插件浏览器 | 设置 ▸ Plugins，切到 Core plugins / Browse，等社区目录读完 | Core 页列出 10 个核心兼容插件；Browse 页列出其余兼容插件，按安装/下载量降序，C3/C4 带「受限/降级」标记；关掉「只看兼容」后可搜索其余插件，但那些行没有 Install；每行显示下载/安装次数、最近更新、版本、仓库、Stars 等详情 |
+| J1 | 兼容插件浏览器 | 设置 ▸ Plugins，切到 Core plugins / Browse，等社区目录读完 | Core 页列出 10 个核心兼容插件；Browse 页按安装/下载量降序列出其余兼容插件，默认 40 行，点「显示更多」每次增加 40 行、上限 200；C3/C4 带「受限/降级」标记；关掉「只看兼容」后可搜索其余插件，但那些行没有 Install；每行显示下载/安装次数、最近更新、版本、仓库、Stars 等详情 |
 | J2 | 一键安装与启用 | 对任一兼容插件点 Install | 下载 release 资产、安装到应用插件目录、自动启用；已安装列表出现该插件，状态显示已安装 |
 | J3 | 命令面板 | 安装 `obsidian-tidy-footnotes` 或 `hotkeysplus-obsidian`，打开一篇笔记，Cmd-P 搜插件命令名 | 命令出现在面板里，回车执行时编辑器文本按插件命令变化，状态栏/Notice 有反馈 |
 | J4 | Editor/Vault 子集 | 用 `obsidian-underline` 或 `wikilinks-to-mdlinks-obsidian` 对选区执行插件命令 | 选区/行操作落到当前笔记，自动保存按既有 300ms 规则生效；撤销/重做仍由 MyGo 编辑器管理 |

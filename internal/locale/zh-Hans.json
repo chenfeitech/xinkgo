@@ -631,5 +631,6 @@
   "pluginCoreEmpty": "当前清单里没有核心插件。",
   "pluginCoreToggle": "启用",
   "pluginCoreNote": "核心插件为精选兼容插件，仍会运行第三方代码。",
-  "pluginCoreInstallFirst": "安装后可启用"
+  "pluginCoreInstallFirst": "安装后可启用",
+  "pluginShowMore": "显示更多"
 }

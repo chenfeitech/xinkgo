@@ -114,6 +114,9 @@ type pluginUI struct {
 	tab           string
 	query         string
 	supportedOnly bool
+	browseLimit   int
+	lastQuery     string
+	lastSupported bool
 	status        string
 	installed     []plugin.Report
 	busy          map[string]bool
@@ -145,6 +148,10 @@ type pluginHost struct {
 	catalogLoaded  bool
 	catalogLoading bool
 	catalogRev     uint64
+	catalogView    []plugin.BrowserItem
+	catalogViewRev uint64
+	coreCache      []plugin.BrowserItem
+	coreRev        uint64
 	browserKey     string
 	browser        []plugin.BrowserItem
 	ui             pluginUI
@@ -172,6 +179,8 @@ func newPluginHost(st *appState, dir, resources string,
 		ui: pluginUI{
 			tab:           "core",
 			supportedOnly: true,
+			browseLimit:   40,
+			lastSupported: true,
 			busy:          map[string]bool{},
 		},
 	}

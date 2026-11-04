@@ -6255,3 +6255,13 @@ func PluginCoreInstallFirst() string { return In(i18n.Locale()).PluginCoreInstal
 func (msgs Messages) PluginCoreInstallFirst() string {
 	return Catalog.Format(msgs.locale, "pluginCoreInstallFirst", nil)
 }
+
+// PluginShowMore says "Show more"
+// in the language the app shows.
+func PluginShowMore() string { return In(i18n.Locale()).PluginShowMore() }
+
+// PluginShowMore says "Show more"
+// in the language of msgs.
+func (msgs Messages) PluginShowMore() string {
+	return Catalog.Format(msgs.locale, "pluginShowMore", nil)
+}

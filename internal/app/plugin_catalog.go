@@ -24,6 +24,7 @@ const communityStatsURL = "https://raw.githubusercontent.com/obsidianmd/obsidian
 var repoPattern = regexp.MustCompile(`^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$`)
 
 var pluginHTTP = &http.Client{Timeout: 20 * time.Second}
+var pluginDetailSem = make(chan struct{}, 4)
 
 // refreshCompatible loads the checked list shipped with the app, or the
 // user's own copy in the application data directory. A bad file falls back
@@ -117,56 +118,47 @@ func (h *pluginHost) finishCatalog(entries []plugin.CatalogEntry,
 // browserItems is the catalog as the window should draw it: filtered by
 // the compatibility list, the search query and the supported-only switch.
 func (h *pluginHost) browserItems(limit int) []plugin.BrowserItem {
+	view, rev := h.catalogSnapshot()
 	h.mu.RLock()
-	key := strconv.Itoa(len(h.catalog)) + "|" +
-		strconv.Itoa(len(h.compatible)) + "|" +
-		strconv.FormatUint(h.catalogRev, 10) + "|" +
+	key := strconv.FormatUint(rev, 10) + "|" +
 		strconv.FormatBool(h.ui.supportedOnly) + "|" +
-		h.ui.query + "|" + strconv.Itoa(limit)
+		strings.ToLower(strings.TrimSpace(h.ui.query)) + "|" +
+		strconv.Itoa(limit)
 	if key == h.browserKey {
 		cached := h.browser
 		h.mu.RUnlock()
 		return cached
 	}
-	entries := append([]plugin.CatalogEntry(nil), h.catalog...)
-	compatible := append([]plugin.CompatibleEntry(nil), h.compatible...)
-	stats := make(map[string]plugin.PluginStats, len(h.stats))
-	for id, one := range h.stats {
-		stats[id] = one
-	}
-	details := make(map[string]plugin.PluginDetail, len(h.details))
-	for id, one := range h.details {
-		details[id] = one
-	}
-	query := h.ui.query
+	query := strings.ToLower(strings.TrimSpace(h.ui.query))
 	supportedOnly := h.ui.supportedOnly
 	h.mu.RUnlock()
-	items := plugin.FilterCatalog(entries, compatible, query,
-		supportedOnly, 0)
-	items = plugin.AnnotateCatalog(items, stats, details)
-	items = plugin.SortByDownloads(items)
-	other := make([]plugin.BrowserItem, 0, len(items))
-	for _, one := range items {
-		if !one.Core {
-			other = append(other, one)
+	out := make([]plugin.BrowserItem, 0, min(limit, len(view)))
+	for _, one := range view {
+		if one.Core || supportedOnly && !one.Compatible ||
+			!matchPluginQuery(one, query) {
+			continue
 		}
-	}
-	items = other
-	if limit > 0 && len(items) > limit {
-		items = items[:limit]
+		out = append(out, one)
+		if limit > 0 && len(out) >= limit {
+			break
+		}
 	}
 	h.mu.Lock()
 	h.browserKey = key
-	h.browser = items
+	h.browser = out
 	h.mu.Unlock()
-	return items
+	return out
 }
 
-// coreItems is the curated Core plugin list with the same statistics and
-// release details as the browser. It is kept out of browserItems so the
-// Core and Other plugin pages do not manage the same rows twice.
-func (h *pluginHost) coreItems() []plugin.BrowserItem {
-	h.mu.RLock()
+// catalogSnapshot is the whole community catalog, annotated once and
+// sorted by downloads. A frame only filters this cached view; it does not
+// copy the 10k-entry stats map or sort 10k rows again.
+func (h *pluginHost) catalogSnapshot() ([]plugin.BrowserItem, uint64) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if h.catalogViewRev == h.catalogRev && h.catalogView != nil {
+		return h.catalogView, h.catalogViewRev
+	}
 	entries := append([]plugin.CatalogEntry(nil), h.catalog...)
 	compatible := append([]plugin.CompatibleEntry(nil), h.compatible...)
 	stats := make(map[string]plugin.PluginStats, len(h.stats))
@@ -177,16 +169,44 @@ func (h *pluginHost) coreItems() []plugin.BrowserItem {
 	for id, one := range h.details {
 		details[id] = one
 	}
-	h.mu.RUnlock()
-	items := plugin.FilterCatalog(entries, compatible, "", true, 0)
+	items := plugin.FilterCatalog(entries, compatible, "", false, 0)
 	items = plugin.AnnotateCatalog(items, stats, details)
 	items = plugin.SortByDownloads(items)
-	core := []plugin.BrowserItem{}
-	for _, one := range items {
+	h.catalogView = items
+	h.catalogViewRev = h.catalogRev
+	return items, h.catalogViewRev
+}
+
+func matchPluginQuery(one plugin.BrowserItem, query string) bool {
+	if query == "" {
+		return true
+	}
+	return strings.Contains(strings.ToLower(one.Name), query) ||
+		strings.Contains(strings.ToLower(one.ID), query) ||
+		strings.Contains(strings.ToLower(one.Author), query) ||
+		strings.Contains(strings.ToLower(one.Description), query)
+}
+
+// coreItems is the curated Core plugin list, cached with the catalog view.
+func (h *pluginHost) coreItems() []plugin.BrowserItem {
+	view, rev := h.catalogSnapshot()
+	h.mu.RLock()
+	if h.coreRev == rev && h.coreCache != nil {
+		cached := h.coreCache
+		h.mu.RUnlock()
+		return cached
+	}
+	h.mu.RUnlock()
+	core := make([]plugin.BrowserItem, 0, 16)
+	for _, one := range view {
 		if one.Core {
 			core = append(core, one)
 		}
 	}
+	h.mu.Lock()
+	h.coreRev = rev
+	h.coreCache = core
+	h.mu.Unlock()
 	return core
 }
 
@@ -209,7 +229,7 @@ func (h *pluginHost) prepareSettings() {
 // loadDetails fetches release metadata for the visible compatible rows.
 // Unsupported rows keep the catalog's own metadata; no plugin code runs.
 func (h *pluginHost) loadDetails() {
-	for _, item := range h.detailCandidates(40) {
+	for _, item := range h.detailCandidates(20) {
 		if !item.Compatible {
 			continue
 		}
@@ -221,7 +241,9 @@ func (h *pluginHost) loadDetails() {
 		h.detailLoading[item.ID] = true
 		h.mu.Unlock()
 		go func(one plugin.BrowserItem) {
+			pluginDetailSem <- struct{}{}
 			defer h.clearDetailLoading(one.ID)
+			defer func() { <-pluginDetailSem }()
 			h.loadDetail(one)
 		}(item)
 	}
@@ -231,22 +253,17 @@ func (h *pluginHost) loadDetails() {
 // read the view's query or supported-only switch, so a frame can change
 // those while release metadata is being fetched.
 func (h *pluginHost) detailCandidates(limit int) []plugin.BrowserItem {
-	h.mu.RLock()
-	entries := append([]plugin.CatalogEntry(nil), h.catalog...)
-	compatible := append([]plugin.CompatibleEntry(nil), h.compatible...)
-	stats := make(map[string]plugin.PluginStats, len(h.stats))
-	for id, one := range h.stats {
-		stats[id] = one
+	view, _ := h.catalogSnapshot()
+	out := make([]plugin.BrowserItem, 0, min(limit, len(view)))
+	for _, one := range view {
+		if one.Compatible {
+			out = append(out, one)
+		}
+		if limit > 0 && len(out) >= limit {
+			break
+		}
 	}
-	h.mu.RUnlock()
-	items := plugin.FilterCatalog(entries, compatible, "", true, 0)
-	items = plugin.AnnotateCatalog(items, stats,
-		map[string]plugin.PluginDetail{})
-	items = plugin.SortByDownloads(items)
-	if limit > 0 && len(items) > limit {
-		items = items[:limit]
-	}
-	return items
+	return out
 }
 
 func (h *pluginHost) clearDetailLoading(id string) {
