@@ -28,8 +28,9 @@
 | `internal/wechat` | 公众号排版：样式表与行内样式渲染（剪贴板里的 HTML 片段） | 读笔记的图片、写剪贴板（那些是 `internal/app` 的事） |
 | `internal/logging` | 配置 slog 的默认 logger | 业务日志之外的输出策略 |
 | `internal/sysinfo` | 版本与环境信息（纯数据） | 任何 I/O |
+| `internal/plugin` | Obsidian 插件 manifest、社区目录、能力扫描与兼容等级（纯数据） | 磁盘 I/O、窗口、依赖 `app` |
 | `internal/view/geom` | 几何：面板与编辑区宽度、留白、边距、换行列数、侧栏带 | 画东西、读 `ui.Context`；它是纯计算，可脱离窗口单测 |
-| 领域包 `vault` `note` `index` `search` `ai` `task` `skill` `sync` `snapshot` `markdown` `highlight` `datafile` `media` `wechat` `theme` | 数据与算法：笔记、库、索引、模型、样式 | 碰磁盘、弹对话框（那是 `internal/app` 的事） |
+| 领域包 `vault` `note` `index` `search` `ai` `task` `skill` `sync` `snapshot` `markdown` `highlight` `datafile` `media` `wechat` `theme` `plugin` | 数据与算法：笔记、库、索引、模型、样式、插件报告 | 碰磁盘、弹对话框（那是 `internal/app` 的事） |
 | 持久化 `config` `state` `secret` `fs` | 各管各的文件，见第 7 节 | 互相写对方的文件 |
 
 ## 2 启动时序
@@ -90,6 +91,7 @@ main()
 | Web 窗口 / 前端 | `internal/app/web.go` 的绑定服务 + `mygo generate` 生成 TS 客户端 |
 | 平台差异行为 | `internal/app/platform_<goos>.go` |
 | 新界面文案 / 新语言 | `internal/locale` 的 `en.json` 与 `zh-Hans.json`，`go tool mygo generate` 生成 `locale.Xxx()` |
+| Obsidian 兼容插件 | `internal/plugin` 加纯解析/扫描；`internal/app/plugin_*.go` 加协议、宿主、RPC、目录与管理器；`resources/obsidian-shim/` 加 JS shim |
 | 自动更新、托盘 | `mygo.json` 配置 + 对应 MyGo 插件，按官方插件方式接入 |
 
 ## 6 多语言
@@ -159,7 +161,7 @@ mygo.json                    ← "i18n": {"dir": "internal/locale", "source": "e
 | 包 | 管的文件 | 谁读 | 谁写 | 什么时候写 | 读不到时 |
 |---|---|---|---|---|---|
 | `config` | `config.json`（应用目录） | `app`、`view` | `app`（设置窗口） | 设置里改动即写 | 取默认值，不报错 |
-| `state` | `open_notes.json` / `vaults.json` / `layout.json` / `ai_sessions.json`（应用目录） | `app`（启动恢复）、`view`（面板宽度） | `app`（关窗、切库、对话存盘） | 退出、切库、`OnLayoutChanged` 落定后 | 取可用值（空列表 / 默认布局），至多写一条日志 |
+| `state` | `open_notes.json` / `vaults.json` / `layout.json` / `ai_sessions.json` / `plugins.json`（应用目录） | `app`（启动恢复）、`view`（面板宽度） | `app`（关窗、切库、对话存盘、插件启停与授权） | 退出、切库、`OnLayoutChanged` 落定后、插件状态变化时 | 取可用值（空列表 / 默认布局 / 不启用插件），至多写一条日志 |
 | `snapshot` | 库外：应用目录下按库分文件夹的笔记快照 | `app`（“回到改动前”） | `app`（模型改动笔记前） | 改动写入笔记之前 | 没有快照就是没有可回退的 |
 | `secret` | 系统钥匙串（不是文件） | `app`（读密钥给模型） | `app`（设置里填了密钥） | 填密钥时 | 系统无处存放则告知，密钥退回设置里 |
 | `fs` | 库里的笔记与目录（不是应用状态） | `app` | `app`（导入、改名、移动） | 用户动作时 | 返回错误，不动磁盘 |

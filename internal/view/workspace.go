@@ -42,6 +42,13 @@ type Workspace struct {
 	// in the settings and offered by name. Those turned off are not
 	// here either.
 	Actions []config.AiAction
+	// PluginCommands are the commands of the Obsidian-compatible plugins
+	// that are enabled. The app fills the list; the palette only draws the
+	// visible ones and reports which was chosen.
+	PluginCommands []PluginCommand
+	// OnPluginCommand is told the ID of a plugin command chosen in the
+	// palette. It is the app's work to deliver it to the plugin runtime.
+	OnPluginCommand func(id string)
 	// AiModel is the model the bar asks, of the ones the settings hold:
 	// the one the settings name until another is picked in the bar, and
 	// that one again when the picked one is gone or turned off. It is

@@ -58,6 +58,9 @@ type appState struct {
 	// out as an article for WeChat: made of win the first time a style
 	// is chosen, and kept, for a page is not made again and again.
 	wechatView *mygo.WebView
+	// plugins is the Obsidian-compatible plugin host: discovery, the
+	// custom protocol, isolated pages, and the plugin manager window.
+	plugins *pluginHost
 	// wechatSeq is which filling of that page was asked for last, and
 	// wechatUp whether the window is up, and the note on show with it:
 	// only the last filling is put in the page, and none before the
@@ -163,6 +166,11 @@ func Run() error {
 		// each of them as they were opened.
 		st.wechatUp = true
 		st.showWechat()
+		if st.plugins != nil {
+			st.plugins.refresh()
+			st.plugins.updateState()
+			st.plugins.startEnabled()
+		}
 		if err := st.watchVault(); err != nil {
 			slog.Warn("could not watch the vault", "err", err)
 		}
@@ -225,6 +233,14 @@ func boot(app *mygo.Application) (*appState, error) {
 	if err != nil {
 		slog.Warn("the layout could not be read", "err", err)
 	}
+	pluginState, err := state.LoadPlugins(dir)
+	if err != nil {
+		slog.Warn("the plugin state could not be read", "err", err)
+	}
+	resources, err := app.Path(mygo.PathResources)
+	if err != nil {
+		slog.Warn("the resources directory could not be read", "err", err)
+	}
 
 	ws := view.NewWorkspace(cfg)
 	ws.Layout = layout
@@ -239,6 +255,12 @@ func boot(app *mygo.Application) (*appState, error) {
 		layout: layout,
 		idx:    idx,
 		ws:     ws,
+	}
+	plugins, err := newPluginHost(st, dir, resources, pluginState)
+	if err != nil {
+		slog.Warn("the plugin host could not start", "err", err)
+	} else {
+		st.plugins = plugins
 	}
 	ws.OnOpenVault = st.openVaultDialog
 	// What the tree asks for when the user acts on a file in it.
@@ -264,6 +286,10 @@ func boot(app *mygo.Application) (*appState, error) {
 	ws.Tabs.OnChange = func() {
 		st.saveOpenNotes()
 		st.refreshWechat()
+		st.pluginStateChanged("file-open")
+	}
+	ws.Tabs.OnEdit = func(path string) {
+		st.pluginStateChanged("editor-change")
 	}
 	// The widths of the panels are written once a drag has settled, and
 	// not once a frame while it goes on.
@@ -296,11 +322,15 @@ func boot(app *mygo.Application) (*appState, error) {
 	st.loadWechatThemes()
 	ws.OnWechatStyle = st.setWechatStyle
 	ws.OnWechatCopy = st.copyWechat
+	if st.plugins != nil {
+		ws.OnPluginCommand = st.plugins.runCommand
+	}
 	ws.Tabs.OnSave = func(path string) {
 		slog.Debug("saved", "path", path)
 		// What is saved is what is set out: the article is laid out
 		// again, so that it is the note as it stands now.
 		st.refreshWechat()
+		st.pluginStateChanged("vault-modify")
 	}
 	slog.Info("starting", "data", dir, "development", development())
 	return st, nil

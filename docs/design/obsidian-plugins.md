@@ -1,7 +1,7 @@
-# Obsidian 插件兼容宿主（设计草案）
+# Obsidian 插件兼容宿主
 
-日期：2026-11-04。状态：**设计，未实现**。本文只定边界、架构与路线，不改
-运行代码；P0 的 spike 需要按本文另开实现提交。
+日期：2026-11-04。状态：**P0 spike 已实现，P1/P2/P3 未实现**。本文先定边界、
+架构与路线，再记录 P0 的实际落点；完全兼容 Obsidian 仍不是本期目标。
 
 参考的同类扩展设计：[wechat.md](wechat.md)（外部样式目录 + 元数据 + 发现规则）、
 [wechat-style-guide.md](wechat-style-guide.md)（面向扩展作者的指引）。项目分层见
@@ -105,7 +105,8 @@ MyGo 另外提供 `mygo.NewEvent[T]()`、`mygo.NewEphemeralSession()`、
 `PageOptions.ContentRules`、`PageOptions.BackgroundThrottling`、
 `Page.EvalContext`、`WebView.Destroy`、`mygo.WebViewAvailable()`。随包资源
 放在项目的 `resources/`，运行时用 `mygo.App.Path(mygo.PathResources)` 取；
-`resources/` 目录当前在仓库里还不存在，实施时创建并打包验证。
+`resources/obsidian-shim/` 与 `resources/obsidian-plugins/compatible.json`
+已随 P0 落地，打包时需确认它们进了各平台产物。
 
 ## 3 目标、默认口径与兼容等级
 
@@ -121,6 +122,11 @@ MyGo 另外提供 `mygo.NewEvent[T]()`、`mygo.NewEphemeralSession()`、
 | `styles.css` | 只作用于插件自己的 WebView，不注入原生 UI |
 | 版本 | `apiVersion` 是“兼容档位”，不是 Xinkgo 的 `Version`；不改 `mygo.json` |
 | 失败策略 | 一个插件报错不阻断启动、不影响其它插件；错误进日志与管理器 |
+
+P0 的实际口径：手工放进插件目录的包默认没有任何额外授权；从“浏览”页
+一键安装已检查过的兼容插件时，会按安装时二次扫描的结果授予所需能力，
+用户仍可在管理器里逐项撤销。`network`、`vault.write` 等能力不会被静态
+扫描之外的代码隐式放大。
 
 ### 3.2 兼容性等级
 
@@ -398,22 +404,21 @@ WebView。`getSectionInfo` 从渲染时附的 source map 取；`MarkdownRenderCh
 
 | 位置 | 内容 |
 |---|---|
-| `internal/plugin/manifest.go` | `Manifest`、`ParseManifest`、id 校验、未知字段保留、`dir` 注入规则 |
-| `internal/plugin/scan.go` | `ScanSource(mainJS []byte)`：external require、ESM 语法、API 用法、动态 require、能力集合 |
-| `internal/plugin/report.go` | `Capability`、`Level`、`Issue`、`Report`、兼容档位与 `requireApiVersion` 比较 |
+| `internal/plugin/` | `plugin.go` / `manifest.go` / `scan.go` / `catalog.go`：纯数据的 manifest、能力扫描、兼容等级、社区目录与兼容清单解析，不碰磁盘 |
 | `internal/state/plugins.go` | `plugins.json` 的 `Enabled` 与 `Grants`，缺失/损坏回落 |
 | `internal/app/plugin_discovery.go` | 三个目录的发现、优先级、重复 id、坏文件 issue；只在 `WhenReady` 后取应用目录 |
-| `internal/app/plugin_host.go` | `Protocol.HandleFunc`、实例注册表、页面创建/销毁、权限 deny 处理器、CSP |
-| `internal/app/plugin_bridge.go` | `/rpc` 显式方法表、路径沙箱、Vault/Editor/网络/UI 动作、`EmitPage` |
-| `internal/app/plugin_runtime.go` | 启停/重载/超时/unload ack、崩溃与日志、原生注册清理 |
-| `internal/app/plugin_manager.go` | 设置里的 Plugins 分组或独立管理窗口：列表、启用、授权、重载、打开目录、兼容性报告 |
-| `internal/view/plugin.go` | `PluginRibbon/PluginCommands/PluginStatus/PluginSurface` 与 `OnPlugin*` 回调；视图不碰磁盘 |
+| `internal/app/plugin_host.go` | `Protocol.HandleFunc`、实例注册表、非信任 WebView、deny 处理器、CSP、状态快照、启停/重载/超时/unload ack |
+| `internal/app/plugin_rpc.go` | `/rpc` 显式方法表、路径沙箱、Vault/Editor/网络/UI 动作、`data.json` |
+| `internal/app/plugin_catalog.go` | 官方社区目录拉取、兼容清单、安装时二次扫描与写入用户插件目录 |
+| `internal/app/plugin_window.go` | 独立插件管理窗口：已安装列表、浏览器、授权勾选、启用/停用/重载、打开目录、状态 |
+| `internal/view/plugin.go` | `PluginCommand` 与 `Workspace` 的回调字段；视图只画命令并报告 ID，不碰磁盘 |
 | `internal/view/palette.go` | 把插件命令并进 `paletteItems()`，读 Go 缓存的可见性 |
-| `resources/obsidian-shim/` | `host.html` 模板、`shim.js`、`runtime.js`、`dom-helpers.js`、`vendor/moment.js`、许可证 |
+| `resources/obsidian-shim/` | `host.html`、`shim.js`、`runtime.js`：CommonJS 包装、`obsidian` shim、DOM helpers、最小 `moment`、事件与命令分发 |
+| `resources/obsidian-plugins/compatible.json` | P0 已静态检查过的兼容插件清单；用户可在 `<appdata>/plugins/compatible.json` 覆盖 |
 | `internal/locale` | 宿主新文案的 en + zh-Hans 键，跑 `go tool mygo generate` |
-| `docs/ACCEPTANCE.md` | 实现时新增 J1 ~ J8 人工验收项，不写在设计文档里 |
+| `docs/ACCEPTANCE.md` | J1 ~ J8 人工验收项，不写在设计文档里 |
 
-实施时同步更新 [PROJECT.md](../PROJECT.md) 的目录树与
+已同步更新 [PROJECT.md](../PROJECT.md) 的目录树与
 [ARCHITECTURE.md](../ARCHITECTURE.md) 的依赖表、扩展点、持久化表。`cmd/xinkgo`
 不变，`go.mod` 不新增依赖，`mygo.json` 的版本不变；shim 是随包 JS 资源，
 不把 Node/esbuild 加进运行期或 `make deps`。若用 TypeScript 写 shim，编译产物
@@ -436,18 +441,28 @@ cgo/Node/JS 引擎；能识别 `require("...")`、`registerEditorExtension`、
 Go 能力表为准。
 
 插件管理器是原生 UI，列出每个包：名字、版本、作者、来源目录、C0 ~ C4 等级、
-所需能力、issue、启用开关、Reload、Open folder、授权勾选、最近日志。首次启用
+所需能力、issue、启用开关、Reload、Open folder、授权勾选、最近日志。首次打开
 显示官方安全提示：插件是第三方代码，用户需要信任作者。一个坏 manifest、
 缺失 `main.js` 或扫描失败的插件不妨碍其它插件；禁用状态不执行任何插件 JS。
+
+“浏览”页读取官方 `community-plugins.json`，默认只显示
+`resources/obsidian-plugins/compatible.json` 里已检查过的条目。安装时重新下载
+`manifest.json` / `main.js` / 可选 `styles.css`，再次跑能力扫描；扫描不过就拒绝
+安装。这样兼容清单过期也不会让 C4 插件被直接装进来。P0 的清单来自对官方目录
+前 180 条的静态扫描，筛出 8 个只依赖命令/Editor/Vault 子集的插件；事件驱动、
+DOM 表面、CM6 与 Node/Electron 插件不在这份清单里。
 
 ## 9 分阶段路线
 
 ### P0：宿主 spike
 
-范围：按本文实现 `internal/plugin` 纯解析与扫描、`plugins.json`、协议 handler、
-一个非信任 WebView、CommonJS shim、`Plugin.onload/onunload`、
-`loadData/saveData`、`addCommand`、`Notice`、插件管理器最小版、兼容性报告。
-用一个 fixture 插件验收：
+P0 已实现：`internal/plugin` 纯解析与扫描、`plugins.json`、
+`xinkgo-plugin://` 协议 handler、一插件一非信任 WebView、CommonJS shim、
+`Plugin.onload/onunload`、`loadData/saveData`、`addCommand/removeCommand`、
+`Notice`、`Vault`/`Editor`/`Workspace`/`MetadataCache` 子集、状态快照、
+命令面板、插件管理器与浏览器、兼容清单和一键安装。实际 shim 用最小
+`moment` 实现而非完整 vendor，未实现的 API 抛 `XinkgoCapabilityError`。
+fixture 形态如下：
 
 ```js
 const { Plugin, Notice } = require('obsidian');
@@ -458,9 +473,10 @@ module.exports = class Demo extends Plugin {
 };
 ```
 
-通过条件：加载/卸载、命令、Notice、data 往返；`require('fs')` 被拒绝；
-非信任页调用 `system.Info` 被拒绝；禁用/重载不留原生注册；一个插件抛错
-不影响宿主。macOS 先过 `scripts/check.sh`。
+已覆盖的自动化条件：manifest/扫描/目录/状态/路径沙箱/命令面板单测；
+`require('fs')` 等外部模块与非信任页调用 Go 服务由运行时边界拒绝；
+禁用/重载会移除原生注册；一个插件失败不影响宿主。macOS 先过
+`scripts/check.sh`；真机人工验收见 [ACCEPTANCE.md](../ACCEPTANCE.md) J1 ~ J8。
 
 ### P1：核心 API 与官方样例
 
@@ -485,14 +501,14 @@ workspace，这属于重写，不在本路线承诺内。
 
 ## 10 测试与人工验收
 
-单测：`internal/plugin` 的 manifest 合法/缺字段/非法 id/目录名不一致/未知字段、
-兼容档位比较、能力扫描（允许、拒绝、动态 require）、重复 id 与坏文件报告；
-`internal/state` 的 `plugins.json` 往返与损坏回落；`internal/app` 把协议
-handler 的核心校验抽成可测函数，覆盖 `CallerPage` 映射、host 校验、能力
-拒绝、路径穿越、大小上限、方法白名单；`internal/view` 用 `ui.NewTester`
-检查插件命令与图标不破坏既有布局。跑 `make test-race` 至少一次。
+已落地的单测：`internal/plugin` 的 manifest 合法/缺字段/非法 id/目录名不一致/
+未知字段、兼容档位比较、能力扫描（允许、拒绝、动态 require）、社区目录与
+兼容清单过滤；`internal/state` 的 `plugins.json` 往返与损坏回落；
+`internal/app` 的插件发现、坏包 issue、路径穿越拒绝；`internal/view` 的插件
+命令进入命令面板并被选中。协议 handler 的 `CallerPage`/host/token 校验、
+能力拒绝与方法白名单留在真机验收里覆盖。跑 `make test-race` 至少一次。
 
-人工验收在实现时登记到 [ACCEPTANCE.md](../ACCEPTANCE.md) 的 J1 ~ J8：
+人工验收已登记到 [ACCEPTANCE.md](../ACCEPTANCE.md) 的 J1 ~ J8：
 macOS 启用/禁用/重载样例插件、命令面板、Notice、ribbon/status、设置 tab、
 Modal、Vault 读写、网络拒绝、CSS 只作用插件表面、卸载后计时器与图标都消失、
 Windows/Linux 的 WebView 差异、无 WebView 时的回落。提交前跑

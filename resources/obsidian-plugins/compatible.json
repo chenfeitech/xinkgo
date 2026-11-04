@@ -1,0 +1,58 @@
+[
+  {
+    "id": "hotkeysplus-obsidian",
+    "repo": "argenos/hotkeysplus-obsidian",
+    "level": "C2",
+    "note": "Commands and editor bridge; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "wikilinks-to-mdlinks-obsidian",
+    "repo": "agathauy/wikilinks-to-mdlinks-obsidian",
+    "level": "C1",
+    "note": "Command and Vault/Editor subset; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-tidy-footnotes",
+    "repo": "charliecm/obsidian-tidy-footnotes",
+    "level": "C1",
+    "note": "Editor command; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-underline",
+    "repo": "benature/obsidian-underline",
+    "level": "C2",
+    "note": "Commands and editor bridge; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-furigana",
+    "repo": "uonr/obsidian-furigana",
+    "level": "C2",
+    "note": "Command and editor bridge; DOM menu events are not forwarded in P0",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "format-hotkeys-obsidian",
+    "repo": "anstosa/format-hotkeys-obsidian",
+    "level": "C2",
+    "note": "Commands and editor bridge; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-jsonifier",
+    "repo": "kjellconnelly/obsidian-jsonifier",
+    "level": "C2",
+    "note": "Commands, Notice and editor bridge; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-sort-and-permute-lines",
+    "repo": "vinzent03/obsidian-sort-and-permute-lines",
+    "level": "C2",
+    "note": "Commands, editor bridge and empty metadata cache; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  }
+]

@@ -26,6 +26,7 @@ var ignored = map[string]bool{
 	"node_modules":  true,
 	"target":        true,
 	".DS_Store":     true,
+	".obsidian":     true,
 	media.AIDirName: true,
 }
 

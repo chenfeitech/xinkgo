@@ -782,5 +782,89 @@
   "watchTookInOutside": "took in the changes from outside",
   "a11yPicture": "picture {name}",
   "settingLook": "Look",
-  "settingLookNote": "Light, dark, or whatever the machine has"
+  "settingLookNote": "Light, dark, or whatever the machine has",
+  "menuPlugins": "Plugins...",
+  "titlePlugins": "Plugins",
+  "pluginTabInstalled": "Installed",
+  "pluginTabBrowse": "Browse",
+  "pluginRefresh": "Refresh",
+  "pluginSearchPlaceholder": "Search plugins",
+  "pluginSupportedOnly": "Supported only",
+  "pluginInstall": "Install",
+  "pluginInstalled": "Installed",
+  "pluginEnable": "Enable",
+  "pluginDisable": "Disable",
+  "pluginReload": "Reload",
+  "pluginOpenFolder": "Open folder",
+  "pluginLevel": "Level",
+  "pluginRequired": "Required",
+  "pluginGrants": "Grants",
+  "pluginSourceVault": "vault plugin folder",
+  "pluginSourceCompat": "Obsidian plugin folder",
+  "pluginSourceUser": "application plugin folder",
+  "pluginSourceUnknown": "unknown source",
+  "pluginNoInstalled": "No plugins installed yet.",
+  "pluginNoCompatible": "No checked plugins in the current compatible list.",
+  "pluginCatalogLoading": "Loading the community catalog...",
+  "pluginCatalogFailed": "The community catalog could not be loaded.",
+  "pluginInstallFailed": "The plugin could not be installed.",
+  "pluginNoWebView": "The plugin host needs a system webview, which is not available.",
+  "pluginThirdParty": "Plugins run third-party code. Install only what you trust.",
+  "pluginNotChecked": "Not checked against this build",
+  "pluginEnabled": "enabled",
+  "pluginDisabled": "disabled",
+  "pluginReloaded": "reloaded",
+  "pluginInstallRefused": "install refused",
+  "pluginCommandNotReady": "the plugin is not ready yet",
+  "pluginLevelLabel": "Level {level}",
+  "@pluginLevelLabel": {
+    "placeholders": {
+      "level": { "type": "String" }
+    }
+  },
+  "pluginCapabilityLabel": "Grant {cap}",
+  "@pluginCapabilityLabel": {
+    "placeholders": {
+      "cap": { "type": "String" }
+    }
+  },
+  "pluginVersionLine": "{version} by {author} from {source}",
+  "@pluginVersionLine": {
+    "placeholders": {
+      "version": { "type": "String" },
+      "author": { "type": "String" },
+      "source": { "type": "String" }
+    }
+  },
+  "pluginIssue": "{code}: {arg}",
+  "@pluginIssue": {
+    "placeholders": {
+      "code": { "type": "String" },
+      "arg": { "type": "String" }
+    }
+  },
+  "pluginStatus": "{text}",
+  "@pluginStatus": {
+    "placeholders": {
+      "text": { "type": "String" }
+    }
+  },
+  "pluginCatalogLoaded": "loaded {count} plugins",
+  "@pluginCatalogLoaded": {
+    "placeholders": {
+      "count": { "type": "String" }
+    }
+  },
+  "pluginInstalledOK": "installed {name}",
+  "@pluginInstalledOK": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "pluginCheckedBy": "checked {date}",
+  "@pluginCheckedBy": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  }
 }

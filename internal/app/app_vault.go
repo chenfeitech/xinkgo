@@ -48,6 +48,11 @@ func (s *appState) openVault(path string) error {
 		return err
 	}
 	s.root = path
+	if s.plugins != nil {
+		s.plugins.setRoot(path)
+		s.plugins.refresh()
+		s.plugins.notifyState("vault-open")
+	}
 	s.ws.Tree.SetRoot(root)
 	s.rememberVault(path)
 	s.rebuildIndex(root)

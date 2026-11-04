@@ -1,7 +1,8 @@
 // Package state is what the app keeps between two runs: which notes were
-// open, which vault, and how the window was laid out — four files in the
-// application's own folder: `open_notes.json`, `vaults.json`,
-// `layout.json` and `ai_sessions.json`.
+// open, which vault, how the window was laid out, and which plugins are
+// enabled — five files in the application's own folder:
+// `open_notes.json`, `vaults.json`, `layout.json`, `ai_sessions.json` and
+// `plugins.json`.
 //
 // None of it is allowed to keep the app from starting: a file that is
 // missing, or that cannot be read, or that another version wrote, gives a
@@ -36,6 +37,9 @@ const (
 	// AiSessionsFile is what was said to a model, one conversation to a
 	// note.
 	AiSessionsFile = "ai_sessions.json"
+	// PluginsFile is which Obsidian-compatible plugins are enabled and
+	// what each one is allowed to do.
+	PluginsFile = "plugins.json"
 	// LayoutVersion is the layout this version writes. A file written by
 	// another version, with another number, is thrown away and the
 	// default layout built, as xink does.

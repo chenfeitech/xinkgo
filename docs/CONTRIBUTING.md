@@ -122,7 +122,7 @@ Makefile             开发入口（构建/运行/测试/调试）
 | 一个窗口画什么、点一下发生什么 | `internal/view`（一块界面一个文件） |
 | 多少 DIPs 的计算（宽度、留白、边距、换行列数） | `internal/view/geom`，别写在绘制代码里 |
 | 读写用户数据目录里的文件 | `internal/config`（设置）/ `internal/state`（窗口状态）/ 新增的持久化包 |
-| 纯数据、纯计算，无 IO | 独立小包，如 `internal/sysinfo`、`internal/fuzzy` |
+| 纯数据、纯计算，无 IO | 独立小包，如 `internal/sysinfo`、`internal/fuzzy`、`internal/plugin` |
 | 库、笔记、索引、模型这类领域逻辑 | 对应的领域包（`vault` / `note` / `index` / `ai` …），不写进 `app` |
 | 平台差异 | `文件名_<goos>.go`（如 `platform_windows.go`），不用运行时 `switch` |
 | 随包发布的静态文件 | `resources/` |
@@ -133,7 +133,7 @@ Makefile             开发入口（构建/运行/测试/调试）
 **依赖方向只允许单向**，不允许反向或循环：
 
 ```
-cmd/xinkgo  →  internal/app  →  internal/{view,config,logging,sysinfo,export}
+cmd/xinkgo  →  internal/app  →  internal/{view,config,logging,sysinfo,export,plugin}
                                     └── internal/view → internal/sysinfo
                                     └── internal/logging → internal/config
                                     └── internal/export → internal/theme

@@ -152,6 +152,12 @@ func mainMenu(bound []keymap.Resolved, vaults vault.Registry) *mygo.Menu {
 						current.openTasks()
 					}
 				}},
+			{Label: locale.MenuPlugins(),
+				Click: func(*mygo.MenuItem, *mygo.Window) {
+					if current != nil {
+						current.openPlugins()
+					}
+				}},
 			{Label: locale.MenuSnapshots(),
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current != nil {
