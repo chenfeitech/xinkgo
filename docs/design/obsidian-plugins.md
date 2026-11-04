@@ -410,7 +410,7 @@ WebView。`getSectionInfo` 从渲染时附的 source map 取；`MarkdownRenderCh
 | `internal/app/plugin_host.go` | `Protocol.HandleFunc`、实例注册表、非信任 WebView、deny 处理器、CSP、状态快照、启停/重载/超时/unload ack |
 | `internal/app/plugin_rpc.go` | `/rpc` 显式方法表、路径沙箱、Vault/Editor/网络/UI 动作、`data.json` |
 | `internal/app/plugin_catalog.go` | 官方社区目录拉取、兼容清单、安装时二次扫描与写入用户插件目录 |
-| `internal/app/plugin_window.go` | 独立插件管理窗口：已安装列表、浏览器、授权勾选、启用/停用/重载、打开目录、状态 |
+| `internal/app/plugin_settings.go` | 设置窗口里的插件分组：已安装列表、浏览器、授权勾选、启用/停用/重载、打开目录、状态 |
 | `internal/view/plugin.go` | `PluginCommand` 与 `Workspace` 的回调字段；视图只画命令并报告 ID，不碰磁盘 |
 | `internal/view/palette.go` | 把插件命令并进 `paletteItems()`，读 Go 缓存的可见性 |
 | `resources/obsidian-shim/` | `host.html`、`shim.js`、`runtime.js`：CommonJS 包装、`obsidian` shim、DOM helpers、最小 `moment`、事件与命令分发 |
@@ -445,12 +445,18 @@ Go 能力表为准。
 显示官方安全提示：插件是第三方代码，用户需要信任作者。一个坏 manifest、
 缺失 `main.js` 或扫描失败的插件不妨碍其它插件；禁用状态不执行任何插件 JS。
 
-“浏览”页读取官方 `community-plugins.json`，默认只显示
+“浏览”页在设置窗口的 Plugins 分组里，读取官方 `community-plugins.json` 与
+`community-plugin-stats.json`，默认只显示
 `resources/obsidian-plugins/compatible.json` 里已检查过的条目。安装时重新下载
 `manifest.json` / `main.js` / 可选 `styles.css`，再次跑能力扫描；扫描不过就拒绝
 安装。这样兼容清单过期也不会让 C4 插件被直接装进来。P0 的清单来自对官方目录
 前 180 条的静态扫描，筛出 8 个只依赖命令/Editor/Vault 子集的插件；事件驱动、
 DOM 表面、CM6 与 Node/Electron 插件不在这份清单里。
+
+每个可见的兼容插件还显示下载/安装次数、最近更新、版本、当前版本下载量、
+最低 Obsidian 版本、是否仅桌面端、仓库、作者主页、赞助、Stars、许可证、最近
+提交和兼容检查日期。Stars/许可证/最近提交来自 shields.io 的公开 JSON，
+manifest 字段来自 release 资产；任何一项拉取失败都只省略该行，不影响目录。
 
 ## 9 分阶段路线
 
@@ -460,7 +466,8 @@ P0 已实现：`internal/plugin` 纯解析与扫描、`plugins.json`、
 `xinkgo-plugin://` 协议 handler、一插件一非信任 WebView、CommonJS shim、
 `Plugin.onload/onunload`、`loadData/saveData`、`addCommand/removeCommand`、
 `Notice`、`Vault`/`Editor`/`Workspace`/`MetadataCache` 子集、状态快照、
-命令面板、插件管理器与浏览器、兼容清单和一键安装。实际 shim 用最小
+命令面板、设置窗口的插件分组与浏览器、兼容清单、一键安装、官方统计与
+release 详情展示。实际 shim 用最小
 `moment` 实现而非完整 vendor，未实现的 API 抛 `XinkgoCapabilityError`。
 fixture 形态如下：
 

@@ -137,6 +137,7 @@ const (
 	tabAi      = "ai"
 	tabVault   = "vault"
 	tabFile    = "file"
+	tabPlugins = "plugins"
 )
 
 // settingsTab is one group of the settings: what the list calls it, what
@@ -170,6 +171,16 @@ func (s *appState) settingsTabs() []settingsTab {
 		{tabVault, locale.SettingsTabVault(),
 			locale.SettingsTabVaultNote(), view.IconSettingsVault,
 			s.vaultSettings},
+		{tabPlugins, locale.SettingsTabPlugins(),
+			locale.SettingsTabPluginsNote(), view.IconSettingsPlugins,
+			func(c *ui.Context) {
+				if s.plugins == nil {
+					ui.Text(c, locale.PluginNoWebView()).
+						TextColor(c.Theme().TextMuted)
+					return
+				}
+				s.plugins.settingsView(c)
+			}},
 		{tabFile, locale.SettingsTabFile(), locale.SettingsTabFileNote(),
 			view.IconSettingsFile, s.configFile},
 	}
@@ -191,6 +202,9 @@ func (s *appState) openSettingsTab(tab string) {
 		if tab != "" {
 			s.draft.tab = tab
 		}
+		if tab == tabPlugins && s.plugins != nil {
+			s.plugins.prepareSettings()
+		}
 		s.settingsWin.Show()
 		s.settingsWin.Focus()
 		return
@@ -206,6 +220,9 @@ func (s *appState) openSettingsTab(tab string) {
 	s.draft = settings{cfg: s.config, tab: tab,
 		wechatBase: filepath.Join(s.dir, wechatFolder)}
 	s.draft.read(&s.config)
+	if tab == tabPlugins && s.plugins != nil {
+		s.plugins.prepareSettings()
+	}
 	s.settingsWin = mygo.NewWindow(mygo.WindowOptions{
 		Title:     Name + " " + locale.TitleSettings(),
 		Width:     820,
@@ -272,6 +289,9 @@ func (s *appState) chosenSettings(c *ui.Context) {
 	if s.draft.shown != s.draft.tab {
 		s.draft.shown = s.draft.tab
 		s.draft.scroll = ui.ScrollState{}
+		if s.draft.tab == tabPlugins && s.plugins != nil {
+			s.plugins.prepareSettings()
+		}
 	}
 	for _, tab := range tabs {
 		if tab.ID != s.draft.tab {

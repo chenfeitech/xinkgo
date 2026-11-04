@@ -59,7 +59,8 @@ func TestSettingsView_everyGroupIsInTheList(t *testing.T) {
 	s := &appState{}
 	tt := settingsShown(t, s)
 	for _, name := range []string{
-		"Basic", "Editor", "Preview", "AI", "Vault", "Settings file",
+		"Basic", "Editor", "Preview", "AI", "Vault", "Plugins",
+		"Settings file",
 	} {
 		if !tt.HasText(name) {
 			t.Errorf("the list of groups does not say %q", name)
@@ -105,6 +106,20 @@ func TestSettingsView_choosingAGroupShowsOnlyItsRows(t *testing.T) {
 	}
 	if tt.HasText("Show every file") {
 		t.Error("the basic rows are still on show")
+	}
+}
+
+func TestSettingsView_pluginsGroupIsInTheSettings(t *testing.T) {
+	s := &appState{}
+	tt := settingsShown(t, s)
+	if err := tt.Click("Plugins"); err != nil {
+		t.Fatal(err)
+	}
+	if s.draft.tab != tabPlugins {
+		t.Errorf("the group chosen is %q, want the plugins'", s.draft.tab)
+	}
+	if !tt.HasText(locale.PluginNoWebView()) {
+		t.Error("the plugin group has no fallback when the host is absent")
 	}
 }
 

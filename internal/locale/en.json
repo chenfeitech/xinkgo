@@ -866,5 +866,30 @@
     "placeholders": {
       "date": { "type": "String" }
     }
-  }
+  },
+  "settingsTabPlugins": "Plugins",
+  "settingsTabPluginsNote": "Browse, install and manage Obsidian-compatible plugins",
+  "pluginDetails": "Details",
+  "pluginDetailLine": "{label}: {value}",
+  "@pluginDetailLine": {
+    "placeholders": {
+      "label": { "type": "String" },
+      "value": { "type": "String" }
+    }
+  },
+  "pluginDetailDownloads": "Installs / downloads",
+  "pluginDetailUpdated": "Updated",
+  "pluginDetailVersion": "Version",
+  "pluginDetailVersionDownloads": "Downloads for this version",
+  "pluginDetailMinAppVersion": "Minimum Obsidian",
+  "pluginDetailDesktopOnly": "Desktop only",
+  "pluginDetailHomepage": "Homepage",
+  "pluginDetailFunding": "Funding",
+  "pluginDetailRepository": "Repository",
+  "pluginDetailStars": "Stars",
+  "pluginDetailLicense": "License",
+  "pluginDetailLastCommit": "Last commit",
+  "pluginDetailYes": "yes",
+  "pluginDetailNo": "no",
+  "pluginDetailLoading": "Loading plugin details..."
 }

@@ -64,8 +64,8 @@
   ARCHITECTURE.md 第 7 节。设计、取舍与「不做什么」见
   [design/modularity.md](design/modularity.md)。
 - **Obsidian 插件兼容**：P0 spike 已实现：插件发现/静态能力扫描、隔离宿主、
-  命令与 Editor/Vault 子集、插件管理器和默认只看兼容插件的浏览器。P1/P2/P3
-  仍待做，全部插件直接兼容不是目标，见
+  命令与 Editor/Vault 子集、设置窗口里的插件分组、默认只看兼容插件的浏览器、
+  安装/下载次数与 release 详情。P1/P2/P3 仍待做，全部插件直接兼容不是目标，见
   [design/obsidian-plugins.md](design/obsidian-plugins.md)。
 
 ## 还剩什么

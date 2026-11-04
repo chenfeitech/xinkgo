@@ -126,6 +126,50 @@ func TestFilterCatalog_supportedOnlyHidesUncheckedPlugins(t *testing.T) {
 	}
 }
 
+func TestParseStats_readsOfficialShape(t *testing.T) {
+	stats, err := ParseStats([]byte(`{
+  "demo-addon": {"downloads": 101154, "updated": 1639000981000,
+    "1.0.0": 900, "1.1.0": 101}
+}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	one := stats["demo-addon"]
+	if one.Downloads != 101154 || one.Updated == 0 ||
+		one.ByVersion["1.1.0"] != 101 {
+		t.Fatalf("stats = %+v", one)
+	}
+}
+
+func TestAnnotateCatalog_addsStatsAndDetails(t *testing.T) {
+	items := []BrowserItem{{CatalogEntry: CatalogEntry{ID: "demo-addon"}}}
+	stats := map[string]PluginStats{"demo-addon": {
+		Downloads: 101154, Updated: 1639000981000,
+		ByVersion: map[string]int64{"1.1.0": 101},
+	}}
+	details := map[string]PluginDetail{"demo-addon": {
+		Version: "1.1.0", MinAppVersion: "0.12.19", Stars: "137",
+		Loaded: true,
+	}}
+	got := AnnotateCatalog(items, stats, details)[0]
+	if got.Downloads != 101154 || got.VersionDownloads != 101 ||
+		got.Version != "1.1.0" || got.Stars != "137" ||
+		!got.DetailLoaded {
+		t.Fatalf("annotated = %+v", got)
+	}
+}
+
+func TestFundingText_handlesStringAndObject(t *testing.T) {
+	if got := FundingText([]byte(`"https://example.com"`)); got !=
+		"https://example.com" {
+		t.Errorf("string funding = %q", got)
+	}
+	if got := FundingText([]byte(`{"Coffee":"https://a","Patreon":"https://b"}`)); got !=
+		"Coffee https://a, Patreon https://b" {
+		t.Errorf("object funding = %q", got)
+	}
+}
+
 func containsCapability(in []Capability, want Capability) bool {
 	for _, one := range in {
 		if one == want {

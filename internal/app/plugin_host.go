@@ -20,7 +20,6 @@ import (
 	"time"
 
 	"github.com/egoist/mygo"
-	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/config"
 	"github.com/helightxu/xinkgo/internal/locale"
 	"github.com/helightxu/xinkgo/internal/plugin"
@@ -108,7 +107,7 @@ type pluginInstance struct {
 	commands map[string]view.PluginCommand
 }
 
-// pluginUI is the state of the plugin manager window. View functions read
+// pluginUI is the state of the plugin settings pane. View functions read
 // it under the host lock; they never do I/O themselves.
 type pluginUI struct {
 	tab           string
@@ -117,7 +116,6 @@ type pluginUI struct {
 	status        string
 	installed     []plugin.Report
 	busy          map[string]bool
-	scroll        ui.ScrollState
 }
 
 // pluginHost owns discovery, the custom protocol, WebView isolation and
@@ -140,13 +138,15 @@ type pluginHost struct {
 	revision       uint64
 	catalog        []plugin.CatalogEntry
 	compatible     []plugin.CompatibleEntry
+	stats          map[string]plugin.PluginStats
+	details        map[string]plugin.PluginDetail
+	detailLoading  map[string]bool
 	catalogLoaded  bool
 	catalogLoading bool
 	catalogRev     uint64
 	browserKey     string
 	browser        []plugin.BrowserItem
 	ui             pluginUI
-	win            *mygo.Window
 }
 
 // newPluginHost registers the custom scheme before any window is made.
@@ -154,17 +154,20 @@ type pluginHost struct {
 func newPluginHost(st *appState, dir, resources string,
 	saved state.PluginState) (*pluginHost, error) {
 	h := &pluginHost{
-		st:        st,
-		dir:       dir,
-		resources: resources,
-		userDir:   filepath.Join(dir, "plugins"),
-		root:      st.root,
-		assets:    map[string][]byte{},
-		instances: map[string]*pluginInstance{},
-		byPage:    map[*mygo.Page]*pluginInstance{},
-		byHost:    map[string]*pluginInstance{},
-		reports:   map[string]plugin.Report{},
-		saved:     saved,
+		st:            st,
+		dir:           dir,
+		resources:     resources,
+		userDir:       filepath.Join(dir, "plugins"),
+		root:          st.root,
+		assets:        map[string][]byte{},
+		instances:     map[string]*pluginInstance{},
+		byPage:        map[*mygo.Page]*pluginInstance{},
+		byHost:        map[string]*pluginInstance{},
+		reports:       map[string]plugin.Report{},
+		stats:         map[string]plugin.PluginStats{},
+		details:       map[string]plugin.PluginDetail{},
+		detailLoading: map[string]bool{},
+		saved:         saved,
 		ui: pluginUI{
 			tab:           "installed",
 			supportedOnly: true,

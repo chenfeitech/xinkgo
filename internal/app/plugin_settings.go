@@ -1,11 +1,13 @@
 package app
 
 import (
+	"strconv"
+	"time"
+
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/locale"
 	"github.com/helightxu/xinkgo/internal/plugin"
-	"github.com/helightxu/xinkgo/internal/theme"
 )
 
 type pluginViewState struct {
@@ -14,34 +16,10 @@ type pluginViewState struct {
 	busy      map[string]bool
 }
 
-// openPlugins shows the plugin manager, or brings it back when it is
-// already open. The catalog is fetched once, in the background.
+// openPlugins opens the plugin group of the settings window. The plugin
+// browser lives there, not in a second window of its own.
 func (s *appState) openPlugins() {
-	if s.plugins == nil {
-		return
-	}
-	s.plugins.openWindow()
-}
-
-func (h *pluginHost) openWindow() {
-	if h.win != nil && !h.win.IsDestroyed() {
-		h.win.Show()
-		h.win.Focus()
-		return
-	}
-	h.refresh()
-	h.win = mygo.NewWindow(mygo.WindowOptions{
-		Title:     Name + " " + locale.TitlePlugins(),
-		Width:     960,
-		Height:    680,
-		MinWidth:  680,
-		MinHeight: 420,
-		Content:   ui.View(h.view),
-	})
-	loaded, _ := h.catalogState()
-	if !loaded {
-		h.refreshCatalog()
-	}
+	s.openSettingsTab(tabPlugins)
 }
 
 func (h *pluginHost) uiSnapshot() pluginViewState {
@@ -58,8 +36,9 @@ func (h *pluginHost) uiSnapshot() pluginViewState {
 	return state
 }
 
-func (h *pluginHost) view(c *ui.Context) {
-	theme.Apply(c, h.st.config.Basic.Theme)
+// settingsView draws the plugin group inside the settings window's scroll
+// area. It does no I/O; prepareSettings starts the background work.
+func (h *pluginHost) settingsView(c *ui.Context) {
 	th := c.Theme()
 	state := h.uiSnapshot()
 	installedLabel := locale.PluginTabInstalled()
@@ -68,9 +47,8 @@ func (h *pluginHost) view(c *ui.Context) {
 	if h.ui.tab == "browse" {
 		selected = browseLabel
 	}
-	ui.Column(c).Fill().Gap(8).Padding(8).Children(func() {
+	ui.Column(c).FillWidth().Gap(8).Children(func() {
 		ui.Row(c).Gap(6).AlignItems(ui.Center).Children(func() {
-			ui.Text(c, locale.TitlePlugins()).Bold()
 			ui.Select(c.Key("plugin-tab"), &selected,
 				[]string{installedLabel, browseLabel})
 			if ui.Button(c.Key("plugin-refresh"),
@@ -87,15 +65,11 @@ func (h *pluginHost) view(c *ui.Context) {
 		ui.Box(c).FillWidth().Height(1).Background(th.Border)
 		ui.Text(c, locale.PluginThirdParty()).FontSize(th.FontSize - 2).
 			TextColor(th.TextMuted)
-		ui.Scroll(c).TrackScroll(&h.ui.scroll).Fill().Children(func() {
-			ui.Column(c).FillWidth().Gap(6).Children(func() {
-				if h.ui.tab == "browse" {
-					h.browseView(c, th, state)
-				} else {
-					h.installedView(c, th, state)
-				}
-			})
-		})
+		if h.ui.tab == "browse" {
+			h.browseView(c, th, state)
+		} else {
+			h.installedView(c, th, state)
+		}
 		if state.status != "" {
 			ui.Text(c, state.status).FontSize(th.FontSize - 2).
 				TextColor(th.TextMuted)
@@ -238,6 +212,9 @@ func (h *pluginHost) browserRow(c *ui.Context, th *ui.Theme,
 		if item.Description != "" {
 			ui.Text(c, item.Description).FontSize(th.FontSize - 2)
 		}
+		ui.Text(c, locale.PluginDetails()).Bold().
+			FontSize(th.FontSize - 2)
+		h.detailView(c, th, item)
 		note := item.Note
 		if !item.Compatible {
 			note = locale.PluginNotChecked()
@@ -254,6 +231,88 @@ func (h *pluginHost) browserRow(c *ui.Context, th *ui.Theme,
 			}
 		}
 	})
+}
+
+func (h *pluginHost) detailView(c *ui.Context, th *ui.Theme,
+	item plugin.BrowserItem) {
+	if item.Downloads > 0 {
+		pluginDetailText(c, th, locale.PluginDetailDownloads(),
+			formatPluginCount(item.Downloads))
+	}
+	if item.Updated > 0 {
+		pluginDetailText(c, th, locale.PluginDetailUpdated(),
+			time.UnixMilli(item.Updated).Format("2006-01-02"))
+	}
+	if item.Version != "" {
+		pluginDetailText(c, th, locale.PluginDetailVersion(),
+			item.Version)
+	}
+	if item.VersionDownloads > 0 {
+		pluginDetailText(c, th, locale.PluginDetailVersionDownloads(),
+			formatPluginCount(item.VersionDownloads))
+	}
+	if item.MinAppVersion != "" && item.MinAppVersion != "0.0.0" {
+		pluginDetailText(c, th, locale.PluginDetailMinAppVersion(),
+			item.MinAppVersion)
+	}
+	if item.DetailLoaded {
+		yes := locale.PluginDetailNo()
+		if item.IsDesktopOnly {
+			yes = locale.PluginDetailYes()
+		}
+		pluginDetailText(c, th, locale.PluginDetailDesktopOnly(), yes)
+	}
+	if item.Repo != "" {
+		pluginDetailText(c, th, locale.PluginDetailRepository(),
+			item.Repo)
+	}
+	if item.AuthorURL != "" {
+		pluginDetailText(c, th, locale.PluginDetailHomepage(),
+			item.AuthorURL)
+	}
+	if item.FundingURL != "" {
+		pluginDetailText(c, th, locale.PluginDetailFunding(),
+			item.FundingURL)
+	}
+	if item.Stars != "" {
+		pluginDetailText(c, th, locale.PluginDetailStars(), item.Stars)
+	}
+	if item.License != "" {
+		pluginDetailText(c, th, locale.PluginDetailLicense(),
+			item.License)
+	}
+	if item.LastCommit != "" {
+		pluginDetailText(c, th, locale.PluginDetailLastCommit(),
+			item.LastCommit)
+	}
+	if item.VerifiedAt != "" {
+		ui.Text(c, locale.PluginCheckedBy(item.VerifiedAt)).
+			FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+	}
+	if item.Compatible && !item.DetailLoaded {
+		ui.Text(c, locale.PluginDetailLoading()).
+			FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+	}
+}
+
+func pluginDetailText(c *ui.Context, th *ui.Theme, label, value string) {
+	ui.Text(c, locale.PluginDetailLine(label, value)).
+		FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+}
+
+func formatPluginCount(n int64) string {
+	text := strconv.FormatInt(n, 10)
+	if len(text) <= 3 {
+		return text
+	}
+	out := make([]byte, 0, len(text)+len(text)/3)
+	for i := range text {
+		if i > 0 && (len(text)-i)%3 == 0 {
+			out = append(out, ',')
+		}
+		out = append(out, text[i])
+	}
+	return string(out)
 }
 
 func (h *pluginHost) installed(id string) bool {
