@@ -67,12 +67,12 @@ func (h *pluginHost) uiSnapshot() pluginViewState {
 func (h *pluginHost) coreSettingsView(c *ui.Context) {
 	th := c.Theme()
 	state := h.uiSnapshot()
-	ui.Column(c).FillWidth().Gap(8).Children(func() {
+	ui.Column(c).FillWidth().Gap(th.Space(2)).Children(func() {
 		ui.Text(c, locale.PluginBuiltinNote()).
-			FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+			FontSize(th.FontSize - 1).TextColor(th.TextMuted)
 		h.builtinView(c, th)
 		if state.status != "" {
-			ui.Text(c, state.status).FontSize(th.FontSize - 2).
+			ui.Text(c, state.status).FontSize(th.FontSize - 1).
 				TextColor(th.TextMuted)
 		}
 	})
@@ -95,8 +95,10 @@ func (h *pluginHost) communitySettingsView(c *ui.Context) {
 	case "core":
 		selected = curatedLabel
 	}
-	ui.Column(c).FillWidth().Gap(8).Children(func() {
-		ui.Row(c).Gap(6).AlignItems(ui.Center).Children(func() {
+	ui.Column(c).FillWidth().Gap(th.Space(2)).Children(func() {
+		ui.Row(c).FillWidth().Gap(th.Space(1)).
+			AlignItems(ui.Center).
+			Padding(th.Space(1), settingsRowPad).Children(func() {
 			ui.Select(c.Key("plugin-tab"), &selected,
 				[]string{installedLabel, curatedLabel, browseLabel})
 			if ui.Button(c.Key("plugin-refresh"),
@@ -113,9 +115,8 @@ func (h *pluginHost) communitySettingsView(c *ui.Context) {
 		default:
 			h.ui.tab = "browse"
 		}
-		ui.Box(c).FillWidth().Height(1).Background(th.Border)
 		ui.Text(c, locale.PluginThirdParty()).
-			FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+			FontSize(th.FontSize - 1).TextColor(th.TextMuted)
 		switch h.ui.tab {
 		case "installed":
 			h.installedView(c, th, state)
@@ -125,7 +126,7 @@ func (h *pluginHost) communitySettingsView(c *ui.Context) {
 			h.browseView(c, th, state)
 		}
 		if state.status != "" {
-			ui.Text(c, state.status).FontSize(th.FontSize - 2).
+			ui.Text(c, state.status).FontSize(th.FontSize - 1).
 				TextColor(th.TextMuted)
 		}
 	})
@@ -133,19 +134,23 @@ func (h *pluginHost) communitySettingsView(c *ui.Context) {
 
 // builtinView is the real core of Xinkgo: its own features, each a switch
 // that hides or shows a part of the window. No third-party code runs here.
+// The switches share one rounded card, as Obsidian's core plugin list does.
 func (h *pluginHost) builtinView(c *ui.Context, th *ui.Theme) {
-	for _, one := range plugin.CorePlugins {
-		name, note := builtinCoreText(one.ID)
-		id := one.ID
-		checked := h.coreOn(id)
-		if ui.Checkbox(c.Key("plugin-builtin-"+id), &checked,
-			name).Changed() {
-			h.setCore(id, checked)
-		}
-		ui.Text(c, note).FontSize(th.FontSize - 2).
-			TextColor(th.TextMuted)
-		ui.Box(c).FillWidth().Height(1).Background(th.Border)
-	}
+	cardBox(c, func() {
+		group(c, locale.PluginGroupBuiltin(), func() {
+			for _, one := range plugin.CorePlugins {
+				name, note := builtinCoreText(one.ID)
+				id := one.ID
+				settingRow(c, name, note, settingsControlWidth, func() {
+					on := h.coreOn(id)
+					if ui.Switch(c.Key("plugin-builtin-"+id), &on).
+						Label("").Changed() {
+						h.setCore(id, on)
+					}
+				})
+			}
+		})
+	})
 }
 
 // builtinCoreText gives the name and note of a built-in core plugin, from
@@ -177,6 +182,76 @@ func builtinCoreText(id string) (name, note string) {
 	}
 }
 
+// cardBox is one rounded card, the way Obsidian sets a plugin apart from
+// its neighbours. The theme supplies the surface, border and radius, so a
+// light or dark window draws the same shape in its own colours.
+func cardBox(c *ui.Context, fn func()) {
+	th := c.Theme()
+	ui.Column(c).FillWidth().
+		Padding(th.Space(2)).Background(th.Surface).
+		Border(1, th.Border).Radius(th.Radius+2).
+		Shadow(0, 6, 20, 0, ui.RGBA(0, 0, 0, 0.18)).
+		Children(fn)
+}
+
+// cardList stacks cards with an even gap between them.
+func cardList(c *ui.Context, fn func()) {
+	th := c.Theme()
+	ui.Column(c).FillWidth().Gap(th.Space(2)).Children(fn)
+}
+
+// pluginBadges draws a row's small labels as badges, not as loose text.
+func pluginBadges(c *ui.Context, labels []string) {
+	for _, label := range labels {
+		if label == "" {
+			continue
+		}
+		ui.Badge(c, label).FontSize(11)
+	}
+}
+
+// pluginHeader is the part of a plugin card that is always on show: the
+// name with its badges, a line of metadata, the description, and on the
+// far side the switch and buttons that act on the plugin.
+func pluginHeader(c *ui.Context, th *ui.Theme, name string,
+	badges []string, meta, desc string, controls func()) {
+	ui.Row(c).FillWidth().Gap(th.Space(2)).AlignItems(ui.Center).
+		Children(func() {
+			ui.Column(c).Grow(1).Gap(th.Space(0.5)).Children(func() {
+				ui.Row(c).Gap(th.Space(1)).Wrap().AlignItems(ui.Center).
+					Children(func() {
+						ui.Text(c, name).Bold()
+						pluginBadges(c, badges)
+					})
+				if meta != "" {
+					ui.Text(c, meta).FontSize(th.FontSize - 1).
+						TextColor(th.TextMuted)
+				}
+				if desc != "" {
+					ui.Text(c, desc).FontSize(th.FontSize - 1).
+						TextColor(th.TextMuted)
+				}
+			})
+			ui.Row(c).Justify(ui.End).Gap(th.Space(1)).
+				AlignItems(ui.Center).Children(controls)
+		})
+}
+
+// pluginDetailsToggle folds a card's details and grants away by default.
+// It reports whether they are open this frame; the choice is pure UI state.
+func (h *pluginHost) pluginDetailsToggle(c *ui.Context, id string) bool {
+	open := h.ui.open[id]
+	label := locale.PluginShowDetails()
+	if open {
+		label = locale.PluginHideDetails()
+	}
+	if ui.Button(c.Key("plugin-details-"+id), label).Clicked() {
+		open = !open
+		h.ui.open[id] = open
+	}
+	return open
+}
+
 func (h *pluginHost) coreView(c *ui.Context, th *ui.Theme,
 	state pluginViewState) {
 	items := h.coreItems()
@@ -185,73 +260,78 @@ func (h *pluginHost) coreView(c *ui.Context, th *ui.Theme,
 		return
 	}
 	ui.Text(c, locale.PluginDegradedNote()).
-		FontSize(th.FontSize - 2).TextColor(th.TextMuted)
-	for _, item := range items {
-		h.coreRow(c, th, item, state.busy)
-		ui.Box(c).FillWidth().Height(1).Background(th.Border)
-	}
+		FontSize(th.FontSize - 1).TextColor(th.TextMuted)
+	cardList(c, func() {
+		for _, item := range items {
+			one := item
+			cardBox(c, func() {
+				h.coreRow(c, th, one, state.busy)
+			})
+		}
+	})
 }
 
 func (h *pluginHost) coreRow(c *ui.Context, th *ui.Theme,
 	item plugin.BrowserItem, busy map[string]bool) {
-	ui.Column(c).FillWidth().Gap(2).Children(func() {
-		ui.Row(c).Gap(6).AlignItems(ui.Center).Children(func() {
-			ui.Text(c, item.Name).Bold()
-			ui.Text(c, locale.PluginCore()).
-				FontSize(th.FontSize - 2).TextColor(th.TextMuted)
-			ui.Text(c, locale.PluginLevelLabel(item.Level)).
-				FontSize(th.FontSize - 2).TextColor(th.TextMuted)
-			if item.Degraded {
-				ui.Text(c, locale.PluginDegraded()).
-					FontSize(th.FontSize - 2).TextColor(th.TextMuted)
-			}
-			if item.Downloads > 0 {
-				ui.Text(c, formatPluginCount(item.Downloads)).
-					FontSize(th.FontSize - 2).TextColor(th.TextMuted)
-			}
-			if busy[item.ID] {
-				ui.Text(c, locale.PluginCatalogLoading()).
-					FontSize(th.FontSize - 2).TextColor(th.TextMuted)
-			}
-		})
-		if item.Description != "" {
-			ui.Text(c, item.Description).FontSize(th.FontSize - 2)
-		}
-		h.detailView(c, th, item)
-		if !h.installed(item.ID) {
-			ui.Text(c, locale.PluginCoreInstallFirst()).
-				FontSize(th.FontSize - 2).TextColor(th.TextMuted)
-			if !busy[item.ID] {
-				if ui.Button(c.Key("plugin-core-install-"+item.ID),
-					locale.PluginInstall()).Clicked() {
-					go h.install(item)
+	badges := []string{
+		locale.PluginCore(),
+		locale.PluginLevelLabel(item.Level),
+	}
+	if item.Degraded {
+		badges = append(badges, locale.PluginDegraded())
+	}
+	if item.Downloads > 0 {
+		badges = append(badges, formatPluginCount(item.Downloads))
+	}
+	if busy[item.ID] {
+		badges = append(badges, locale.PluginCatalogLoading())
+	}
+	meta := strings.Trim(strings.Join([]string{item.Author, item.Repo},
+		" · "), " ·")
+	open := false
+	pluginHeader(c, th, item.Name, badges, meta, item.Description,
+		func() {
+			if !h.installed(item.ID) {
+				if !busy[item.ID] {
+					if ui.Button(c.Key("plugin-core-install-"+item.ID),
+						locale.PluginInstall()).Clicked() {
+						go h.install(item)
+					}
+				}
+			} else {
+				on := h.enabled(item.ID)
+				if ui.Switch(c.Key("plugin-core-toggle-"+item.ID), &on).
+					Label("").Changed() {
+					h.setEnabled(item.ID, on)
+				}
+				if ui.Button(c.Key("plugin-core-reload-"+item.ID),
+					locale.PluginReload()).Clicked() {
+					h.reload(item.ID)
+				}
+				if ui.Button(c.Key("plugin-core-folder-"+item.ID),
+					locale.PluginOpenFolder()).Clicked() {
+					_ = mygo.Shell.OpenPath(
+						filepath.Join(h.userDir, item.ID))
 				}
 			}
-			return
-		}
-		checked := h.enabled(item.ID)
-		if ui.Checkbox(c.Key("plugin-core-toggle-"+item.ID),
-			&checked, locale.PluginCoreToggle()).Changed() {
-			h.setEnabled(item.ID, checked)
-		}
-		if h.running(item.ID) {
-			ui.Text(c, locale.PluginEnabled()).
-				FontSize(th.FontSize - 2).TextColor(th.TextMuted)
-		} else {
-			ui.Text(c, locale.PluginDisabled()).
-				FontSize(th.FontSize - 2).TextColor(th.TextMuted)
-		}
-		ui.Row(c).Gap(6).Children(func() {
-			if ui.Button(c.Key("plugin-core-reload-"+item.ID),
-				locale.PluginReload()).Clicked() {
-				h.reload(item.ID)
-			}
-			if ui.Button(c.Key("plugin-core-folder-"+item.ID),
-				locale.PluginOpenFolder()).Clicked() {
-				_ = mygo.Shell.OpenPath(filepath.Join(h.userDir, item.ID))
-			}
+			open = h.pluginDetailsToggle(c, item.ID)
 		})
-	})
+	if open {
+		ui.Box(c).FillWidth().Height(1).Background(th.Border)
+		ui.Column(c).FillWidth().Gap(th.Space(0.5)).Children(func() {
+			if !h.installed(item.ID) {
+				ui.Text(c, locale.PluginCoreInstallFirst()).
+					FontSize(th.FontSize - 1).TextColor(th.TextMuted)
+			} else if h.running(item.ID) {
+				ui.Text(c, locale.PluginEnabled()).
+					FontSize(th.FontSize - 1).TextColor(th.TextMuted)
+			} else {
+				ui.Text(c, locale.PluginDisabled()).
+					FontSize(th.FontSize - 1).TextColor(th.TextMuted)
+			}
+			h.detailView(c, th, item)
+		})
+	}
 }
 
 func (h *pluginHost) installedView(c *ui.Context, th *ui.Theme,
@@ -260,86 +340,84 @@ func (h *pluginHost) installedView(c *ui.Context, th *ui.Theme,
 		ui.Text(c, locale.PluginNoInstalled()).TextColor(th.TextMuted)
 		return
 	}
-	for _, one := range state.installed {
-		h.installedRow(c, th, one, state.busy)
-		ui.Box(c).FillWidth().Height(1).Background(th.Border)
-	}
-}
-
-func (h *pluginHost) installedRow(c *ui.Context, th *ui.Theme,
-	one plugin.Report, busy map[string]bool) {
-	ui.Column(c).FillWidth().Gap(2).Children(func() {
-		ui.Row(c).Gap(6).AlignItems(ui.Center).Children(func() {
-			ui.Text(c, one.Name).Bold()
-			ui.Text(c, locale.PluginLevelLabel(one.Level.Code())).
-				FontSize(th.FontSize - 2).TextColor(th.TextMuted)
-			if one.Degraded {
-				ui.Text(c, locale.PluginDegraded()).
-					FontSize(th.FontSize - 2).TextColor(th.TextMuted)
-			}
-			if h.running(one.ID) {
-				ui.Text(c, locale.PluginEnabled()).
-					FontSize(th.FontSize - 2).TextColor(th.TextMuted)
-			}
-			if busy[one.ID] {
-				ui.Text(c, locale.PluginCatalogLoading()).
-					FontSize(th.FontSize - 2).TextColor(th.TextMuted)
-			}
-		})
-		ui.Text(c, locale.PluginVersionLine(one.Version, one.Author,
-			h.sourceLabel(one.Source))).FontSize(th.FontSize - 2).
-			TextColor(th.TextMuted)
-		if one.Description != "" {
-			ui.Text(c, one.Description).FontSize(th.FontSize - 2)
-		}
-		for _, issue := range one.Issues {
-			ui.Text(c, locale.PluginIssue(issue.Code, issue.Arg)).
-				FontSize(th.FontSize - 2).TextColor(th.TextMuted)
-		}
-		if !one.Supported {
-			ui.Text(c, locale.PluginInstallRefused()).
-				FontSize(th.FontSize - 2).TextColor(th.TextMuted)
-			return
-		}
-		ui.Row(c).Gap(6).AlignItems(ui.Center).Children(func() {
-			if h.enabled(one.ID) {
-				if ui.Button(c.Key("plugin-disable-"+one.ID),
-					locale.PluginDisable()).Clicked() {
-					h.setEnabled(one.ID, false)
-				}
-			} else if ui.Button(c.Key("plugin-enable-"+one.ID),
-				locale.PluginEnable()).Clicked() {
-				h.setEnabled(one.ID, true)
-			}
-			if ui.Button(c.Key("plugin-reload-"+one.ID),
-				locale.PluginReload()).Clicked() {
-				h.reload(one.ID)
-			}
-			if ui.Button(c.Key("plugin-folder-"+one.ID),
-				locale.PluginOpenFolder()).Clicked() {
-				_ = mygo.Shell.OpenPath(one.Dir)
-			}
-		})
-		ui.Text(c, locale.PluginGrants()).Bold().
-			FontSize(th.FontSize - 2)
-		for _, capability := range plugin.AllCapabilities {
-			if !one.HasCapability(capability) {
-				continue
-			}
-			checked := h.grantOn(one.ID, string(capability))
-			if ui.Checkbox(c.Key("plugin-grant-"+one.ID+"-"+
-				string(capability)), &checked,
-				locale.PluginCapabilityLabel(string(capability))).
-				Changed() {
-				h.setGrant(one.ID, string(capability), checked)
-			}
+	cardList(c, func() {
+		for _, one := range state.installed {
+			report := one
+			cardBox(c, func() {
+				h.installedRow(c, th, report, state.busy)
+			})
 		}
 	})
 }
 
+func (h *pluginHost) installedRow(c *ui.Context, th *ui.Theme,
+	one plugin.Report, busy map[string]bool) {
+	badges := []string{locale.PluginLevelLabel(one.Level.Code())}
+	if one.Degraded {
+		badges = append(badges, locale.PluginDegraded())
+	}
+	if h.running(one.ID) {
+		badges = append(badges, locale.PluginEnabled())
+	}
+	if busy[one.ID] {
+		badges = append(badges, locale.PluginCatalogLoading())
+	}
+	meta := locale.PluginVersionLine(one.Version, one.Author,
+		h.sourceLabel(one.Source))
+	open := false
+	pluginHeader(c, th, one.Name, badges, meta, one.Description,
+		func() {
+			if one.Supported {
+				on := h.enabled(one.ID)
+				if ui.Switch(c.Key("plugin-enable-"+one.ID), &on).
+					Label("").Changed() {
+					h.setEnabled(one.ID, on)
+				}
+				if ui.Button(c.Key("plugin-reload-"+one.ID),
+					locale.PluginReload()).Clicked() {
+					h.reload(one.ID)
+				}
+				if ui.Button(c.Key("plugin-folder-"+one.ID),
+					locale.PluginOpenFolder()).Clicked() {
+					_ = mygo.Shell.OpenPath(one.Dir)
+				}
+			}
+			open = h.pluginDetailsToggle(c, one.ID)
+		})
+	if open {
+		ui.Box(c).FillWidth().Height(1).Background(th.Border)
+		ui.Column(c).FillWidth().Gap(th.Space(0.5)).Children(func() {
+			for _, issue := range one.Issues {
+				ui.Text(c, locale.PluginIssue(issue.Code, issue.Arg)).
+					FontSize(th.FontSize - 1).TextColor(th.TextMuted)
+			}
+			if !one.Supported {
+				ui.Text(c, locale.PluginInstallRefused()).
+					FontSize(th.FontSize - 1).TextColor(th.TextMuted)
+				return
+			}
+			ui.Text(c, locale.PluginGrants()).Bold().
+				FontSize(th.FontSize - 1)
+			for _, capability := range plugin.AllCapabilities {
+				if !one.HasCapability(capability) {
+					continue
+				}
+				checked := h.grantOn(one.ID, string(capability))
+				if ui.Checkbox(c.Key("plugin-grant-"+one.ID+"-"+
+					string(capability)), &checked,
+					locale.PluginCapabilityLabel(string(capability))).
+					Changed() {
+					h.setGrant(one.ID, string(capability), checked)
+				}
+			}
+		})
+	}
+}
+
 func (h *pluginHost) browseView(c *ui.Context, th *ui.Theme,
 	state pluginViewState) {
-	ui.Row(c).Gap(6).AlignItems(ui.Center).Children(func() {
+	ui.Row(c).FillWidth().Gap(th.Space(1)).AlignItems(ui.Center).
+		Padding(th.Space(1), settingsRowPad).Children(func() {
 		field := ui.TextInput(c.Key("plugin-search"), &h.ui.query).
 			Placeholder(locale.PluginSearchPlaceholder()).Grow(1)
 		if field.Changed() {
@@ -361,7 +439,7 @@ func (h *pluginHost) browseView(c *ui.Context, th *ui.Theme,
 			h.refreshCatalog()
 		}
 	})
-	ui.Text(c, locale.PluginDegradedNote()).FontSize(th.FontSize - 2).
+	ui.Text(c, locale.PluginDegradedNote()).FontSize(th.FontSize - 1).
 		TextColor(th.TextMuted)
 	if h.ui.query != h.ui.lastQuery ||
 		h.ui.supportedOnly != h.ui.lastSupported {
@@ -386,10 +464,14 @@ func (h *pluginHost) browseView(c *ui.Context, th *ui.Theme,
 		}
 		return
 	}
-	for _, item := range items {
-		h.browserRow(c, th, item, state.busy)
-		ui.Box(c).FillWidth().Height(1).Background(th.Border)
-	}
+	cardList(c, func() {
+		for _, item := range items {
+			one := item
+			cardBox(c, func() {
+				h.browserRow(c, th, one, state.busy)
+			})
+		}
+	})
 	if len(items) >= h.ui.browseLimit && h.ui.browseLimit < 200 {
 		if ui.Button(c.Key("plugin-show-more"),
 			locale.PluginShowMore()).Clicked() {
@@ -400,52 +482,48 @@ func (h *pluginHost) browseView(c *ui.Context, th *ui.Theme,
 
 func (h *pluginHost) browserRow(c *ui.Context, th *ui.Theme,
 	item plugin.BrowserItem, busy map[string]bool) {
-	ui.Column(c).FillWidth().Gap(2).Children(func() {
-		ui.Row(c).Gap(6).AlignItems(ui.Center).Children(func() {
-			ui.Text(c, item.Name).Bold()
-			if item.Core {
-				ui.Text(c, locale.PluginCore()).
-					FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+	badges := []string{}
+	if item.Core {
+		badges = append(badges, locale.PluginCore())
+	}
+	badges = append(badges, locale.PluginLevelLabel(item.Level))
+	if item.Degraded {
+		badges = append(badges, locale.PluginDegraded())
+	}
+	if h.installed(item.ID) {
+		badges = append(badges, locale.PluginInstalled())
+	}
+	if busy[item.ID] {
+		badges = append(badges, locale.PluginCatalogLoading())
+	}
+	meta := strings.Trim(strings.Join([]string{item.Author, item.Repo},
+		" · "), " ·")
+	open := false
+	pluginHeader(c, th, item.Name, badges, meta, item.Description,
+		func() {
+			if item.Compatible && !h.installed(item.ID) &&
+				!busy[item.ID] {
+				if ui.Button(c.Key("plugin-install-"+item.ID),
+					locale.PluginInstall()).Clicked() {
+					go h.install(item)
+				}
 			}
-			ui.Text(c, locale.PluginLevelLabel(item.Level)).
-				FontSize(th.FontSize - 2).TextColor(th.TextMuted)
-			if item.Degraded {
-				ui.Text(c, locale.PluginDegraded()).
-					FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+			open = h.pluginDetailsToggle(c, item.ID)
+		})
+	if open {
+		ui.Box(c).FillWidth().Height(1).Background(th.Border)
+		ui.Column(c).FillWidth().Gap(th.Space(0.5)).Children(func() {
+			h.detailView(c, th, item)
+			note := item.Note
+			if !item.Compatible {
+				note = locale.PluginNotChecked()
 			}
-			if h.installed(item.ID) {
-				ui.Text(c, locale.PluginInstalled()).
-					FontSize(th.FontSize - 2).TextColor(th.TextMuted)
-			}
-			if busy[item.ID] {
-				ui.Text(c, locale.PluginCatalogLoading()).
-					FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+			if note != "" {
+				ui.Text(c, note).FontSize(th.FontSize - 1).
+					TextColor(th.TextMuted)
 			}
 		})
-		ui.Text(c, item.Author+" · "+item.Repo).
-			FontSize(th.FontSize - 2).TextColor(th.TextMuted)
-		if item.Description != "" {
-			ui.Text(c, item.Description).FontSize(th.FontSize - 2)
-		}
-		ui.Text(c, locale.PluginDetails()).Bold().
-			FontSize(th.FontSize - 2)
-		h.detailView(c, th, item)
-		note := item.Note
-		if !item.Compatible {
-			note = locale.PluginNotChecked()
-		}
-		if note != "" {
-			ui.Text(c, note).FontSize(th.FontSize - 2).
-				TextColor(th.TextMuted)
-		}
-		if item.Compatible && !h.installed(item.ID) &&
-			!busy[item.ID] {
-			if ui.Button(c.Key("plugin-install-"+item.ID),
-				locale.PluginInstall()).Clicked() {
-				go h.install(item)
-			}
-		}
-	})
+	}
 }
 
 func (h *pluginHost) detailView(c *ui.Context, th *ui.Theme,
@@ -502,17 +580,17 @@ func (h *pluginHost) detailView(c *ui.Context, th *ui.Theme,
 	}
 	if item.VerifiedAt != "" {
 		ui.Text(c, locale.PluginCheckedBy(item.VerifiedAt)).
-			FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+			FontSize(th.FontSize - 1).TextColor(th.TextMuted)
 	}
 	if item.Compatible && !item.DetailLoaded {
 		ui.Text(c, locale.PluginDetailLoading()).
-			FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+			FontSize(th.FontSize - 1).TextColor(th.TextMuted)
 	}
 }
 
 func pluginDetailText(c *ui.Context, th *ui.Theme, label, value string) {
 	ui.Text(c, locale.PluginDetailLine(label, value)).
-		FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+		FontSize(th.FontSize - 1).TextColor(th.TextMuted)
 }
 
 func formatPluginCount(n int64) string {

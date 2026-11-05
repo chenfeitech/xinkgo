@@ -6036,14 +6036,34 @@ func (msgs Messages) PluginTabCurated() string {
 	return Catalog.Format(msgs.locale, "pluginTabCurated", nil)
 }
 
-// PluginDetails says "Details"
+// PluginGroupBuiltin says "Xinkgo features"
 // in the language the app shows.
-func PluginDetails() string { return In(i18n.Locale()).PluginDetails() }
+func PluginGroupBuiltin() string { return In(i18n.Locale()).PluginGroupBuiltin() }
 
-// PluginDetails says "Details"
+// PluginGroupBuiltin says "Xinkgo features"
 // in the language of msgs.
-func (msgs Messages) PluginDetails() string {
-	return Catalog.Format(msgs.locale, "pluginDetails", nil)
+func (msgs Messages) PluginGroupBuiltin() string {
+	return Catalog.Format(msgs.locale, "pluginGroupBuiltin", nil)
+}
+
+// PluginShowDetails says "Show details"
+// in the language the app shows.
+func PluginShowDetails() string { return In(i18n.Locale()).PluginShowDetails() }
+
+// PluginShowDetails says "Show details"
+// in the language of msgs.
+func (msgs Messages) PluginShowDetails() string {
+	return Catalog.Format(msgs.locale, "pluginShowDetails", nil)
+}
+
+// PluginHideDetails says "Hide details"
+// in the language the app shows.
+func PluginHideDetails() string { return In(i18n.Locale()).PluginHideDetails() }
+
+// PluginHideDetails says "Hide details"
+// in the language of msgs.
+func (msgs Messages) PluginHideDetails() string {
+	return Catalog.Format(msgs.locale, "pluginHideDetails", nil)
 }
 
 // PluginDetailLine says "{label}: {value}"
@@ -6236,16 +6256,6 @@ func PluginCoreEmpty() string { return In(i18n.Locale()).PluginCoreEmpty() }
 // in the language of msgs.
 func (msgs Messages) PluginCoreEmpty() string {
 	return Catalog.Format(msgs.locale, "pluginCoreEmpty", nil)
-}
-
-// PluginCoreToggle says "Enabled"
-// in the language the app shows.
-func PluginCoreToggle() string { return In(i18n.Locale()).PluginCoreToggle() }
-
-// PluginCoreToggle says "Enabled"
-// in the language of msgs.
-func (msgs Messages) PluginCoreToggle() string {
-	return Catalog.Format(msgs.locale, "pluginCoreToggle", nil)
 }
 
 // PluginCoreInstallFirst says "Install before enabling"

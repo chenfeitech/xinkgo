@@ -123,6 +123,9 @@ type pluginUI struct {
 	status        string
 	installed     []plugin.Report
 	busy          map[string]bool
+	// open is whether a plugin card's details and grants are unfolded.
+	// It is pure UI state: not persisted, not read off the main thread.
+	open map[string]bool
 }
 
 // pluginHost owns discovery, the custom protocol, WebView isolation and
@@ -185,6 +188,7 @@ func newPluginHost(st *appState, dir, resources string,
 			browseLimit:   40,
 			lastSupported: true,
 			busy:          map[string]bool{},
+			open:          map[string]bool{},
 		},
 	}
 	for _, name := range []string{"host.html", "shim.js", "runtime.js"} {

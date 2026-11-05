@@ -872,7 +872,9 @@
   "settingsTabCommunityPlugins": "Community plugins",
   "settingsTabCommunityPluginsNote": "Install and manage Obsidian-compatible third-party plugins",
   "pluginTabCurated": "Curated compatible",
-  "pluginDetails": "Details",
+  "pluginGroupBuiltin": "Xinkgo features",
+  "pluginShowDetails": "Show details",
+  "pluginHideDetails": "Hide details",
   "pluginDetailLine": "{label}: {value}",
   "@pluginDetailLine": {
     "placeholders": {
@@ -898,7 +900,6 @@
   "pluginDegraded": "Degraded",
   "pluginCore": "Core",
   "pluginCoreEmpty": "No core plugins in the checked list.",
-  "pluginCoreToggle": "Enabled",
   "pluginCoreInstallFirst": "Install before enabling",
   "pluginShowMore": "Show more",
   "pluginBuiltinNote": "These are Xinkgo's own features. Turning one off hides its part of the window; nothing is installed or run.",
