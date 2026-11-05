@@ -59,7 +59,9 @@ func TestSettingsView_everyGroupIsInTheList(t *testing.T) {
 	s := &appState{}
 	tt := settingsShown(t, s)
 	for _, name := range []string{
-		"Basic", "Editor", "Preview", "AI", "Vault", "Plugins",
+		"Basic", "Editor", "Preview", "AI", "Vault",
+		locale.SettingsTabCorePlugins(),
+		locale.SettingsTabCommunityPlugins(),
 		"Settings file",
 	} {
 		if !tt.HasText(name) {
@@ -109,17 +111,32 @@ func TestSettingsView_choosingAGroupShowsOnlyItsRows(t *testing.T) {
 	}
 }
 
-func TestSettingsView_pluginsGroupIsInTheSettings(t *testing.T) {
-	s := &appState{}
-	tt := settingsShown(t, s)
-	if err := tt.Click("Plugins"); err != nil {
-		t.Fatal(err)
-	}
-	if s.draft.tab != tabPlugins {
-		t.Errorf("the group chosen is %q, want the plugins'", s.draft.tab)
-	}
-	if !tt.HasText(locale.PluginNoWebView()) {
-		t.Error("the plugin group has no fallback when the host is absent")
+// The plugin manager is two groups, not one: Xinkgo's own built-in core
+// features, and the third-party community plugins. Each has its own rows
+// and its own entry in the list.
+func TestSettingsView_coreAndCommunityPluginsAreTwoGroups(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		tab  string
+	}{
+		{locale.SettingsTabCorePlugins(), tabCorePlugins},
+		{locale.SettingsTabCommunityPlugins(), tabCommunityPlugins},
+	} {
+		t.Run(tc.tab, func(t *testing.T) {
+			s := &appState{}
+			tt := settingsShown(t, s)
+			if err := tt.Click(tc.name); err != nil {
+				t.Fatal(err)
+			}
+			if s.draft.tab != tc.tab {
+				t.Errorf("the group chosen is %q, want %q",
+					s.draft.tab, tc.tab)
+			}
+			if !tt.HasText(locale.PluginNoWebView()) {
+				t.Error("the plugin group has no fallback when " +
+					"the host is absent")
+			}
+		})
 	}
 }
 

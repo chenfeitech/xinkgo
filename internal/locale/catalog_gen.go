@@ -5984,24 +5984,56 @@ func (msgs Messages) PluginCheckedBy(date string) string {
 	return Catalog.Format(msgs.locale, "pluginCheckedBy", map[string]any{"date": date})
 }
 
-// SettingsTabPlugins says "Plugins"
+// SettingsTabCorePlugins says "Core integrated plugins"
 // in the language the app shows.
-func SettingsTabPlugins() string { return In(i18n.Locale()).SettingsTabPlugins() }
+func SettingsTabCorePlugins() string { return In(i18n.Locale()).SettingsTabCorePlugins() }
 
-// SettingsTabPlugins says "Plugins"
+// SettingsTabCorePlugins says "Core integrated plugins"
 // in the language of msgs.
-func (msgs Messages) SettingsTabPlugins() string {
-	return Catalog.Format(msgs.locale, "settingsTabPlugins", nil)
+func (msgs Messages) SettingsTabCorePlugins() string {
+	return Catalog.Format(msgs.locale, "settingsTabCorePlugins", nil)
 }
 
-// SettingsTabPluginsNote says "Browse, install and manage Obsidian-compatible plugins"
+// SettingsTabCorePluginsNote says "Xinkgo's own built-in features; switch each one on or off"
 // in the language the app shows.
-func SettingsTabPluginsNote() string { return In(i18n.Locale()).SettingsTabPluginsNote() }
+func SettingsTabCorePluginsNote() string { return In(i18n.Locale()).SettingsTabCorePluginsNote() }
 
-// SettingsTabPluginsNote says "Browse, install and manage Obsidian-compatible plugins"
+// SettingsTabCorePluginsNote says "Xinkgo's own built-in features; switch each one on or off"
 // in the language of msgs.
-func (msgs Messages) SettingsTabPluginsNote() string {
-	return Catalog.Format(msgs.locale, "settingsTabPluginsNote", nil)
+func (msgs Messages) SettingsTabCorePluginsNote() string {
+	return Catalog.Format(msgs.locale, "settingsTabCorePluginsNote", nil)
+}
+
+// SettingsTabCommunityPlugins says "Community plugins"
+// in the language the app shows.
+func SettingsTabCommunityPlugins() string { return In(i18n.Locale()).SettingsTabCommunityPlugins() }
+
+// SettingsTabCommunityPlugins says "Community plugins"
+// in the language of msgs.
+func (msgs Messages) SettingsTabCommunityPlugins() string {
+	return Catalog.Format(msgs.locale, "settingsTabCommunityPlugins", nil)
+}
+
+// SettingsTabCommunityPluginsNote says "Install and manage Obsidian-compatible third-party plugins"
+// in the language the app shows.
+func SettingsTabCommunityPluginsNote() string {
+	return In(i18n.Locale()).SettingsTabCommunityPluginsNote()
+}
+
+// SettingsTabCommunityPluginsNote says "Install and manage Obsidian-compatible third-party plugins"
+// in the language of msgs.
+func (msgs Messages) SettingsTabCommunityPluginsNote() string {
+	return Catalog.Format(msgs.locale, "settingsTabCommunityPluginsNote", nil)
+}
+
+// PluginTabCurated says "Curated compatible"
+// in the language the app shows.
+func PluginTabCurated() string { return In(i18n.Locale()).PluginTabCurated() }
+
+// PluginTabCurated says "Curated compatible"
+// in the language of msgs.
+func (msgs Messages) PluginTabCurated() string {
+	return Catalog.Format(msgs.locale, "pluginTabCurated", nil)
 }
 
 // PluginDetails says "Details"
@@ -6196,26 +6228,6 @@ func (msgs Messages) PluginCore() string {
 	return Catalog.Format(msgs.locale, "pluginCore", nil)
 }
 
-// PluginTabCore says "Core plugins"
-// in the language the app shows.
-func PluginTabCore() string { return In(i18n.Locale()).PluginTabCore() }
-
-// PluginTabCore says "Core plugins"
-// in the language of msgs.
-func (msgs Messages) PluginTabCore() string {
-	return Catalog.Format(msgs.locale, "pluginTabCore", nil)
-}
-
-// PluginTabOther says "Other plugins"
-// in the language the app shows.
-func PluginTabOther() string { return In(i18n.Locale()).PluginTabOther() }
-
-// PluginTabOther says "Other plugins"
-// in the language of msgs.
-func (msgs Messages) PluginTabOther() string {
-	return Catalog.Format(msgs.locale, "pluginTabOther", nil)
-}
-
 // PluginCoreEmpty says "No core plugins in the checked list."
 // in the language the app shows.
 func PluginCoreEmpty() string { return In(i18n.Locale()).PluginCoreEmpty() }
@@ -6234,16 +6246,6 @@ func PluginCoreToggle() string { return In(i18n.Locale()).PluginCoreToggle() }
 // in the language of msgs.
 func (msgs Messages) PluginCoreToggle() string {
 	return Catalog.Format(msgs.locale, "pluginCoreToggle", nil)
-}
-
-// PluginCoreNote says "Core plugins are curated compatible plugins; they still run third-party code."
-// in the language the app shows.
-func PluginCoreNote() string { return In(i18n.Locale()).PluginCoreNote() }
-
-// PluginCoreNote says "Core plugins are curated compatible plugins; they still run third-party code."
-// in the language of msgs.
-func (msgs Messages) PluginCoreNote() string {
-	return Catalog.Format(msgs.locale, "pluginCoreNote", nil)
 }
 
 // PluginCoreInstallFirst says "Install before enabling"
@@ -6266,16 +6268,6 @@ func (msgs Messages) PluginShowMore() string {
 	return Catalog.Format(msgs.locale, "pluginShowMore", nil)
 }
 
-// PluginTabBuiltin says "Built-in core"
-// in the language the app shows.
-func PluginTabBuiltin() string { return In(i18n.Locale()).PluginTabBuiltin() }
-
-// PluginTabBuiltin says "Built-in core"
-// in the language of msgs.
-func (msgs Messages) PluginTabBuiltin() string {
-	return Catalog.Format(msgs.locale, "pluginTabBuiltin", nil)
-}
-
 // PluginBuiltinNote says "These are Xinkgo's own features. Turning one off hides its part of the window; nothing is installed or run."
 // in the language the app shows.
 func PluginBuiltinNote() string { return In(i18n.Locale()).PluginBuiltinNote() }
@@ -6284,16 +6276,6 @@ func PluginBuiltinNote() string { return In(i18n.Locale()).PluginBuiltinNote() }
 // in the language of msgs.
 func (msgs Messages) PluginBuiltinNote() string {
 	return Catalog.Format(msgs.locale, "pluginBuiltinNote", nil)
-}
-
-// PluginBuiltinToggle says "Enabled"
-// in the language the app shows.
-func PluginBuiltinToggle() string { return In(i18n.Locale()).PluginBuiltinToggle() }
-
-// PluginBuiltinToggle says "Enabled"
-// in the language of msgs.
-func (msgs Messages) PluginBuiltinToggle() string {
-	return Catalog.Format(msgs.locale, "pluginBuiltinToggle", nil)
 }
 
 // CoreFileName says "File explorer"

@@ -21,10 +21,10 @@ type pluginViewState struct {
 	coreIDs   map[string]bool
 }
 
-// openPlugins opens the plugin group of the settings window. The plugin
-// browser lives there, not in a second window of its own.
+// openPlugins opens the community plugins group of the settings window.
+// The plugin browser lives there, not in a second window of its own.
 func (s *appState) openPlugins() {
-	s.openSettingsTab(tabPlugins)
+	s.openSettingsTab(tabCommunityPlugins)
 }
 
 func (h *pluginHost) uiSnapshot() pluginViewState {
@@ -60,29 +60,45 @@ func (h *pluginHost) uiSnapshot() pluginViewState {
 	return state
 }
 
-// settingsView draws the plugin group inside the settings window's scroll
-// area. It does no I/O; prepareSettings starts the background work.
-func (h *pluginHost) settingsView(c *ui.Context) {
+// coreSettingsView draws the Core Integrated Plugins group: Xinkgo's own
+// built-in features, each a switch. No third-party code is listed here, so
+// it needs neither the catalog nor the community browser. It is one of the
+// two plugin groups in the settings window's navigation.
+func (h *pluginHost) coreSettingsView(c *ui.Context) {
 	th := c.Theme()
 	state := h.uiSnapshot()
-	builtinLabel := locale.PluginTabBuiltin()
-	coreLabel := locale.PluginTabCore()
+	ui.Column(c).FillWidth().Gap(8).Children(func() {
+		ui.Text(c, locale.PluginBuiltinNote()).
+			FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+		h.builtinView(c, th)
+		if state.status != "" {
+			ui.Text(c, state.status).FontSize(th.FontSize - 2).
+				TextColor(th.TextMuted)
+		}
+	})
+}
+
+// communitySettingsView draws the Community Plugins group: third-party
+// Obsidian-compatible plugins. A sub-tab switches between what is already
+// installed, the curated compatible core list, and the community browser.
+// It does no I/O; prepareSettings starts the background work.
+func (h *pluginHost) communitySettingsView(c *ui.Context) {
+	th := c.Theme()
+	state := h.uiSnapshot()
 	installedLabel := locale.PluginTabInstalled()
+	curatedLabel := locale.PluginTabCurated()
 	browseLabel := locale.PluginTabBrowse()
-	selected := builtinLabel
+	selected := browseLabel
 	switch h.ui.tab {
-	case "core":
-		selected = coreLabel
 	case "installed":
 		selected = installedLabel
-	case "browse":
-		selected = browseLabel
+	case "core":
+		selected = curatedLabel
 	}
 	ui.Column(c).FillWidth().Gap(8).Children(func() {
 		ui.Row(c).Gap(6).AlignItems(ui.Center).Children(func() {
 			ui.Select(c.Key("plugin-tab"), &selected,
-				[]string{builtinLabel, coreLabel, installedLabel,
-					browseLabel})
+				[]string{installedLabel, curatedLabel, browseLabel})
 			if ui.Button(c.Key("plugin-refresh"),
 				locale.PluginRefresh()).Clicked() {
 				h.refresh()
@@ -90,35 +106,23 @@ func (h *pluginHost) settingsView(c *ui.Context) {
 			}
 		})
 		switch selected {
-		case coreLabel:
-			h.ui.tab = "core"
 		case installedLabel:
 			h.ui.tab = "installed"
-		case browseLabel:
-			h.ui.tab = "browse"
+		case curatedLabel:
+			h.ui.tab = "core"
 		default:
-			h.ui.tab = "builtin"
+			h.ui.tab = "browse"
 		}
 		ui.Box(c).FillWidth().Height(1).Background(th.Border)
+		ui.Text(c, locale.PluginThirdParty()).
+			FontSize(th.FontSize - 2).TextColor(th.TextMuted)
 		switch h.ui.tab {
-		case "builtin":
-			ui.Text(c, locale.PluginBuiltinNote()).
-				FontSize(th.FontSize - 2).TextColor(th.TextMuted)
-			h.builtinView(c, th)
+		case "installed":
+			h.installedView(c, th, state)
 		case "core":
-			ui.Text(c, locale.PluginCoreNote()).
-				FontSize(th.FontSize - 2).TextColor(th.TextMuted)
 			h.coreView(c, th, state)
 		default:
-			ui.Text(c, locale.PluginTabOther()).Bold().
-				FontSize(th.FontSize - 2)
-			ui.Text(c, locale.PluginThirdParty()).
-				FontSize(th.FontSize - 2).TextColor(th.TextMuted)
-		}
-		if h.ui.tab == "browse" {
 			h.browseView(c, th, state)
-		} else if h.ui.tab == "installed" {
-			h.installedView(c, th, state)
 		}
 		if state.status != "" {
 			ui.Text(c, state.status).FontSize(th.FontSize - 2).
