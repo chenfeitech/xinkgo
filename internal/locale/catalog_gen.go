@@ -5702,6 +5702,58 @@ func (msgs Messages) PluginOpenFolder() string {
 	return Catalog.Format(msgs.locale, "pluginOpenFolder", nil)
 }
 
+// PluginUninstall says "Uninstall"
+// in the language the app shows.
+func PluginUninstall() string { return In(i18n.Locale()).PluginUninstall() }
+
+// PluginUninstall says "Uninstall"
+// in the language of msgs.
+func (msgs Messages) PluginUninstall() string {
+	return Catalog.Format(msgs.locale, "pluginUninstall", nil)
+}
+
+// PluginUninstallTitle says "Uninstall this plugin?"
+// in the language the app shows.
+func PluginUninstallTitle() string { return In(i18n.Locale()).PluginUninstallTitle() }
+
+// PluginUninstallTitle says "Uninstall this plugin?"
+// in the language of msgs.
+func (msgs Messages) PluginUninstallTitle() string {
+	return Catalog.Format(msgs.locale, "pluginUninstallTitle", nil)
+}
+
+// PluginUninstallMessage says "{name} and all of its files will be removed."
+// in the language the app shows.
+func PluginUninstallMessage(name string) string {
+	return In(i18n.Locale()).PluginUninstallMessage(name)
+}
+
+// PluginUninstallMessage says "{name} and all of its files will be removed."
+// in the language of msgs.
+func (msgs Messages) PluginUninstallMessage(name string) string {
+	return Catalog.Format(msgs.locale, "pluginUninstallMessage", map[string]any{"name": name})
+}
+
+// PluginUninstallFailed says "The plugin could not be removed."
+// in the language the app shows.
+func PluginUninstallFailed() string { return In(i18n.Locale()).PluginUninstallFailed() }
+
+// PluginUninstallFailed says "The plugin could not be removed."
+// in the language of msgs.
+func (msgs Messages) PluginUninstallFailed() string {
+	return Catalog.Format(msgs.locale, "pluginUninstallFailed", nil)
+}
+
+// PluginUninstalledOK says "uninstalled {name}"
+// in the language the app shows.
+func PluginUninstalledOK(name string) string { return In(i18n.Locale()).PluginUninstalledOK(name) }
+
+// PluginUninstalledOK says "uninstalled {name}"
+// in the language of msgs.
+func (msgs Messages) PluginUninstalledOK(name string) string {
+	return Catalog.Format(msgs.locale, "pluginUninstalledOK", map[string]any{"name": name})
+}
+
 // PluginLevel says "Level"
 // in the language the app shows.
 func PluginLevel() string { return In(i18n.Locale()).PluginLevel() }

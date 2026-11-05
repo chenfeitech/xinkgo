@@ -24,6 +24,30 @@ func TestLoadPlugins_missingAndBrokenEnableNothing(t *testing.T) {
 	}
 }
 
+func TestPluginState_withoutForgetsEnabledAndGrants(t *testing.T) {
+	st := PluginState{
+		Enabled: map[string]bool{"demo": true, "other": true},
+		Grants: map[string][]string{
+			"demo": {"commands"}, "other": {"data"},
+		},
+		Core: map[string]bool{"file-explorer": false},
+	}
+	got := st.Without("demo")
+	if got.EnabledOf("demo") || len(got.GrantsOf("demo")) != 0 {
+		t.Errorf("the plugin is still in the state: %+v", got)
+	}
+	if !got.EnabledOf("other") || len(got.GrantsOf("other")) != 1 {
+		t.Error("another plugin's choices were lost")
+	}
+	if got.CoreOf("file-explorer") {
+		t.Error("a core choice was lost")
+	}
+	// The original is unchanged: Without returns a copy.
+	if !st.EnabledOf("demo") || len(st.GrantsOf("demo")) != 1 {
+		t.Error("the original state was changed")
+	}
+}
+
 func TestSaveLoadPlugins_roundTrip(t *testing.T) {
 	dir := t.TempDir()
 	want := PluginState{

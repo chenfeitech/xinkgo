@@ -67,6 +67,25 @@ func TestPluginSettings_corePaneShowsBuiltInFeatures(t *testing.T) {
 	}
 }
 
+// An installed card offers to take the plugin away, not just to turn it
+// off: the uninstall control sits beside reload and open-folder.
+func TestPluginSettings_installedCardOffersUninstall(t *testing.T) {
+	s := &appState{}
+	tt := pluginSettingsShown(t, s, tabCommunityPlugins)
+	if !tt.HasText("Demo Plugin") {
+		t.Fatal("the installed plugin card is not on show")
+	}
+	for _, want := range []string{
+		locale.PluginUninstall(),
+		locale.PluginReload(),
+		locale.PluginOpenFolder(),
+	} {
+		if !tt.HasText(want) {
+			t.Errorf("the installed card does not offer %q", want)
+		}
+	}
+}
+
 // A community plugin is a card: its name and the fold control are on show,
 // while the grants are folded away until the card is opened.
 func TestPluginSettings_communityCardFoldsItsDetails(t *testing.T) {

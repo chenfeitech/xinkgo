@@ -85,6 +85,16 @@ func (s PluginState) WithGrants(id string, grants []string) PluginState {
 	return out
 }
 
+// Without returns a copy with every choice about one plugin forgotten:
+// its enabled flag and its grants. Removing a plugin's package leaves no
+// state that could bring it back on the next run.
+func (s PluginState) Without(id string) PluginState {
+	out := s.copy()
+	delete(out.Enabled, id)
+	delete(out.Grants, id)
+	return out
+}
+
 func (s PluginState) copy() PluginState {
 	out := PluginState{
 		Enabled: map[string]bool{}, Grants: map[string][]string{},

@@ -796,6 +796,21 @@
   "pluginDisable": "Disable",
   "pluginReload": "Reload",
   "pluginOpenFolder": "Open folder",
+  "pluginUninstall": "Uninstall",
+  "pluginUninstallTitle": "Uninstall this plugin?",
+  "pluginUninstallMessage": "{name} and all of its files will be removed.",
+  "@pluginUninstallMessage": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "pluginUninstallFailed": "The plugin could not be removed.",
+  "pluginUninstalledOK": "uninstalled {name}",
+  "@pluginUninstalledOK": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
   "pluginLevel": "Level",
   "pluginRequired": "Required",
   "pluginGrants": "Grants",

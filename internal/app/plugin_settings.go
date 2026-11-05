@@ -382,6 +382,10 @@ func (h *pluginHost) installedRow(c *ui.Context, th *ui.Theme,
 					_ = mygo.Shell.OpenPath(one.Dir)
 				}
 			}
+			if ui.Button(c.Key("plugin-uninstall-"+one.ID),
+				locale.PluginUninstall()).Clicked() {
+				h.askUninstall(one)
+			}
 			open = h.pluginDetailsToggle(c, one.ID)
 		})
 	if open {
