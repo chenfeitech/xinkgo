@@ -1,7 +1,15 @@
 # Obsidian 插件兼容宿主
 
-日期：2026-11-04。状态：**P0 spike 与降级兼容扩展已实现，完整 P1/P2/P3 未实现**。
+日期：2026-11-05。状态：**P0 spike、内置核心插件注册表、插件可见视图表面、
+降级降权与打包资源门禁已实现；完整 P1/P2/P3 仍未实现**。
 本文先定边界、架构与路线，再记录 P0 的实际落点；完全兼容 Obsidian 仍不是本期目标。
+
+> 2026-11-05 补做（见本文件 §9.1 与
+> [obsidian-core-plugins.md](obsidian-core-plugins.md)）：把「核心插件」校正为
+> 三层——内置核心能力（原生 UI、统一开关、落 `plugins.json`）、核心兼容插件
+> （社区热门、打 Core 标记、仍降级）、其他插件；`registerView` 落到真实的
+> 插件页表面而不再是空 stub；降级插件在浏览器默认折叠；`scripts/check-resources.sh`
+> 保证 shim 与兼容清单进各平台产物。
 
 参考的同类扩展设计：[wechat.md](wechat.md)（外部样式目录 + 元数据 + 发现规则）、
 [wechat-style-guide.md](wechat-style-guide.md)（面向扩展作者的指引）。项目分层见
@@ -510,6 +518,31 @@ Markdown post processor 走 HTML 序列化预览模式，只承诺静态 DOM 变
 `registerEditorExtension`/`EditorSuggest` 仍拒绝；若产品上必须支持，唯一
 诚实路线是 B 方案：把编辑器换成 WebView + CodeMirror 6，并同步 DOM
 workspace，这属于重写，不在本路线承诺内。
+
+### 9.1 本轮补做（2026-11-05）
+
+分析结论指出三处不最优：需求 ①「Obsidian 核心插件」被做成了「热门社区插件
+打 Core 标签」且这 10 个全是 C3/C4 降级；需求 ③ 的插件自身界面大多是空 stub；
+`resources/` 进产物没有门禁。本轮按此顺序补齐，均不引入 cgo、Node 或新依赖：
+
+1. **内置核心插件注册表与统一开关**：`internal/plugin/core.go` 列出 Xinkgo 自带
+   的 10 项核心能力（文件树、命令面板、搜索、预览、大纲、反链、标签、状态栏、
+   字数统计、插件 ribbon）。启用状态写进 `plugins.json` 的 `core` 字段，与兼容插件
+   `enabled`、授权 `grants` 同源；缺字段按默认，显式 `false` 保留。设置窗口新增
+   「内置核心」页，开关通过 `pluginHost.applyCoreFeatures` 推给 `view.Workspace`，
+   真实地隐藏/显示对应界面；字数统计是补的一个轻量原生能力。见
+   [obsidian-core-plugins.md](obsidian-core-plugins.md)。
+2. **`registerView` 落到真实表面**：shim 的 `registerView` 改为 `fire("view.register")`，
+   Go 在 `view.register` RPC 里登记（需 `dom` 授权），`refreshCommands` 把视图列表推给
+   `Workspace`，新增 `pluginViewDrawer` 在窗口右侧画一个抽屉；选中某个视图时
+   `openPluginView` 把该插件的非信任 `WebView` 作为 `ui.NativeWebView` 嵌进抽屉，并
+   发 `view` 事件让 shim 在 `#xinkgo-plugin-root` 里实例化 `ItemView` 的
+   `containerEl`。仍遵守「一个插件一次一个可见表面」；关闭或卸载会清理。这是 P2
+   的最小落点，`registerEditorExtension` 等 CM6 API 仍按 C4 拒绝。
+3. **降级降权与资源门禁**：Browse 页默认不列 C3/C4 降级插件，勾「显示降级插件」
+   才出现并附说明；Core 页同样注明降级。`scripts/check-resources.sh` 检查源文件、
+   `.app/Contents/Resources` 与各平台产物里的 `obsidian-shim/*` 与
+   `compatible.json`；`check.sh` 与 `package.sh` 都调用它。
 
 ## 10 测试与人工验收
 

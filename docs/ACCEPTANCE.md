@@ -148,6 +148,9 @@
 | J8 | 平台与回落 | macOS 先走完 J1 ~ J7，再在 Windows / Linux 有 WebView 的机器上重复；在没有 WebView 的环境打开插件管理器 | 三端行为一致；无 WebView 时说明原因，原生窗口仍可用 |
 | J9 | 左侧插件 ribbon | 安装并启用一个调用 `addRibbonIcon` 的插件，看目录树左边，再点插件图标 | 树左侧始终保留一条 34 DIP 的窄条；图标出现且不挤压树宽布局；点击后插件的 ribbon 回调被执行，命令面板里不再重复出现该图标 |
 | J10 | 核心插件与其他插件分开管理 | 打开设置 ▸ Plugins；在 Core plugins / Installed / Browse 三页间切换 | Core 页只列 10 个核心兼容插件；已安装页和浏览页不重复出现它们；已安装的 Core 插件可用复选框启用/停用，状态重启后保留 |
+| J11 | 内置核心插件开关 | 设置 ▸ Plugins ▸ Built-in core，逐个关掉「字数统计」「大纲」「文件浏览器」等 | 状态栏不再显示字数、大纲/反链按钮消失、左侧文件树不再画出；重开应用后选择仍在；插件页不加载任何 WebView |
+| J12 | 插件自身视图显示 | 启用一个调用 `registerView` 且已获 `dom` 授权的插件，在窗口右侧「插件视图」抽屉里点它的名字 | 抽屉里出现该插件的页面并画出 `ItemView` 的 `containerEl`；再点一次关闭；换点另一个视图只显示新的一个；关闭插件后抽屉条目消失 |
+| J13 | 降级插件降权与资源门禁 | 打开 Browse 页；再故意从 `.app/Contents/Resources/` 移走 `shim.js` 跑 `scripts/check.sh` | Browse 默认不列 C3/C4 降级插件，勾「显示降级插件」才出现且带说明；`check.sh` 因缺资源失败并报出路径，`package.sh` 打包后同样校验 |
 
 ## 已自动化、不必人验的
 

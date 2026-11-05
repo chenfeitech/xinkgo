@@ -39,3 +39,8 @@ fi
 joined=$(IFS=,; echo "${platforms[*]}")
 echo "Packaging Xinkgo $json_version for $joined"
 go tool mygo build -platform "$joined"
+
+# The build is only shippable if the plugin host's shim and compatibility
+# list really made it into the artifacts we just produced.
+echo "Checking plugin resources in the package"
+scripts/check-resources.sh

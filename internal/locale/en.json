@@ -900,5 +900,37 @@
   "pluginCoreToggle": "Enabled",
   "pluginCoreNote": "Core plugins are curated compatible plugins; they still run third-party code.",
   "pluginCoreInstallFirst": "Install before enabling",
-  "pluginShowMore": "Show more"
+  "pluginShowMore": "Show more",
+  "pluginTabBuiltin": "Built-in core",
+  "pluginBuiltinNote": "These are Xinkgo's own features. Turning one off hides its part of the window; nothing is installed or run.",
+  "pluginBuiltinToggle": "Enabled",
+  "coreFileName": "File explorer",
+  "coreFileNote": "The vault's file tree on the left.",
+  "coreCommandPaletteName": "Command palette",
+  "coreCommandPaletteNote": "Commands and quick switching from one place.",
+  "coreGlobalSearchName": "Global search",
+  "coreGlobalSearchNote": "Search across the whole vault.",
+  "corePagePreviewName": "Page preview",
+  "corePagePreviewNote": "The rendered note beside the editor.",
+  "coreOutlineName": "Outline",
+  "coreOutlineNote": "A panel of the note's headings.",
+  "coreBacklinksName": "Backlinks",
+  "coreBacklinksNote": "A panel of notes that link here.",
+  "coreTagPaneName": "Tag pane",
+  "coreTagPaneNote": "A panel of the vault's tags.",
+  "coreStatusBarName": "Status bar",
+  "coreStatusBarNote": "The line at the foot of the window.",
+  "coreWordCountName": "Word count",
+  "coreWordCountNote": "How many words the open note holds.",
+  "corePluginRibbonName": "Plugin ribbon",
+  "corePluginRibbonNote": "The strip of plugin icons by the file tree.",
+  "statusWordCount": "{count} words",
+  "@statusWordCount": {
+    "placeholders": {
+      "count": { "type": "String" }
+    }
+  },
+  "pluginViewPick": "Pick a plugin view above to show it here.",
+  "pluginShowDegraded": "Show degraded plugins",
+  "pluginDegradedNote": "These plugins load but their own views and editor features are not available."
 }

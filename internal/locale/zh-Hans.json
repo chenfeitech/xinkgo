@@ -632,5 +632,37 @@
   "pluginCoreToggle": "启用",
   "pluginCoreNote": "核心插件为精选兼容插件，仍会运行第三方代码。",
   "pluginCoreInstallFirst": "安装后可启用",
-  "pluginShowMore": "显示更多"
+  "pluginShowMore": "显示更多",
+  "pluginTabBuiltin": "内置核心",
+  "pluginBuiltinNote": "这些是 Xinkgo 自带的功能。关闭某项只会隐藏它在界面中的部分，不会安装或运行任何插件。",
+  "pluginBuiltinToggle": "启用",
+  "coreFileName": "文件浏览器",
+  "coreFileNote": "左侧笔记库的文件树。",
+  "coreCommandPaletteName": "命令面板",
+  "coreCommandPaletteNote": "在一处执行命令与快速跳转。",
+  "coreGlobalSearchName": "全局搜索",
+  "coreGlobalSearchNote": "在整个笔记库中搜索。",
+  "corePagePreviewName": "页面预览",
+  "corePagePreviewNote": "编辑器旁渲染后的笔记。",
+  "coreOutlineName": "大纲",
+  "coreOutlineNote": "显示笔记标题的面板。",
+  "coreBacklinksName": "反向链接",
+  "coreBacklinksNote": "显示链接到此处的笔记的面板。",
+  "coreTagPaneName": "标签面板",
+  "coreTagPaneNote": "显示笔记库标签的面板。",
+  "coreStatusBarName": "状态栏",
+  "coreStatusBarNote": "窗口底部的一行提示。",
+  "coreWordCountName": "字数统计",
+  "coreWordCountNote": "当前笔记的字数。",
+  "corePluginRibbonName": "插件工具栏",
+  "corePluginRibbonNote": "文件树旁放置插件图标的竖条。",
+  "statusWordCount": "{count} 字",
+  "@statusWordCount": {
+    "placeholders": {
+      "count": { "type": "String" }
+    }
+  },
+  "pluginViewPick": "从上方选择一个插件视图，在此显示。",
+  "pluginShowDegraded": "显示降级插件",
+  "pluginDegradedNote": "这些插件可以加载，但自身的视图与编辑器功能不可用。"
 }

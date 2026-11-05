@@ -122,6 +122,7 @@ func (h *pluginHost) browserItems(limit int) []plugin.BrowserItem {
 	h.mu.RLock()
 	key := strconv.FormatUint(rev, 10) + "|" +
 		strconv.FormatBool(h.ui.supportedOnly) + "|" +
+		strconv.FormatBool(h.ui.showDegraded) + "|" +
 		strings.ToLower(strings.TrimSpace(h.ui.query)) + "|" +
 		strconv.Itoa(limit)
 	if key == h.browserKey {
@@ -131,11 +132,18 @@ func (h *pluginHost) browserItems(limit int) []plugin.BrowserItem {
 	}
 	query := strings.ToLower(strings.TrimSpace(h.ui.query))
 	supportedOnly := h.ui.supportedOnly
+	showDegraded := h.ui.showDegraded
 	h.mu.RUnlock()
 	out := make([]plugin.BrowserItem, 0, min(limit, len(view)))
 	for _, one := range view {
 		if one.Core || supportedOnly && !one.Compatible ||
 			!matchPluginQuery(one, query) {
+			continue
+		}
+		// A degraded plugin only loads through the tolerant shim; its
+		// own views and editor features do not work. Keep those out of
+		// the browse list unless the user asks to see them.
+		if one.Degraded && !showDegraded {
 			continue
 		}
 		out = append(out, one)

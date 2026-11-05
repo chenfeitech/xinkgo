@@ -6,14 +6,22 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/helightxu/xinkgo/internal/plugin"
 )
 
-// PluginState is what the app keeps of its plugins: the enabled ones and
-// the capabilities the user granted each one. A missing or broken file
+// PluginState is what the app keeps of its plugins: the enabled Obsidian-
+// compatible ones, the capabilities granted to each, and which of Xinkgo's
+// own built-in core plugins stand. All three live in the one plugins.json,
+// so one place says what the user turned on. A missing or broken file
 // enables nothing rather than keeping the app from starting.
 type PluginState struct {
 	Enabled map[string]bool     `json:"enabled,omitempty"`
 	Grants  map[string][]string `json:"grants,omitempty"`
+	// Core holds an explicit on/off choice per built-in core plugin. An
+	// ID the file leaves out takes its default, so an older file keeps
+	// working when a new core plugin is added.
+	Core map[string]bool `json:"core,omitempty"`
 }
 
 // EnabledOf reports whether a plugin was enabled on the last run.
@@ -27,6 +35,26 @@ func (s PluginState) GrantsOf(id string) []string {
 		return nil
 	}
 	return append([]string(nil), s.Grants[id]...)
+}
+
+// CoreOf reports whether a built-in core plugin stands. An ID the file
+// leaves out takes the registry default; a false the file holds is an
+// explicit choice to turn that plugin off and is kept as such.
+func (s PluginState) CoreOf(id string) bool {
+	if on, ok := s.Core[id]; ok {
+		return on
+	}
+	return plugin.DefaultCore()[id]
+}
+
+// WithCore returns a copy with one built-in core plugin's choice changed.
+func (s PluginState) WithCore(id string, on bool) PluginState {
+	out := s.copy()
+	if out.Core == nil {
+		out.Core = map[string]bool{}
+	}
+	out.Core[id] = on
+	return out
 }
 
 // WithEnabled returns a copy with one plugin's enabled flag changed.
@@ -60,12 +88,16 @@ func (s PluginState) WithGrants(id string, grants []string) PluginState {
 func (s PluginState) copy() PluginState {
 	out := PluginState{
 		Enabled: map[string]bool{}, Grants: map[string][]string{},
+		Core: map[string]bool{},
 	}
 	for id, on := range s.Enabled {
 		out.Enabled[id] = on
 	}
 	for id, grants := range s.Grants {
 		out.Grants[id] = append([]string(nil), grants...)
+	}
+	for id, on := range s.Core {
+		out.Core[id] = on
 	}
 	return out
 }
@@ -94,6 +126,14 @@ func SavePlugins(dir string, st PluginState) error {
 func (s PluginState) normalized() PluginState {
 	out := PluginState{
 		Enabled: map[string]bool{}, Grants: map[string][]string{},
+		Core: map[string]bool{},
+	}
+	// Only IDs the registry knows are kept, but an explicit false is a
+	// choice and is preserved; an absent ID keeps taking its default.
+	for id, on := range s.Core {
+		if plugin.IsCore(id) {
+			out.Core[id] = on
+		}
 	}
 	for id, on := range s.Enabled {
 		if id != "" && on {

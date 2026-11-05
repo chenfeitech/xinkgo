@@ -11,6 +11,7 @@ import (
 	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/locale"
 	"github.com/helightxu/xinkgo/internal/plugin"
+	"github.com/helightxu/xinkgo/internal/view"
 )
 
 type pluginViewState struct {
@@ -64,19 +65,24 @@ func (h *pluginHost) uiSnapshot() pluginViewState {
 func (h *pluginHost) settingsView(c *ui.Context) {
 	th := c.Theme()
 	state := h.uiSnapshot()
+	builtinLabel := locale.PluginTabBuiltin()
 	coreLabel := locale.PluginTabCore()
 	installedLabel := locale.PluginTabInstalled()
 	browseLabel := locale.PluginTabBrowse()
-	selected := coreLabel
-	if h.ui.tab == "installed" {
+	selected := builtinLabel
+	switch h.ui.tab {
+	case "core":
+		selected = coreLabel
+	case "installed":
 		selected = installedLabel
-	} else if h.ui.tab == "browse" {
+	case "browse":
 		selected = browseLabel
 	}
 	ui.Column(c).FillWidth().Gap(8).Children(func() {
 		ui.Row(c).Gap(6).AlignItems(ui.Center).Children(func() {
 			ui.Select(c.Key("plugin-tab"), &selected,
-				[]string{coreLabel, installedLabel, browseLabel})
+				[]string{builtinLabel, coreLabel, installedLabel,
+					browseLabel})
 			if ui.Button(c.Key("plugin-refresh"),
 				locale.PluginRefresh()).Clicked() {
 				h.refresh()
@@ -86,17 +92,24 @@ func (h *pluginHost) settingsView(c *ui.Context) {
 		switch selected {
 		case coreLabel:
 			h.ui.tab = "core"
+		case installedLabel:
+			h.ui.tab = "installed"
 		case browseLabel:
 			h.ui.tab = "browse"
 		default:
-			h.ui.tab = "installed"
+			h.ui.tab = "builtin"
 		}
 		ui.Box(c).FillWidth().Height(1).Background(th.Border)
-		if h.ui.tab == "core" {
+		switch h.ui.tab {
+		case "builtin":
+			ui.Text(c, locale.PluginBuiltinNote()).
+				FontSize(th.FontSize - 2).TextColor(th.TextMuted)
+			h.builtinView(c, th)
+		case "core":
 			ui.Text(c, locale.PluginCoreNote()).
 				FontSize(th.FontSize - 2).TextColor(th.TextMuted)
 			h.coreView(c, th, state)
-		} else {
+		default:
 			ui.Text(c, locale.PluginTabOther()).Bold().
 				FontSize(th.FontSize - 2)
 			ui.Text(c, locale.PluginThirdParty()).
@@ -114,6 +127,52 @@ func (h *pluginHost) settingsView(c *ui.Context) {
 	})
 }
 
+// builtinView is the real core of Xinkgo: its own features, each a switch
+// that hides or shows a part of the window. No third-party code runs here.
+func (h *pluginHost) builtinView(c *ui.Context, th *ui.Theme) {
+	for _, one := range plugin.CorePlugins {
+		name, note := builtinCoreText(one.ID)
+		id := one.ID
+		checked := h.coreOn(id)
+		if ui.Checkbox(c.Key("plugin-builtin-"+id), &checked,
+			name).Changed() {
+			h.setCore(id, checked)
+		}
+		ui.Text(c, note).FontSize(th.FontSize - 2).
+			TextColor(th.TextMuted)
+		ui.Box(c).FillWidth().Height(1).Background(th.Border)
+	}
+}
+
+// builtinCoreText gives the name and note of a built-in core plugin, from
+// the catalogs so a language switch redraws them on the next frame.
+func builtinCoreText(id string) (name, note string) {
+	switch id {
+	case view.CoreFileExplorer:
+		return locale.CoreFileName(), locale.CoreFileNote()
+	case view.CoreCommandPalette:
+		return locale.CoreCommandPaletteName(), locale.CoreCommandPaletteNote()
+	case view.CoreGlobalSearch:
+		return locale.CoreGlobalSearchName(), locale.CoreGlobalSearchNote()
+	case view.CorePagePreview:
+		return locale.CorePagePreviewName(), locale.CorePagePreviewNote()
+	case view.CoreOutline:
+		return locale.CoreOutlineName(), locale.CoreOutlineNote()
+	case view.CoreBacklinks:
+		return locale.CoreBacklinksName(), locale.CoreBacklinksNote()
+	case view.CoreTagPane:
+		return locale.CoreTagPaneName(), locale.CoreTagPaneNote()
+	case view.CoreStatusBar:
+		return locale.CoreStatusBarName(), locale.CoreStatusBarNote()
+	case view.CoreWordCount:
+		return locale.CoreWordCountName(), locale.CoreWordCountNote()
+	case view.CorePluginRibbon:
+		return locale.CorePluginRibbonName(), locale.CorePluginRibbonNote()
+	default:
+		return id, ""
+	}
+}
+
 func (h *pluginHost) coreView(c *ui.Context, th *ui.Theme,
 	state pluginViewState) {
 	items := h.coreItems()
@@ -121,6 +180,8 @@ func (h *pluginHost) coreView(c *ui.Context, th *ui.Theme,
 		ui.Text(c, locale.PluginCoreEmpty()).TextColor(th.TextMuted)
 		return
 	}
+	ui.Text(c, locale.PluginDegradedNote()).
+		FontSize(th.FontSize - 2).TextColor(th.TextMuted)
 	for _, item := range items {
 		h.coreRow(c, th, item, state.busy)
 		ui.Box(c).FillWidth().Height(1).Background(th.Border)
@@ -286,11 +347,18 @@ func (h *pluginHost) browseView(c *ui.Context, th *ui.Theme,
 			h.ui.browseLimit = 40
 			h.ui.lastSupported = h.ui.supportedOnly
 		}
+		if ui.Checkbox(c.Key("plugin-show-degraded"),
+			&h.ui.showDegraded,
+			locale.PluginShowDegraded()).Changed() {
+			h.ui.browseLimit = 40
+		}
 		if ui.Button(c.Key("plugin-catalog-refresh"),
 			locale.PluginRefresh()).Clicked() {
 			h.refreshCatalog()
 		}
 	})
+	ui.Text(c, locale.PluginDegradedNote()).FontSize(th.FontSize - 2).
+		TextColor(th.TextMuted)
 	if h.ui.query != h.ui.lastQuery ||
 		h.ui.supportedOnly != h.ui.lastSupported {
 		h.ui.lastQuery = h.ui.query

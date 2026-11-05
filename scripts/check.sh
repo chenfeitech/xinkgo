@@ -67,5 +67,9 @@ if [ "$json_version" != "$go_version" ]; then
 fi
 echo "ok  $json_version"
 
+# The plugin host's shim and compatibility list must be in the sources;
+# check-resources.sh checks packaged artifacts too when they are present.
+scripts/check-resources.sh
+
 echo
 echo "Everything passed."

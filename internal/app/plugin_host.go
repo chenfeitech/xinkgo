@@ -46,6 +46,7 @@ type pluginEvent struct {
 	Name      string `json:"name,omitempty"`
 	CommandID string `json:"commandID,omitempty"`
 	ActionID  string `json:"actionID,omitempty"`
+	ViewType  string `json:"viewType,omitempty"`
 	RequestID string `json:"requestID,omitempty"`
 	Revision  uint64 `json:"revision,omitempty"`
 	Text      string `json:"text,omitempty"`
@@ -106,6 +107,7 @@ type pluginInstance struct {
 	timer    *time.Timer
 	commands map[string]view.PluginCommand
 	ribbon   map[string]view.PluginAction
+	views    map[string]view.PluginView
 }
 
 // pluginUI is the state of the plugin settings pane. View functions read
@@ -114,6 +116,7 @@ type pluginUI struct {
 	tab           string
 	query         string
 	supportedOnly bool
+	showDegraded  bool
 	browseLimit   int
 	lastQuery     string
 	lastSupported bool
@@ -177,7 +180,7 @@ func newPluginHost(st *appState, dir, resources string,
 		detailLoading: map[string]bool{},
 		saved:         saved,
 		ui: pluginUI{
-			tab:           "core",
+			tab:           "builtin",
 			supportedOnly: true,
 			browseLimit:   40,
 			lastSupported: true,
@@ -341,6 +344,7 @@ func (h *pluginHost) refreshCommands() {
 	h.mu.RLock()
 	commands := []view.PluginCommand{}
 	ribbon := []view.PluginAction{}
+	views := []view.PluginView{}
 	for _, inst := range h.instances {
 		if !inst.ready {
 			continue
@@ -350,6 +354,9 @@ func (h *pluginHost) refreshCommands() {
 		}
 		for _, one := range inst.ribbon {
 			ribbon = append(ribbon, one)
+		}
+		for _, one := range inst.views {
+			views = append(views, one)
 		}
 	}
 	h.mu.RUnlock()
@@ -361,12 +368,30 @@ func (h *pluginHost) refreshCommands() {
 		return strings.ToLower(ribbon[i].Name) <
 			strings.ToLower(ribbon[j].Name)
 	})
-	mygo.RunOnMain(func() {
-		if h.st.ws != nil {
-			h.st.ws.PluginCommands = commands
-			h.st.ws.PluginRibbon = ribbon
+	sort.Slice(views, func(i, j int) bool {
+		return strings.ToLower(views[i].Name) <
+			strings.ToLower(views[j].Name)
+	})
+	h.setWorkspace(func(ws *view.Workspace) {
+		ws.PluginCommands = commands
+		ws.PluginRibbon = ribbon
+		ws.PluginViews = views
+		// A surface whose plugin went away is put away too.
+		if ws.PluginViewActive != "" && !viewInList(views,
+			ws.PluginViewActive) {
+			ws.PluginViewActive = ""
+			ws.PluginPage = nil
 		}
 	})
+}
+
+func viewInList(list []view.PluginView, id string) bool {
+	for _, one := range list {
+		if one.ID == id {
+			return true
+		}
+	}
+	return false
 }
 
 // runAction delivers a ribbon click to the plugin page that registered it.
@@ -465,6 +490,7 @@ func (h *pluginHost) enable(id string, save bool) {
 		grants:   map[string]bool{},
 		commands: map[string]view.PluginCommand{},
 		ribbon:   map[string]view.PluginAction{},
+		views:    map[string]view.PluginView{},
 	}
 	for _, one := range h.saved.GrantsOf(id) {
 		inst.grants[one] = true

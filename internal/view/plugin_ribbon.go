@@ -10,9 +10,12 @@ const (
 )
 
 // pluginRibbon is the strip reserved at the left of the file tree for
-// plugin icons. It is always drawn, so the tree does not shift when a
-// plugin is enabled or disabled.
+// plugin icons. It is always drawn while the core plugin stands, so the
+// tree does not shift when a plugin is enabled or disabled.
 func (w *Workspace) pluginRibbon(c *ui.Context) {
+	if !w.coreOn(CorePluginRibbon) {
+		return
+	}
 	th := c.Theme()
 	ui.Column(c).Width(pluginRibbonWidth).FillHeight().
 		Padding(4, 4).Gap(4).Children(func() {

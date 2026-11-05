@@ -42,6 +42,24 @@ type Workspace struct {
 	// in the settings and offered by name. Those turned off are not
 	// here either.
 	Actions []config.AiAction
+	// CoreFeatures is which of Xinkgo's built-in core plugins stand. The
+	// app fills it from plugins.json; a nil or missing entry means the
+	// feature is on, so a workspace drawn without an app (as in tests)
+	// keeps showing everything.
+	CoreFeatures map[string]bool
+	// PluginViews are the visible surfaces the enabled Obsidian-compatible
+	// plugins registered. The app fills the list; the view draws it as a
+	// drawer and reports which view was chosen. See openPluginView.
+	PluginViews []PluginView
+	// OnPluginView is told the ID of a plugin view chosen in the drawer.
+	OnPluginView func(id string)
+	// PluginViewActive is the ID of the plugin surface on show, or ""
+	// when the drawer is shut.
+	PluginViewActive string
+	// PluginPage is the native web view of the plugin whose surface is on
+	// show, or nil when none is. It belongs to the same window the view
+	// is drawn in, which is what ui.WebView needs.
+	PluginPage ui.NativeWebView
 	// PluginCommands are the commands of the Obsidian-compatible plugins
 	// that are enabled. The app fills the list; the palette only draws the
 	// visible ones and reports which was chosen.
@@ -316,8 +334,10 @@ func (w *Workspace) View(c *ui.Context) {
 				w.previewPanel(c, 0)
 			default:
 				// A panel of no width is one the user closed: it is
-				// drawn with no line to drag it back by.
-				if w.Layout.Left > 0 {
+				// drawn with no line to drag it back by. A core plugin
+				// turned off is not drawn either, but keeps the width
+				// it had, so turning it on gives the panel back.
+				if w.Layout.Left > 0 && w.coreOn(CoreFileExplorer) {
 					w.sidebar(c)
 					w.divider(c, "divider-tree", &w.Layout.Left, 1)
 				}
@@ -325,7 +345,8 @@ func (w *Workspace) View(c *ui.Context) {
 				// The preview stands as wide as the user left it,
 				// less what the note has stretched over of it: that
 				// room is the preview's still, and comes back whole.
-				if right := w.geometry().PreviewPaneWidth(); right >= 1 {
+				if right := w.geometry().PreviewPaneWidth(); right >= 1 &&
+					w.coreOn(CorePagePreview) {
 					w.divider(c, "divider-preview", &w.Layout.Right, -1)
 					w.previewPanel(c, right)
 				}
@@ -340,10 +361,17 @@ func (w *Workspace) View(c *ui.Context) {
 			w.exportBar(c)
 		})
 		w.followScroll(c)
-		w.statusBar(c)
+		if w.coreOn(CoreStatusBar) {
+			w.statusBar(c)
+		}
 	})
-	w.palette(c)
-	w.searchPanel(c)
+	if w.coreOn(CoreCommandPalette) {
+		w.palette(c)
+	}
+	if w.coreOn(CoreGlobalSearch) {
+		w.searchPanel(c)
+	}
+	w.pluginViewDrawer(c)
 }
 
 // TreeShown is whether the file tree stands: a panel of no width is one

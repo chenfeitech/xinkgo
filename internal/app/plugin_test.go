@@ -1,12 +1,15 @@
 package app
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/egoist/mygo"
 	"github.com/helightxu/xinkgo/internal/plugin"
+	"github.com/helightxu/xinkgo/internal/state"
+	"github.com/helightxu/xinkgo/internal/view"
 )
 
 func testPluginHost(t *testing.T) *pluginHost {
@@ -125,5 +128,65 @@ func TestPluginViewState_hidesCoreFromOtherInstalled(t *testing.T) {
 		!state.coreIDs["core-addon"] {
 		t.Fatalf("installed = %+v coreIDs = %v", state.installed,
 			state.coreIDs)
+	}
+}
+
+func TestSetCore_andCoreOn(t *testing.T) {
+	h := testPluginHost(t)
+	id := plugin.CorePlugins[0].ID
+	// An absent choice takes the registry default.
+	if h.coreOn(id) != plugin.CorePlugins[0].Default {
+		t.Fatal("a built-in core plugin did not start at its default")
+	}
+	h.setCore(id, false)
+	if h.coreOn(id) {
+		t.Fatal("setCore(false) did not turn the feature off")
+	}
+	// The choice is in plugins.json, ready for the next run.
+	saved, err := state.LoadPlugins(h.dir)
+	if err != nil || saved.CoreOf(id) {
+		t.Fatalf("core choice not saved: %+v, %v", saved, err)
+	}
+	h.setCore(id, true)
+	if !h.coreOn(id) {
+		t.Fatal("setCore(true) did not turn the feature back on")
+	}
+	// An unknown id is ignored rather than written.
+	h.setCore("not-a-core-plugin", false)
+	if _, ok := h.saved.Core["not-a-core-plugin"]; ok {
+		t.Fatal("an unknown core id was written")
+	}
+}
+
+func TestViewRegister_recordsASurface(t *testing.T) {
+	h := testPluginHost(t)
+	inst := &pluginInstance{
+		id:     "demo",
+		grants: map[string]bool{string(plugin.CapabilityDOM): true},
+		views:  map[string]view.PluginView{},
+	}
+	h.instances[inst.id] = inst
+	raw, _ := json.Marshal(map[string]string{
+		"viewType": "demo-graph", "name": "Demo graph",
+	})
+	if _, err := h.handleRPC(inst, "view.register", raw); err != nil {
+		t.Fatalf("view.register was refused: %v", err)
+	}
+	one, ok := inst.views["demo:demo-graph"]
+	if !ok || one.Name != "Demo graph" || one.ViewType != "demo-graph" {
+		t.Fatalf("registered view = %+v, present=%v", one, ok)
+	}
+}
+
+func TestViewRegister_refusedWithoutDom(t *testing.T) {
+	h := testPluginHost(t)
+	inst := &pluginInstance{
+		id:     "demo",
+		grants: map[string]bool{},
+		views:  map[string]view.PluginView{},
+	}
+	raw, _ := json.Marshal(map[string]string{"viewType": "demo-graph"})
+	if _, err := h.handleRPC(inst, "view.register", raw); err == nil {
+		t.Fatal("view.register ran without the dom capability")
 	}
 }

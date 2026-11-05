@@ -617,6 +617,9 @@
   var commands = {};
   var actions = {};
   var plugin = null;
+  // The one plugin surface on show in this page, or null. The host
+  // promises one visible surface per plugin at a time.
+  var currentView = null;
   function editorForCommand() { return new Editor(); }
   function viewForCommand() { return new MarkdownView(); }
   function commandVisible(entry) {
@@ -710,8 +713,13 @@
     if (tab && tab.display) tab.display();
   };
   Plugin.prototype.registerView = function (type, creator) {
-    this._views[String(type)] = creator;
+    var viewType = String(type);
+    this._views[viewType] = creator;
+    // Tell the host this plugin has a surface it can show. The user picks
+    // it in the window; only then does the host ask the page to build it.
+    fire("view.register", { viewType: viewType, name: viewType });
   };
+  Plugin.prototype.detachLeavesOfType = function () {};
   Plugin.prototype.registerMarkdownPostProcessor = function (processor) {
     this._postProcessors.push(processor);
     return processor;
@@ -1118,6 +1126,12 @@
     this.icon = "";
     this.navigation = false;
     this.scope = new Scope();
+    // Obsidian gives every ItemView a containerEl with a contentEl. A
+    // plugin fills these in onOpen; Xinkgo shows the container in the
+    // plugin's own page when the view is picked in the window.
+    this.containerEl = document.createElement("div");
+    this.containerEl.addClass("xinkgo-plugin-view");
+    this.contentEl = this.containerEl.createDiv({ cls: "xinkgo-plugin-view-content" });
   }
   View.prototype = Object.create(DomComponent.prototype);
   View.prototype.constructor = View;
@@ -1319,6 +1333,34 @@
       try { callback({ preventDefault: function () {}, stopPropagation: function () {} }); }
       catch (err) { fire("error", { text: String((err && err.stack) || err) }); }
     },
+    closeView: function () {
+      if (currentView && currentView.onClose) {
+        try { currentView.onClose(); } catch (err) { /* a failing view still closes */ }
+      }
+      var root = document.getElementById("xinkgo-plugin-root");
+      if (root) root.empty();
+      currentView = null;
+    },
+    openView: function (viewType) {
+      var root = document.getElementById("xinkgo-plugin-root");
+      if (!root) return;
+      shim.closeView();
+      var creator = plugin && plugin._views &&
+        plugin._views[String(viewType)];
+      if (!creator) return;
+      try {
+        var leaf = new WorkspaceLeaf(app);
+        var view = creator(leaf);
+        if (!view) return;
+        leaf.open(view);
+        if (view.containerEl) root.appendChild(view.containerEl);
+        currentView = view;
+        if (view.onOpen) view.onOpen();
+        if (view.onResize) view.onResize();
+      } catch (err) {
+        fire("error", { text: String((err && err.stack) || err) });
+      }
+    },
     unload: function (requestID) {
       var work = Promise.resolve();
       if (plugin && plugin.unload) {
@@ -1327,6 +1369,7 @@
       return work.catch(function (err) {
         fire("error", { text: String((err && err.stack) || err) });
       }).then(function () {
+        shim.closeView();
         commands = {};
         actions = {};
         shim.commands = commands;
@@ -1370,6 +1413,10 @@
         shim.runCommand(event.commandID);
       } else if (event.type === "action") {
         shim.runAction(event.actionID);
+      } else if (event.type === "view") {
+        shim.openView(event.viewType);
+      } else if (event.type === "viewClose") {
+        shim.closeView();
       } else if (event.type === "unload") {
         shim.unload(event.requestID);
       }

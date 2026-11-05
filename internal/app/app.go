@@ -169,6 +169,9 @@ func Run() error {
 		if st.plugins != nil {
 			st.plugins.refresh()
 			st.plugins.updateState()
+			// The built-in core features stand or fall with the
+			// choices in plugins.json, before any plugin page loads.
+			st.plugins.applyCoreFeatures()
 			st.plugins.startEnabled()
 		}
 		if err := st.watchVault(); err != nil {
@@ -325,6 +328,7 @@ func boot(app *mygo.Application) (*appState, error) {
 	if st.plugins != nil {
 		ws.OnPluginCommand = st.plugins.runCommand
 		ws.OnPluginAction = st.plugins.runAction
+		ws.OnPluginView = st.plugins.openPluginView
 	}
 	ws.Tabs.OnSave = func(path string) {
 		slog.Debug("saved", "path", path)

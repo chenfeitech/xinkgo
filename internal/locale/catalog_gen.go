@@ -6265,3 +6265,273 @@ func PluginShowMore() string { return In(i18n.Locale()).PluginShowMore() }
 func (msgs Messages) PluginShowMore() string {
 	return Catalog.Format(msgs.locale, "pluginShowMore", nil)
 }
+
+// PluginTabBuiltin says "Built-in core"
+// in the language the app shows.
+func PluginTabBuiltin() string { return In(i18n.Locale()).PluginTabBuiltin() }
+
+// PluginTabBuiltin says "Built-in core"
+// in the language of msgs.
+func (msgs Messages) PluginTabBuiltin() string {
+	return Catalog.Format(msgs.locale, "pluginTabBuiltin", nil)
+}
+
+// PluginBuiltinNote says "These are Xinkgo's own features. Turning one off hides its part of the window; nothing is installed or run."
+// in the language the app shows.
+func PluginBuiltinNote() string { return In(i18n.Locale()).PluginBuiltinNote() }
+
+// PluginBuiltinNote says "These are Xinkgo's own features. Turning one off hides its part of the window; nothing is installed or run."
+// in the language of msgs.
+func (msgs Messages) PluginBuiltinNote() string {
+	return Catalog.Format(msgs.locale, "pluginBuiltinNote", nil)
+}
+
+// PluginBuiltinToggle says "Enabled"
+// in the language the app shows.
+func PluginBuiltinToggle() string { return In(i18n.Locale()).PluginBuiltinToggle() }
+
+// PluginBuiltinToggle says "Enabled"
+// in the language of msgs.
+func (msgs Messages) PluginBuiltinToggle() string {
+	return Catalog.Format(msgs.locale, "pluginBuiltinToggle", nil)
+}
+
+// CoreFileName says "File explorer"
+// in the language the app shows.
+func CoreFileName() string { return In(i18n.Locale()).CoreFileName() }
+
+// CoreFileName says "File explorer"
+// in the language of msgs.
+func (msgs Messages) CoreFileName() string {
+	return Catalog.Format(msgs.locale, "coreFileName", nil)
+}
+
+// CoreFileNote says "The vault's file tree on the left."
+// in the language the app shows.
+func CoreFileNote() string { return In(i18n.Locale()).CoreFileNote() }
+
+// CoreFileNote says "The vault's file tree on the left."
+// in the language of msgs.
+func (msgs Messages) CoreFileNote() string {
+	return Catalog.Format(msgs.locale, "coreFileNote", nil)
+}
+
+// CoreCommandPaletteName says "Command palette"
+// in the language the app shows.
+func CoreCommandPaletteName() string { return In(i18n.Locale()).CoreCommandPaletteName() }
+
+// CoreCommandPaletteName says "Command palette"
+// in the language of msgs.
+func (msgs Messages) CoreCommandPaletteName() string {
+	return Catalog.Format(msgs.locale, "coreCommandPaletteName", nil)
+}
+
+// CoreCommandPaletteNote says "Commands and quick switching from one place."
+// in the language the app shows.
+func CoreCommandPaletteNote() string { return In(i18n.Locale()).CoreCommandPaletteNote() }
+
+// CoreCommandPaletteNote says "Commands and quick switching from one place."
+// in the language of msgs.
+func (msgs Messages) CoreCommandPaletteNote() string {
+	return Catalog.Format(msgs.locale, "coreCommandPaletteNote", nil)
+}
+
+// CoreGlobalSearchName says "Global search"
+// in the language the app shows.
+func CoreGlobalSearchName() string { return In(i18n.Locale()).CoreGlobalSearchName() }
+
+// CoreGlobalSearchName says "Global search"
+// in the language of msgs.
+func (msgs Messages) CoreGlobalSearchName() string {
+	return Catalog.Format(msgs.locale, "coreGlobalSearchName", nil)
+}
+
+// CoreGlobalSearchNote says "Search across the whole vault."
+// in the language the app shows.
+func CoreGlobalSearchNote() string { return In(i18n.Locale()).CoreGlobalSearchNote() }
+
+// CoreGlobalSearchNote says "Search across the whole vault."
+// in the language of msgs.
+func (msgs Messages) CoreGlobalSearchNote() string {
+	return Catalog.Format(msgs.locale, "coreGlobalSearchNote", nil)
+}
+
+// CorePagePreviewName says "Page preview"
+// in the language the app shows.
+func CorePagePreviewName() string { return In(i18n.Locale()).CorePagePreviewName() }
+
+// CorePagePreviewName says "Page preview"
+// in the language of msgs.
+func (msgs Messages) CorePagePreviewName() string {
+	return Catalog.Format(msgs.locale, "corePagePreviewName", nil)
+}
+
+// CorePagePreviewNote says "The rendered note beside the editor."
+// in the language the app shows.
+func CorePagePreviewNote() string { return In(i18n.Locale()).CorePagePreviewNote() }
+
+// CorePagePreviewNote says "The rendered note beside the editor."
+// in the language of msgs.
+func (msgs Messages) CorePagePreviewNote() string {
+	return Catalog.Format(msgs.locale, "corePagePreviewNote", nil)
+}
+
+// CoreOutlineName says "Outline"
+// in the language the app shows.
+func CoreOutlineName() string { return In(i18n.Locale()).CoreOutlineName() }
+
+// CoreOutlineName says "Outline"
+// in the language of msgs.
+func (msgs Messages) CoreOutlineName() string {
+	return Catalog.Format(msgs.locale, "coreOutlineName", nil)
+}
+
+// CoreOutlineNote says "A panel of the note's headings."
+// in the language the app shows.
+func CoreOutlineNote() string { return In(i18n.Locale()).CoreOutlineNote() }
+
+// CoreOutlineNote says "A panel of the note's headings."
+// in the language of msgs.
+func (msgs Messages) CoreOutlineNote() string {
+	return Catalog.Format(msgs.locale, "coreOutlineNote", nil)
+}
+
+// CoreBacklinksName says "Backlinks"
+// in the language the app shows.
+func CoreBacklinksName() string { return In(i18n.Locale()).CoreBacklinksName() }
+
+// CoreBacklinksName says "Backlinks"
+// in the language of msgs.
+func (msgs Messages) CoreBacklinksName() string {
+	return Catalog.Format(msgs.locale, "coreBacklinksName", nil)
+}
+
+// CoreBacklinksNote says "A panel of notes that link here."
+// in the language the app shows.
+func CoreBacklinksNote() string { return In(i18n.Locale()).CoreBacklinksNote() }
+
+// CoreBacklinksNote says "A panel of notes that link here."
+// in the language of msgs.
+func (msgs Messages) CoreBacklinksNote() string {
+	return Catalog.Format(msgs.locale, "coreBacklinksNote", nil)
+}
+
+// CoreTagPaneName says "Tag pane"
+// in the language the app shows.
+func CoreTagPaneName() string { return In(i18n.Locale()).CoreTagPaneName() }
+
+// CoreTagPaneName says "Tag pane"
+// in the language of msgs.
+func (msgs Messages) CoreTagPaneName() string {
+	return Catalog.Format(msgs.locale, "coreTagPaneName", nil)
+}
+
+// CoreTagPaneNote says "A panel of the vault's tags."
+// in the language the app shows.
+func CoreTagPaneNote() string { return In(i18n.Locale()).CoreTagPaneNote() }
+
+// CoreTagPaneNote says "A panel of the vault's tags."
+// in the language of msgs.
+func (msgs Messages) CoreTagPaneNote() string {
+	return Catalog.Format(msgs.locale, "coreTagPaneNote", nil)
+}
+
+// CoreStatusBarName says "Status bar"
+// in the language the app shows.
+func CoreStatusBarName() string { return In(i18n.Locale()).CoreStatusBarName() }
+
+// CoreStatusBarName says "Status bar"
+// in the language of msgs.
+func (msgs Messages) CoreStatusBarName() string {
+	return Catalog.Format(msgs.locale, "coreStatusBarName", nil)
+}
+
+// CoreStatusBarNote says "The line at the foot of the window."
+// in the language the app shows.
+func CoreStatusBarNote() string { return In(i18n.Locale()).CoreStatusBarNote() }
+
+// CoreStatusBarNote says "The line at the foot of the window."
+// in the language of msgs.
+func (msgs Messages) CoreStatusBarNote() string {
+	return Catalog.Format(msgs.locale, "coreStatusBarNote", nil)
+}
+
+// CoreWordCountName says "Word count"
+// in the language the app shows.
+func CoreWordCountName() string { return In(i18n.Locale()).CoreWordCountName() }
+
+// CoreWordCountName says "Word count"
+// in the language of msgs.
+func (msgs Messages) CoreWordCountName() string {
+	return Catalog.Format(msgs.locale, "coreWordCountName", nil)
+}
+
+// CoreWordCountNote says "How many words the open note holds."
+// in the language the app shows.
+func CoreWordCountNote() string { return In(i18n.Locale()).CoreWordCountNote() }
+
+// CoreWordCountNote says "How many words the open note holds."
+// in the language of msgs.
+func (msgs Messages) CoreWordCountNote() string {
+	return Catalog.Format(msgs.locale, "coreWordCountNote", nil)
+}
+
+// CorePluginRibbonName says "Plugin ribbon"
+// in the language the app shows.
+func CorePluginRibbonName() string { return In(i18n.Locale()).CorePluginRibbonName() }
+
+// CorePluginRibbonName says "Plugin ribbon"
+// in the language of msgs.
+func (msgs Messages) CorePluginRibbonName() string {
+	return Catalog.Format(msgs.locale, "corePluginRibbonName", nil)
+}
+
+// CorePluginRibbonNote says "The strip of plugin icons by the file tree."
+// in the language the app shows.
+func CorePluginRibbonNote() string { return In(i18n.Locale()).CorePluginRibbonNote() }
+
+// CorePluginRibbonNote says "The strip of plugin icons by the file tree."
+// in the language of msgs.
+func (msgs Messages) CorePluginRibbonNote() string {
+	return Catalog.Format(msgs.locale, "corePluginRibbonNote", nil)
+}
+
+// PluginViewPick says "Pick a plugin view above to show it here."
+// in the language the app shows.
+func PluginViewPick() string { return In(i18n.Locale()).PluginViewPick() }
+
+// PluginViewPick says "Pick a plugin view above to show it here."
+// in the language of msgs.
+func (msgs Messages) PluginViewPick() string {
+	return Catalog.Format(msgs.locale, "pluginViewPick", nil)
+}
+
+// StatusWordCount says "{count} words"
+// in the language the app shows.
+func StatusWordCount(count string) string { return In(i18n.Locale()).StatusWordCount(count) }
+
+// StatusWordCount says "{count} words"
+// in the language of msgs.
+func (msgs Messages) StatusWordCount(count string) string {
+	return Catalog.Format(msgs.locale, "statusWordCount", map[string]any{"count": count})
+}
+
+// PluginShowDegraded says "Show degraded plugins"
+// in the language the app shows.
+func PluginShowDegraded() string { return In(i18n.Locale()).PluginShowDegraded() }
+
+// PluginShowDegraded says "Show degraded plugins"
+// in the language of msgs.
+func (msgs Messages) PluginShowDegraded() string {
+	return Catalog.Format(msgs.locale, "pluginShowDegraded", nil)
+}
+
+// PluginDegradedNote says "These plugins load but their own views and editor features are not available."
+// in the language the app shows.
+func PluginDegradedNote() string { return In(i18n.Locale()).PluginDegradedNote() }
+
+// PluginDegradedNote says "These plugins load but their own views and editor features are not available."
+// in the language of msgs.
+func (msgs Messages) PluginDegradedNote() string {
+	return Catalog.Format(msgs.locale, "pluginDegradedNote", nil)
+}

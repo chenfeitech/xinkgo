@@ -248,6 +248,31 @@ func (h *pluginHost) handleRPC(inst *pluginInstance, method string,
 		h.mu.Unlock()
 		h.refreshCommands()
 		return nil, nil
+	case "view.register":
+		if !h.granted(inst, string(plugin.CapabilityDOM)) {
+			return nil, errors.New("dom is not granted")
+		}
+		var p struct {
+			ViewType string `json:"viewType"`
+			Name     string `json:"name"`
+		}
+		if err := decodePluginParams(raw, &p); err != nil {
+			return nil, err
+		}
+		if p.ViewType == "" {
+			return nil, errors.New("a view needs a type")
+		}
+		if p.Name == "" {
+			p.Name = p.ViewType
+		}
+		id := inst.id + ":" + p.ViewType
+		h.mu.Lock()
+		inst.views[id] = view.PluginView{
+			ID: id, Name: p.Name, ViewType: p.ViewType,
+		}
+		h.mu.Unlock()
+		h.refreshCommands()
+		return nil, nil
 	case "editor.write":
 		if !h.granted(inst, string(plugin.CapabilityEditorWrite)) {
 			return nil, errors.New("editor.write is not granted")
