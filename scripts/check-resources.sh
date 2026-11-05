@@ -27,8 +27,9 @@ fail=0
 missing() { echo "  missing: $1"; fail=1; }
 
 # check_dir verifies one directory that should hold the resources: the
-# top-level resources/ of the sources, a bundle's Contents/Resources, or
-# the resources/ beside a Windows/Linux executable.
+# top-level resources/ of the sources, a macOS bundle's Contents/Resources,
+# or the Windows/Linux directory the executable sits in (where mygo flattens
+# the resources, with no resources/ subdirectory).
 check_dir() {
   local label="$1" dir="$2" file
   echo "  $label"
@@ -54,9 +55,11 @@ for bundle in build/*/*.app; do
   check_dir "$bundle" "$bundle/Contents/Resources"
 done
 
-# Windows/Linux flat builds: resources/ beside the executable. Only ones
-# that carry an executable are checked, so a stale empty build dir does
-# not fail the gate.
+# Windows/Linux flat builds: mygo copies the resources straight into the
+# directory that holds the executable, not into a resources/ subdirectory
+# (see mygo's resourcesDir: PathResources == the exe's dir off macOS).
+# Only directories that carry an executable are checked, so a stale empty
+# build dir does not fail the gate.
 for platform in build/*; do
   [ -d "$platform" ] || continue
   has_exe=0
@@ -64,7 +67,7 @@ for platform in build/*; do
     [ -f "$exe" ] && has_exe=1 && break
   done
   if [ "$has_exe" -eq 1 ]; then
-    check_dir "$platform/resources" "$platform/resources"
+    check_dir "$platform" "$platform"
   fi
 done
 shopt -u nullglob

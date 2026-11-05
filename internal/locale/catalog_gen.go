@@ -6496,16 +6496,6 @@ func (msgs Messages) CorePluginRibbonNote() string {
 	return Catalog.Format(msgs.locale, "corePluginRibbonNote", nil)
 }
 
-// PluginViewPick says "Pick a plugin view above to show it here."
-// in the language the app shows.
-func PluginViewPick() string { return In(i18n.Locale()).PluginViewPick() }
-
-// PluginViewPick says "Pick a plugin view above to show it here."
-// in the language of msgs.
-func (msgs Messages) PluginViewPick() string {
-	return Catalog.Format(msgs.locale, "pluginViewPick", nil)
-}
-
 // StatusWordCount says "{count} words"
 // in the language the app shows.
 func StatusWordCount(count string) string { return In(i18n.Locale()).StatusWordCount(count) }
@@ -6514,6 +6504,16 @@ func StatusWordCount(count string) string { return In(i18n.Locale()).StatusWordC
 // in the language of msgs.
 func (msgs Messages) StatusWordCount(count string) string {
 	return Catalog.Format(msgs.locale, "statusWordCount", map[string]any{"count": count})
+}
+
+// PluginViewPick says "Pick a plugin view above to show it here."
+// in the language the app shows.
+func PluginViewPick() string { return In(i18n.Locale()).PluginViewPick() }
+
+// PluginViewPick says "Pick a plugin view above to show it here."
+// in the language of msgs.
+func (msgs Messages) PluginViewPick() string {
+	return Catalog.Format(msgs.locale, "pluginViewPick", nil)
 }
 
 // PluginShowDegraded says "Show degraded plugins"
