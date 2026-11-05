@@ -1,0 +1,1028 @@
+[
+  {
+    "id": "advanced-canvas",
+    "repo": "developer-mike/obsidian-advanced-canvas",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "agent-client",
+    "repo": "rait-09/obsidian-agent-client",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "automatic-table-of-contents",
+    "repo": "johansatge/obsidian-automatic-table-of-contents",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "better-export-pdf",
+    "repo": "l1xnan/obsidian-better-export-pdf",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "breadcrumbs",
+    "repo": "michaelpporter/breadcrumbs",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "calendar-bases",
+    "repo": "edrickleong/obsidian-calendar-bases",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "calendarium",
+    "repo": "javalent/calendarium",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "callout-manager",
+    "repo": "eth-p/obsidian-callout-manager",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "cmdr",
+    "repo": "jsmorabito/obsidian-commander",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "cmenu-plugin",
+    "repo": "chetachiezikeuzor/cMenu-Plugin",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "code-styler",
+    "repo": "mayurankv/Obsidian-Code-Styler",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "colored-tags",
+    "repo": "pfrankov/obsidian-colored-tags",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "colored-text",
+    "repo": "erincayaz/obsidian-colored-text",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "custom-sort",
+    "repo": "sebastianmc/obsidian-custom-sort",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "docxer",
+    "repo": "developer-mike/obsidian-docxer",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "drawio-obsidian",
+    "repo": "zapthedingbat/drawio-obsidian",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "easy-typing-obsidian",
+    "repo": "yaozhuwa/easy-typing-obsidian",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "editing-toolbar",
+    "repo": "pkm-er/obsidian-editing-toolbar",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04",
+    "core": true
+  },
+  {
+    "id": "excalibrain",
+    "repo": "zsviczian/excalibrain",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "fast-note-sync",
+    "repo": "haierkeys/obsidian-fast-note-sync",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "file-cleaner-redux",
+    "repo": "husjon/obsidian-file-cleaner-redux",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "file-explorer-note-count",
+    "repo": "ozntel/file-explorer-note-count",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "file-tree-alternative",
+    "repo": "ozntel/file-tree-alternative",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "find-unlinked-files",
+    "repo": "vinzent03/find-unlinked-files",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "folder-notes",
+    "repo": "lostpaul/obsidian-folder-notes",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "format-hotkeys-obsidian",
+    "repo": "anstosa/format-hotkeys-obsidian",
+    "level": "C2",
+    "note": "Commands and editor bridge; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "google-drive-sync",
+    "repo": "richardx366/Obsidian-Google-Drive",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "harper",
+    "repo": "automattic/harper-obsidian-plugin",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "heatmap-calendar",
+    "repo": "richardsl/heatmap-calendar-obsidian",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "highlightr-plugin",
+    "repo": "chetachiezikeuzor/Highlightr-Plugin",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "homepage",
+    "repo": "mirnovov/obsidian-homepage",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "hotkeysplus-obsidian",
+    "repo": "argenos/hotkeysplus-obsidian",
+    "level": "C2",
+    "note": "Commands and editor bridge; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "iconic",
+    "repo": "gfxholo/iconic",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "ink",
+    "repo": "daledesilva/obsidian_ink",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "juggl",
+    "repo": "hemile/juggl",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "longform",
+    "repo": "kevboh/longform",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "markdown-table-editor",
+    "repo": "ganesshkumar/obsidian-table-editor",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "media-extended",
+    "repo": "aidenlx/media-extended",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "meld-encrypt",
+    "repo": "meld-cp/obsidian-encrypt",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "mermaid-tools",
+    "repo": "dartungar/obsidian-mermaid",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "metadata-menu",
+    "repo": "mdelobelle/metadatamenu",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "mousewheel-image-zoom",
+    "repo": "nicojeske/mousewheel-image-zoom",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "multi-column-markdown",
+    "repo": "ckrobinson/multi-column-markdown",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "multi-properties",
+    "repo": "technohiker/obsidian-multi-properties",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "note-refactor-obsidian",
+    "repo": "lynchjames/note-refactor-obsidian",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "note-toolbar",
+    "repo": "chrisgurney/obsidian-note-toolbar",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "notebook-navigator",
+    "repo": "johansan/notebook-navigator",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "novel-word-count",
+    "repo": "isaaclyman/novel-word-count-obsidian",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "nutstore-sync",
+    "repo": "nutstore/obsidian-nutstore-sync",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-5e-statblocks",
+    "repo": "obsidian-ttrpg-community/fantasy-statblocks",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-admonition",
+    "repo": "ebullient/obsidian-admonition",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-advanced-slides",
+    "repo": "mszturc/obsidian-advanced-slides",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-advanced-uri",
+    "repo": "vinzent03/obsidian-advanced-uri",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-another-quick-switcher",
+    "repo": "tadashi-aikawa/obsidian-another-quick-switcher",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-auto-link-title",
+    "repo": "zolrath/obsidian-auto-link-title",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-banners",
+    "repo": "noatpad/obsidian-banners",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-book-search-plugin",
+    "repo": "anpigon/obsidian-book-search-plugin",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-checklist-plugin",
+    "repo": "delashum/obsidian-checklist-plugin",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-citation-plugin",
+    "repo": "hans/obsidian-citation-plugin",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-custom-attachment-location",
+    "repo": "mnaoumov/obsidian-custom-attachment-location",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-custom-frames",
+    "repo": "ellpeck/ObsidianCustomFrames",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-day-planner",
+    "repo": "ivan-lednev/obsidian-day-planner",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-dice-roller",
+    "repo": "obsidian-ttrpg-community/dice-roller",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-enhancing-export",
+    "repo": "mokeyish/obsidian-enhancing-export",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-enhancing-mindmap",
+    "repo": "markmindckm/obsidian-enhancing-mindmap",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-excalidraw-plugin",
+    "repo": "zsviczian/obsidian-excalidraw-plugin",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04",
+    "core": true
+  },
+  {
+    "id": "obsidian-file-color",
+    "repo": "ecustic/obsidian-file-color",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-furigana",
+    "repo": "uonr/obsidian-furigana",
+    "level": "C2",
+    "note": "Command and editor bridge; DOM menu events are not forwarded in P0",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-git",
+    "repo": "vinzent03/obsidian-git",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04",
+    "core": true
+  },
+  {
+    "id": "obsidian-hider",
+    "repo": "kepano/obsidian-hider",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-hover-editor",
+    "repo": "nothingislost/obsidian-hover-editor",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-icon-folder",
+    "repo": "florianwoelki/obsidian-iconize",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04",
+    "core": true
+  },
+  {
+    "id": "obsidian-image-auto-upload-plugin",
+    "repo": "renmu123/obsidian-image-auto-upload-plugin",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-jsonifier",
+    "repo": "kjellconnelly/obsidian-jsonifier",
+    "level": "C2",
+    "note": "Commands, Notice and editor bridge; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-languagetool-plugin",
+    "repo": "clemens-e/obsidian-languagetool-plugin",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-latex-suite",
+    "repo": "artisticat1/obsidian-latex-suite",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-link-embed",
+    "repo": "seraphli/obsidian-link-embed",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-linter",
+    "repo": "platers/obsidian-linter",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-livesync",
+    "repo": "vrtmrz/obsidian-livesync",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-local-images-plus",
+    "repo": "sergei-korneev/obsidian-local-images-plus",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-map-view",
+    "repo": "esm7/obsidian-map-view",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-markdown-formatting-assistant-plugin",
+    "repo": "reocin/obsidian-markdown-formatting-assistant-plugin",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-memos",
+    "repo": "quorafind/Obsidian-Thino",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-mindmap-nextgen",
+    "repo": "james-tindal/obsidian-mindmap-nextgen",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-minimal-settings",
+    "repo": "kepano/obsidian-minimal-settings",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04",
+    "core": true
+  },
+  {
+    "id": "obsidian-omnivore",
+    "repo": "omnivore-app/obsidian-omnivore",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-outliner",
+    "repo": "vslinko/obsidian-outliner",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04",
+    "core": true
+  },
+  {
+    "id": "obsidian-paste-image-rename",
+    "repo": "reorx/obsidian-paste-image-rename",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-plugin-update-tracker",
+    "repo": "swar8080/obsidian-plugin-update-tracker",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-quiet-outline",
+    "repo": "guopenghui/obsidian-quiet-outline",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-read-it-later",
+    "repo": "dominikpieper/obsidian-ReadItLater",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-reminder-plugin",
+    "repo": "uphy/obsidian-reminder",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-smart-typography",
+    "repo": "mgmeyers/obsidian-smart-typography",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-sort-and-permute-lines",
+    "repo": "vinzent03/obsidian-sort-and-permute-lines",
+    "level": "C2",
+    "note": "Commands, editor bridge and empty metadata cache; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-spaced-repetition",
+    "repo": "st3v3nmw/obsidian-spaced-repetition",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-tagfolder",
+    "repo": "vrtmrz/obsidian-tagfolder",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-task-progress-bar",
+    "repo": "taskgenius/taskgenius-plugin",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-tasks-plugin",
+    "repo": "obsidian-tasks-group/obsidian-tasks",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04",
+    "core": true
+  },
+  {
+    "id": "obsidian-text-format",
+    "repo": "benature/obsidian-text-format",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-tidy-footnotes",
+    "repo": "charliecm/obsidian-tidy-footnotes",
+    "level": "C1",
+    "note": "Editor command; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-tracker",
+    "repo": "pyrochlore/obsidian-tracker",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-underline",
+    "repo": "benature/obsidian-underline",
+    "level": "C2",
+    "note": "Commands and editor bridge; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian-vimrc-support",
+    "repo": "esm7/obsidian-vimrc-support",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian42-brat",
+    "repo": "tfthacker/obsidian42-brat",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "obsidian42-strange-new-worlds",
+    "repo": "tfthacker/obsidian42-strange-new-worlds",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "omnisearch",
+    "repo": "scambier/obsidian-omnisearch",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04",
+    "core": true
+  },
+  {
+    "id": "pdf-plus",
+    "repo": "ryotaushio/obsidian-pdf-plus",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "periodic-notes",
+    "repo": "liamcain/obsidian-periodic-notes",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "pexels-banner",
+    "repo": "jparkerweb/pixel-banner",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "pretty-properties",
+    "repo": "anareaty/pretty-properties",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "quick-explorer",
+    "repo": "pjeby/quick-explorer",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "quick-latex",
+    "repo": "joeyuping/quick_latex_obsidian",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "quickadd",
+    "repo": "chhoumann/quickadd",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04",
+    "core": true
+  },
+  {
+    "id": "readwise-official",
+    "repo": "readwiseio/obsidian-readwise",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "recent-files-obsidian",
+    "repo": "tgrosinger/recent-files-obsidian",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "remember-cursor-position",
+    "repo": "dy-sh/obsidian-remember-cursor-position",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "sheet-plus",
+    "repo": "ljcoder2015/obsidian-sheet-plus",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "smart-composer",
+    "repo": "glowingjade/obsidian-smart-composer",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "smart-connections",
+    "repo": "brianpetro/obsidian-smart-connections",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "supercharged-links-obsidian",
+    "repo": "mdelobelle/obsidian_supercharged_links",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "system3-relay",
+    "repo": "no-instructions/Relay",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "table-editor-obsidian",
+    "repo": "tgrosinger/advanced-tables-obsidian",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04",
+    "core": true
+  },
+  {
+    "id": "tag-wrangler",
+    "repo": "pjeby/tag-wrangler",
+    "level": "C3",
+    "degraded": true,
+    "note": "Degraded: DOM/settings/view APIs are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "terminal",
+    "repo": "polyipseity/obsidian-terminal",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "text-extractor",
+    "repo": "scambier/obsidian-text-extractor",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "todoist-sync-plugin",
+    "repo": "jamiebrynes7/obsidian-todoist-plugin",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "various-complements",
+    "repo": "tadashi-aikawa/obsidian-various-complements-plugin",
+    "level": "C4",
+    "degraded": true,
+    "note": "Degraded: external Node/CM6 modules are stubbed; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  },
+  {
+    "id": "wikilinks-to-mdlinks-obsidian",
+    "repo": "agathauy/wikilinks-to-mdlinks-obsidian",
+    "level": "C1",
+    "note": "Command and Vault/Editor subset; checked by static scan",
+    "verifiedAt": "2026-11-04"
+  }
+]

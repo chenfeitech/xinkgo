@@ -19,24 +19,33 @@ func (w *Workspace) sidebar(c *ui.Context) {
 	// window's height, so that the tree stands at the top of it, and
 	// the foot of it at the foot.
 	ui.Column(c).Width(w.Layout.Left).FillHeight().Children(func() {
-		if w.Tree.Root == nil {
-			ui.Column(c).Fill().Center().Gap(8).Padding(16).Children(func() {
-				ui.Text(c, locale.NoVaultYet()).
-					TextColor(c.Theme().TextMuted)
-				if w.OnOpenVault != nil {
-					if ui.PrimaryButton(c, locale.OpenFolder()).
-						Label(locale.OpenFolder()).Clicked() {
-						w.OnOpenVault()
-					}
+		ui.Row(c).Fill().Children(func() {
+			w.pluginRibbon(c)
+			ui.Box(c).FillHeight().Width(1).
+				Background(c.Theme().Border)
+			ui.Column(c).Grow(1).FillHeight().Children(func() {
+				if w.Tree.Root == nil {
+					ui.Column(c).Fill().Center().Gap(8).Padding(16).
+						Children(func() {
+							ui.Text(c, locale.NoVaultYet()).
+								TextColor(c.Theme().TextMuted)
+							if w.OnOpenVault != nil {
+								if ui.PrimaryButton(c, locale.OpenFolder()).
+									Label(locale.OpenFolder()).Clicked() {
+									w.OnOpenVault()
+								}
+							}
+						})
+					// A tree that is not drawn draws no foot of its
+					// own: the panel's foot is the one that stands, so
+					// that the way to the settings is there before a
+					// vault is opened too.
+					w.Tree.footer(c)
+					return
 				}
+				w.Tree.View(c)
 			})
-			// A tree that is not drawn draws no foot of its own: the
-			// panel's foot is the one that stands, so that the way to
-			// the settings is there before a vault is opened too.
-			w.Tree.footer(c)
-			return
-		}
-		w.Tree.View(c)
+		})
 	})
 }
 

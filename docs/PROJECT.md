@@ -71,20 +71,23 @@ xinkgo/
 │   │   ├── ai/ task/ skill/ sync/ snapshot/  模型、任务、技能、滚动锚点、改前快照
 │   │   ├── markdown/ highlight/ datafile/ media/   正文、代码着色、数据文件、图片
 │   │   └── wechat/ export/ theme/            公众号排版、导出、配色方案
+│   │   └── plugin/                           Obsidian 插件 manifest / 能力扫描 / 兼容清单（纯数据）
 │   ├── 持久化（各管各的文件，见 ARCHITECTURE.md 第 7 节）
 │   │   ├── config/   设置 config.json
-│   │   ├── state/    窗口状态 open_notes / vaults / layout / ai_sessions
+│   │   ├── state/    窗口状态 open_notes / vaults / layout / ai_sessions / plugins
 │   │   ├── session/  标签页的规则（不存文件）
 │   │   └── secret/ fs/   钥匙串 / 库内文件操作
 │   ├── 工具（纯函数，谁都可以 import）
 │   │   ├── locale/   文案 catalog（生成物 + 两份 JSON）
 │   │   └── fuzzy/ keymap/ logging/ sysinfo/
-│   └── …共 28 个包
+│   └── …共 29 个包
 ├── assets/                  不随产物发布的素材：应用图标的 .icns 与它的 PNG
 │   ├── xink.icns            macOS 应用图标（打包时原样写进 .app）
 │   └── icon.png             同一图标的 PNG：Windows 图标资源与 Linux
 │                            桌面项图标由它生成（scripts/icon.sh 从 .icns 导出）
 ├── resources/               随应用发布的资源：整目录进产物，由应用运行时读取
+│   ├── obsidian-shim/       host.html / shim.js / runtime.js：插件 WebView 宿主脚本
+│   └── obsidian-plugins/    compatible.json：已静态检查的兼容插件清单
 ├── scripts/
 │   ├── check.sh             提交前门禁
 │   ├── icon.sh              icon.png 从 xink.icns 导出
@@ -102,7 +105,7 @@ xinkgo/
 
 ```
 cmd/xinkgo  →  internal/app  →  internal/{view, config, logging, sysinfo,
-                                            export, theme, wechat, ai, …}
+                                            export, theme, wechat, plugin, ai, …}
                                    view   → sysinfo, theme, config, geom, …
                                    geom   → config, state, ui
                                    logging → config

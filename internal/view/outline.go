@@ -70,7 +70,11 @@ func (w *Workspace) rail(c *ui.Context) {
 	// the top of the window, where the preview begins, and its buttons
 	// under it: a drawer as tall as the window is must not push them
 	// down the note. It hangs below the row at the top of that pane,
-	// whose buttons it would otherwise cover.
+	// whose buttons it would otherwise cover. A drawer whose core plugin
+	// was turned off is put away, so a hidden feature is not left open.
+	if !w.drawerOn() {
+		w.mode.Drawer = ""
+	}
 	ui.Row(c).Absolute().Right(geom.RailGap).Top(drawerTop).Bottom(drawerFoot).
 		AlignItems(ui.Start).Children(func() {
 		if w.mode.Drawer != "" {
@@ -78,12 +82,18 @@ func (w *Workspace) rail(c *ui.Context) {
 		}
 		ui.Column(c).Width(geom.RailWidth).
 			Padding(railButtonsTop, 0).Children(func() {
-			w.railButton(c, drawerOutline, drawerOutlineMark,
-				locale.DrawerOutlineLabel())
-			w.railButton(c, drawerLinks, drawerLinksMark,
-				locale.DrawerLinksLabel())
-			w.railButton(c, drawerTags, drawerTagsMark,
-				locale.DrawerTagsLabel())
+			if w.coreOn(CoreOutline) {
+				w.railButton(c, drawerOutline, drawerOutlineMark,
+					locale.DrawerOutlineLabel())
+			}
+			if w.coreOn(CoreBacklinks) {
+				w.railButton(c, drawerLinks, drawerLinksMark,
+					locale.DrawerLinksLabel())
+			}
+			if w.coreOn(CoreTagPane) {
+				w.railButton(c, drawerTags, drawerTagsMark,
+					locale.DrawerTagsLabel())
+			}
 			// The two panes given the whole window: they stand on the
 			// rail, which is the window's own and hangs over every
 			// pane, so that the way out is there whichever pane has
@@ -96,6 +106,21 @@ func (w *Workspace) rail(c *ui.Context) {
 				locale.ZoomPreview(), locale.ZoomPreviewTooltip())
 		})
 	})
+}
+
+// drawerOn reports whether the drawer now open belongs to a core plugin
+// that still stands.
+func (w *Workspace) drawerOn() bool {
+	switch w.mode.Drawer {
+	case drawerOutline:
+		return w.coreOn(CoreOutline)
+	case drawerLinks:
+		return w.coreOn(CoreBacklinks)
+	case drawerTags:
+		return w.coreOn(CoreTagPane)
+	default:
+		return true
+	}
 }
 
 // railButton is one button of the rail: it opens its drawer, and closes

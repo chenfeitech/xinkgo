@@ -131,13 +131,22 @@ type settings struct {
 
 // The groups the settings are in, as the list on the left shows them.
 const (
-	tabBasic   = "basic"
-	tabEditor  = "editor"
-	tabPreview = "preview"
-	tabAi      = "ai"
-	tabVault   = "vault"
-	tabFile    = "file"
+	tabBasic            = "basic"
+	tabEditor           = "editor"
+	tabPreview          = "preview"
+	tabAi               = "ai"
+	tabVault            = "vault"
+	tabFile             = "file"
+	tabCorePlugins      = "core-plugins"
+	tabCommunityPlugins = "community-plugins"
 )
+
+// isPluginTab reports whether a group belongs to the plugin manager. Both
+// of its groups need the community catalog prepared when they open, while
+// the others do not.
+func isPluginTab(tab string) bool {
+	return tab == tabCorePlugins || tab == tabCommunityPlugins
+}
 
 // settingsTab is one group of the settings: what the list calls it, what
 // it is about, the picture the list draws it by, and the rows it holds.
@@ -170,6 +179,27 @@ func (s *appState) settingsTabs() []settingsTab {
 		{tabVault, locale.SettingsTabVault(),
 			locale.SettingsTabVaultNote(), view.IconSettingsVault,
 			s.vaultSettings},
+		{tabCorePlugins, locale.SettingsTabCorePlugins(),
+			locale.SettingsTabCorePluginsNote(), view.IconSettingsCore,
+			func(c *ui.Context) {
+				if s.plugins == nil {
+					ui.Text(c, locale.PluginNoWebView()).
+						TextColor(c.Theme().TextMuted)
+					return
+				}
+				s.plugins.coreSettingsView(c)
+			}},
+		{tabCommunityPlugins, locale.SettingsTabCommunityPlugins(),
+			locale.SettingsTabCommunityPluginsNote(),
+			view.IconSettingsPlugins,
+			func(c *ui.Context) {
+				if s.plugins == nil {
+					ui.Text(c, locale.PluginNoWebView()).
+						TextColor(c.Theme().TextMuted)
+					return
+				}
+				s.plugins.communitySettingsView(c)
+			}},
 		{tabFile, locale.SettingsTabFile(), locale.SettingsTabFileNote(),
 			view.IconSettingsFile, s.configFile},
 	}
@@ -191,6 +221,9 @@ func (s *appState) openSettingsTab(tab string) {
 		if tab != "" {
 			s.draft.tab = tab
 		}
+		if isPluginTab(tab) && s.plugins != nil {
+			s.plugins.prepareSettings()
+		}
 		s.settingsWin.Show()
 		s.settingsWin.Focus()
 		return
@@ -206,6 +239,9 @@ func (s *appState) openSettingsTab(tab string) {
 	s.draft = settings{cfg: s.config, tab: tab,
 		wechatBase: filepath.Join(s.dir, wechatFolder)}
 	s.draft.read(&s.config)
+	if isPluginTab(tab) && s.plugins != nil {
+		s.plugins.prepareSettings()
+	}
 	s.settingsWin = mygo.NewWindow(mygo.WindowOptions{
 		Title:     Name + " " + locale.TitleSettings(),
 		Width:     820,
@@ -272,6 +308,9 @@ func (s *appState) chosenSettings(c *ui.Context) {
 	if s.draft.shown != s.draft.tab {
 		s.draft.shown = s.draft.tab
 		s.draft.scroll = ui.ScrollState{}
+		if isPluginTab(s.draft.tab) && s.plugins != nil {
+			s.plugins.prepareSettings()
+		}
 	}
 	for _, tab := range tabs {
 		if tab.ID != s.draft.tab {

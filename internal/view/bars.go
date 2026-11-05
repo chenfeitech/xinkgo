@@ -4,6 +4,8 @@
 package view
 
 import (
+	"strconv"
+
 	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/datafile"
 	"github.com/helightxu/xinkgo/internal/locale"
@@ -311,7 +313,9 @@ func (w *Workspace) toolbarDivider(c *ui.Context) {
 		Background(c.Theme().Border)
 }
 
-// statusBar is what the window says about what happened.
+// statusBar is what the window says about what happened. When the
+// word-count core plugin stands it also says how much the note on show
+// holds, after the message the window has.
 func (w *Workspace) statusBar(c *ui.Context) {
 	text := w.status
 	if text == "" {
@@ -323,10 +327,54 @@ func (w *Workspace) statusBar(c *ui.Context) {
 			}
 		}
 	}
-	if text == "" {
+	count := ""
+	if w.coreOn(CoreWordCount) {
+		if n := w.Tabs.ActiveNote(); n != nil && !n.Preview {
+			count = locale.StatusWordCount(strconv.Itoa(wordsIn(n.Note.Text)))
+		}
+	}
+	if text == "" && count == "" {
 		return
 	}
 	ui.Row(c).Padding(8).Children(func() {
-		ui.Text(c, text).FontSize(12).TextColor(c.Theme().TextMuted)
+		if text != "" {
+			ui.Text(c, text).FontSize(12).TextColor(c.Theme().TextMuted)
+		}
+		if count != "" {
+			ui.Box(c).Grow(1)
+			ui.Text(c, count).FontSize(12).TextColor(c.Theme().TextMuted)
+		}
 	})
+}
+
+// wordsIn counts the words of a note: runs of whitespace between them in
+// Latin text, and each CJK character as one, as a reader of either counts.
+func wordsIn(text string) int {
+	words := 0
+	inWord := false
+	for _, r := range text {
+		switch {
+		case r == '\n':
+			inWord = false
+		case isSpace(r):
+			inWord = false
+		case isCJK(r):
+			words++
+			inWord = false
+		default:
+			if !inWord {
+				words++
+				inWord = true
+			}
+		}
+	}
+	return words
+}
+
+func isSpace(r rune) bool {
+	return r == ' ' || r == '\t' || r == '\r'
+}
+
+func isCJK(r rune) bool {
+	return r >= 0x3400 && r <= 0x9fff || r >= 0xf900 && r <= 0xfaff
 }

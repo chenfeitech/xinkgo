@@ -20,6 +20,8 @@ const (
 	skillPaletteLimit = 10
 	// actionPaletteLimit is how many actions the palette shows.
 	actionPaletteLimit = 10
+	// pluginPaletteLimit is how many plugin commands the palette shows.
+	pluginPaletteLimit = 10
 )
 
 // skillPrefix is what a skill is called in the palette, so that a skill
@@ -133,6 +135,12 @@ func (w *Workspace) choose(i int) {
 		w.runAction(*items[i].Action)
 		return
 	}
+	if items[i].Plugin != nil {
+		if w.OnPluginCommand != nil {
+			w.OnPluginCommand(items[i].Plugin.ID)
+		}
+		return
+	}
 	w.openNote(items[i].Path)
 }
 
@@ -172,6 +180,8 @@ type paletteItem struct {
 	// Action is one of the app's own actions this answer is, when it
 	// is not a note either.
 	Action *config.AiAction
+	// Plugin is a command from an Obsidian-compatible plugin.
+	Plugin *PluginCommand
 }
 
 // key is what an answer is known by in the window: a note by where it
@@ -180,6 +190,9 @@ type paletteItem struct {
 func (p paletteItem) key() string {
 	if p.Path != "" {
 		return p.Path
+	}
+	if p.Plugin != nil {
+		return p.Plugin.ID
 	}
 	return p.Name
 }
@@ -190,7 +203,48 @@ func (p paletteItem) key() string {
 func (w *Workspace) paletteItems() []paletteItem {
 	items := w.noteItems()
 	items = append(items, w.skillItems()...)
-	return append(items, w.actionItems()...)
+	items = append(items, w.actionItems()...)
+	return append(items, w.pluginItems()...)
+}
+
+// pluginItems is the commands of the enabled plugins that the search
+// finds. Visibility comes from the app's cached checkCallback result;
+// a plugin is never called from a frame just to decide whether to draw.
+func (w *Workspace) pluginItems() []paletteItem {
+	names := make([]string, 0, len(w.PluginCommands))
+	for _, one := range w.PluginCommands {
+		if one.Visible {
+			names = append(names, one.Name)
+		}
+	}
+	if len(names) == 0 {
+		return nil
+	}
+	found := fuzzy.Search(names, w.paletteQuery, pluginPaletteLimit)
+	items := make([]paletteItem, 0, len(found))
+	for _, r := range found {
+		one := pluginCommandNamed(w.PluginCommands, r.Text)
+		if one == nil {
+			continue
+		}
+		items = append(items, paletteItem{
+			Name:      r.Text,
+			Title:     one.ID,
+			Positions: r.Positions,
+			Plugin:    one,
+		})
+	}
+	return items
+}
+
+// pluginCommandNamed is the visible command of that name.
+func pluginCommandNamed(list []PluginCommand, name string) *PluginCommand {
+	for i := range list {
+		if list[i].Visible && list[i].Name == name {
+			return &list[i]
+		}
+	}
+	return nil
 }
 
 // actionItems is the app's own actions, found by their names, each shown

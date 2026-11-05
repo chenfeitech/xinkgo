@@ -5571,3 +5571,949 @@ func SettingLookNote() string { return In(i18n.Locale()).SettingLookNote() }
 func (msgs Messages) SettingLookNote() string {
 	return Catalog.Format(msgs.locale, "settingLookNote", nil)
 }
+
+// MenuPlugins says "Plugins..."
+// in the language the app shows.
+func MenuPlugins() string { return In(i18n.Locale()).MenuPlugins() }
+
+// MenuPlugins says "Plugins..."
+// in the language of msgs.
+func (msgs Messages) MenuPlugins() string {
+	return Catalog.Format(msgs.locale, "menuPlugins", nil)
+}
+
+// TitlePlugins says "Plugins"
+// in the language the app shows.
+func TitlePlugins() string { return In(i18n.Locale()).TitlePlugins() }
+
+// TitlePlugins says "Plugins"
+// in the language of msgs.
+func (msgs Messages) TitlePlugins() string {
+	return Catalog.Format(msgs.locale, "titlePlugins", nil)
+}
+
+// PluginTabInstalled says "Installed"
+// in the language the app shows.
+func PluginTabInstalled() string { return In(i18n.Locale()).PluginTabInstalled() }
+
+// PluginTabInstalled says "Installed"
+// in the language of msgs.
+func (msgs Messages) PluginTabInstalled() string {
+	return Catalog.Format(msgs.locale, "pluginTabInstalled", nil)
+}
+
+// PluginTabBrowse says "Browse"
+// in the language the app shows.
+func PluginTabBrowse() string { return In(i18n.Locale()).PluginTabBrowse() }
+
+// PluginTabBrowse says "Browse"
+// in the language of msgs.
+func (msgs Messages) PluginTabBrowse() string {
+	return Catalog.Format(msgs.locale, "pluginTabBrowse", nil)
+}
+
+// PluginRefresh says "Refresh"
+// in the language the app shows.
+func PluginRefresh() string { return In(i18n.Locale()).PluginRefresh() }
+
+// PluginRefresh says "Refresh"
+// in the language of msgs.
+func (msgs Messages) PluginRefresh() string {
+	return Catalog.Format(msgs.locale, "pluginRefresh", nil)
+}
+
+// PluginSearchPlaceholder says "Search plugins"
+// in the language the app shows.
+func PluginSearchPlaceholder() string { return In(i18n.Locale()).PluginSearchPlaceholder() }
+
+// PluginSearchPlaceholder says "Search plugins"
+// in the language of msgs.
+func (msgs Messages) PluginSearchPlaceholder() string {
+	return Catalog.Format(msgs.locale, "pluginSearchPlaceholder", nil)
+}
+
+// PluginSupportedOnly says "Supported only"
+// in the language the app shows.
+func PluginSupportedOnly() string { return In(i18n.Locale()).PluginSupportedOnly() }
+
+// PluginSupportedOnly says "Supported only"
+// in the language of msgs.
+func (msgs Messages) PluginSupportedOnly() string {
+	return Catalog.Format(msgs.locale, "pluginSupportedOnly", nil)
+}
+
+// PluginInstall says "Install"
+// in the language the app shows.
+func PluginInstall() string { return In(i18n.Locale()).PluginInstall() }
+
+// PluginInstall says "Install"
+// in the language of msgs.
+func (msgs Messages) PluginInstall() string {
+	return Catalog.Format(msgs.locale, "pluginInstall", nil)
+}
+
+// PluginInstalled says "Installed"
+// in the language the app shows.
+func PluginInstalled() string { return In(i18n.Locale()).PluginInstalled() }
+
+// PluginInstalled says "Installed"
+// in the language of msgs.
+func (msgs Messages) PluginInstalled() string {
+	return Catalog.Format(msgs.locale, "pluginInstalled", nil)
+}
+
+// PluginEnable says "Enable"
+// in the language the app shows.
+func PluginEnable() string { return In(i18n.Locale()).PluginEnable() }
+
+// PluginEnable says "Enable"
+// in the language of msgs.
+func (msgs Messages) PluginEnable() string {
+	return Catalog.Format(msgs.locale, "pluginEnable", nil)
+}
+
+// PluginDisable says "Disable"
+// in the language the app shows.
+func PluginDisable() string { return In(i18n.Locale()).PluginDisable() }
+
+// PluginDisable says "Disable"
+// in the language of msgs.
+func (msgs Messages) PluginDisable() string {
+	return Catalog.Format(msgs.locale, "pluginDisable", nil)
+}
+
+// PluginReload says "Reload"
+// in the language the app shows.
+func PluginReload() string { return In(i18n.Locale()).PluginReload() }
+
+// PluginReload says "Reload"
+// in the language of msgs.
+func (msgs Messages) PluginReload() string {
+	return Catalog.Format(msgs.locale, "pluginReload", nil)
+}
+
+// PluginOpenFolder says "Open folder"
+// in the language the app shows.
+func PluginOpenFolder() string { return In(i18n.Locale()).PluginOpenFolder() }
+
+// PluginOpenFolder says "Open folder"
+// in the language of msgs.
+func (msgs Messages) PluginOpenFolder() string {
+	return Catalog.Format(msgs.locale, "pluginOpenFolder", nil)
+}
+
+// PluginLevel says "Level"
+// in the language the app shows.
+func PluginLevel() string { return In(i18n.Locale()).PluginLevel() }
+
+// PluginLevel says "Level"
+// in the language of msgs.
+func (msgs Messages) PluginLevel() string {
+	return Catalog.Format(msgs.locale, "pluginLevel", nil)
+}
+
+// PluginRequired says "Required"
+// in the language the app shows.
+func PluginRequired() string { return In(i18n.Locale()).PluginRequired() }
+
+// PluginRequired says "Required"
+// in the language of msgs.
+func (msgs Messages) PluginRequired() string {
+	return Catalog.Format(msgs.locale, "pluginRequired", nil)
+}
+
+// PluginGrants says "Grants"
+// in the language the app shows.
+func PluginGrants() string { return In(i18n.Locale()).PluginGrants() }
+
+// PluginGrants says "Grants"
+// in the language of msgs.
+func (msgs Messages) PluginGrants() string {
+	return Catalog.Format(msgs.locale, "pluginGrants", nil)
+}
+
+// PluginSourceVault says "vault plugin folder"
+// in the language the app shows.
+func PluginSourceVault() string { return In(i18n.Locale()).PluginSourceVault() }
+
+// PluginSourceVault says "vault plugin folder"
+// in the language of msgs.
+func (msgs Messages) PluginSourceVault() string {
+	return Catalog.Format(msgs.locale, "pluginSourceVault", nil)
+}
+
+// PluginSourceCompat says "Obsidian plugin folder"
+// in the language the app shows.
+func PluginSourceCompat() string { return In(i18n.Locale()).PluginSourceCompat() }
+
+// PluginSourceCompat says "Obsidian plugin folder"
+// in the language of msgs.
+func (msgs Messages) PluginSourceCompat() string {
+	return Catalog.Format(msgs.locale, "pluginSourceCompat", nil)
+}
+
+// PluginSourceUser says "application plugin folder"
+// in the language the app shows.
+func PluginSourceUser() string { return In(i18n.Locale()).PluginSourceUser() }
+
+// PluginSourceUser says "application plugin folder"
+// in the language of msgs.
+func (msgs Messages) PluginSourceUser() string {
+	return Catalog.Format(msgs.locale, "pluginSourceUser", nil)
+}
+
+// PluginSourceUnknown says "unknown source"
+// in the language the app shows.
+func PluginSourceUnknown() string { return In(i18n.Locale()).PluginSourceUnknown() }
+
+// PluginSourceUnknown says "unknown source"
+// in the language of msgs.
+func (msgs Messages) PluginSourceUnknown() string {
+	return Catalog.Format(msgs.locale, "pluginSourceUnknown", nil)
+}
+
+// PluginNoInstalled says "No plugins installed yet."
+// in the language the app shows.
+func PluginNoInstalled() string { return In(i18n.Locale()).PluginNoInstalled() }
+
+// PluginNoInstalled says "No plugins installed yet."
+// in the language of msgs.
+func (msgs Messages) PluginNoInstalled() string {
+	return Catalog.Format(msgs.locale, "pluginNoInstalled", nil)
+}
+
+// PluginNoCompatible says "No checked plugins in the current compatible list."
+// in the language the app shows.
+func PluginNoCompatible() string { return In(i18n.Locale()).PluginNoCompatible() }
+
+// PluginNoCompatible says "No checked plugins in the current compatible list."
+// in the language of msgs.
+func (msgs Messages) PluginNoCompatible() string {
+	return Catalog.Format(msgs.locale, "pluginNoCompatible", nil)
+}
+
+// PluginCatalogLoading says "Loading the community catalog..."
+// in the language the app shows.
+func PluginCatalogLoading() string { return In(i18n.Locale()).PluginCatalogLoading() }
+
+// PluginCatalogLoading says "Loading the community catalog..."
+// in the language of msgs.
+func (msgs Messages) PluginCatalogLoading() string {
+	return Catalog.Format(msgs.locale, "pluginCatalogLoading", nil)
+}
+
+// PluginCatalogFailed says "The community catalog could not be loaded."
+// in the language the app shows.
+func PluginCatalogFailed() string { return In(i18n.Locale()).PluginCatalogFailed() }
+
+// PluginCatalogFailed says "The community catalog could not be loaded."
+// in the language of msgs.
+func (msgs Messages) PluginCatalogFailed() string {
+	return Catalog.Format(msgs.locale, "pluginCatalogFailed", nil)
+}
+
+// PluginInstallFailed says "The plugin could not be installed."
+// in the language the app shows.
+func PluginInstallFailed() string { return In(i18n.Locale()).PluginInstallFailed() }
+
+// PluginInstallFailed says "The plugin could not be installed."
+// in the language of msgs.
+func (msgs Messages) PluginInstallFailed() string {
+	return Catalog.Format(msgs.locale, "pluginInstallFailed", nil)
+}
+
+// PluginNoWebView says "The plugin host needs a system webview, which is not available."
+// in the language the app shows.
+func PluginNoWebView() string { return In(i18n.Locale()).PluginNoWebView() }
+
+// PluginNoWebView says "The plugin host needs a system webview, which is not available."
+// in the language of msgs.
+func (msgs Messages) PluginNoWebView() string {
+	return Catalog.Format(msgs.locale, "pluginNoWebView", nil)
+}
+
+// PluginThirdParty says "Plugins run third-party code. Install only what you trust."
+// in the language the app shows.
+func PluginThirdParty() string { return In(i18n.Locale()).PluginThirdParty() }
+
+// PluginThirdParty says "Plugins run third-party code. Install only what you trust."
+// in the language of msgs.
+func (msgs Messages) PluginThirdParty() string {
+	return Catalog.Format(msgs.locale, "pluginThirdParty", nil)
+}
+
+// PluginNotChecked says "Not checked against this build"
+// in the language the app shows.
+func PluginNotChecked() string { return In(i18n.Locale()).PluginNotChecked() }
+
+// PluginNotChecked says "Not checked against this build"
+// in the language of msgs.
+func (msgs Messages) PluginNotChecked() string {
+	return Catalog.Format(msgs.locale, "pluginNotChecked", nil)
+}
+
+// PluginEnabled says "enabled"
+// in the language the app shows.
+func PluginEnabled() string { return In(i18n.Locale()).PluginEnabled() }
+
+// PluginEnabled says "enabled"
+// in the language of msgs.
+func (msgs Messages) PluginEnabled() string {
+	return Catalog.Format(msgs.locale, "pluginEnabled", nil)
+}
+
+// PluginDisabled says "disabled"
+// in the language the app shows.
+func PluginDisabled() string { return In(i18n.Locale()).PluginDisabled() }
+
+// PluginDisabled says "disabled"
+// in the language of msgs.
+func (msgs Messages) PluginDisabled() string {
+	return Catalog.Format(msgs.locale, "pluginDisabled", nil)
+}
+
+// PluginReloaded says "reloaded"
+// in the language the app shows.
+func PluginReloaded() string { return In(i18n.Locale()).PluginReloaded() }
+
+// PluginReloaded says "reloaded"
+// in the language of msgs.
+func (msgs Messages) PluginReloaded() string {
+	return Catalog.Format(msgs.locale, "pluginReloaded", nil)
+}
+
+// PluginInstallRefused says "install refused"
+// in the language the app shows.
+func PluginInstallRefused() string { return In(i18n.Locale()).PluginInstallRefused() }
+
+// PluginInstallRefused says "install refused"
+// in the language of msgs.
+func (msgs Messages) PluginInstallRefused() string {
+	return Catalog.Format(msgs.locale, "pluginInstallRefused", nil)
+}
+
+// PluginCommandNotReady says "the plugin is not ready yet"
+// in the language the app shows.
+func PluginCommandNotReady() string { return In(i18n.Locale()).PluginCommandNotReady() }
+
+// PluginCommandNotReady says "the plugin is not ready yet"
+// in the language of msgs.
+func (msgs Messages) PluginCommandNotReady() string {
+	return Catalog.Format(msgs.locale, "pluginCommandNotReady", nil)
+}
+
+// PluginLevelLabel says "Level {level}"
+// in the language the app shows.
+func PluginLevelLabel(level string) string { return In(i18n.Locale()).PluginLevelLabel(level) }
+
+// PluginLevelLabel says "Level {level}"
+// in the language of msgs.
+func (msgs Messages) PluginLevelLabel(level string) string {
+	return Catalog.Format(msgs.locale, "pluginLevelLabel", map[string]any{"level": level})
+}
+
+// PluginCapabilityLabel says "Grant {cap}"
+// in the language the app shows.
+func PluginCapabilityLabel(cap string) string { return In(i18n.Locale()).PluginCapabilityLabel(cap) }
+
+// PluginCapabilityLabel says "Grant {cap}"
+// in the language of msgs.
+func (msgs Messages) PluginCapabilityLabel(cap string) string {
+	return Catalog.Format(msgs.locale, "pluginCapabilityLabel", map[string]any{"cap": cap})
+}
+
+// PluginVersionLine says "{version} by {author} from {source}"
+// in the language the app shows.
+func PluginVersionLine(version string, author string, source string) string {
+	return In(i18n.Locale()).PluginVersionLine(version, author, source)
+}
+
+// PluginVersionLine says "{version} by {author} from {source}"
+// in the language of msgs.
+func (msgs Messages) PluginVersionLine(version string, author string, source string) string {
+	return Catalog.Format(msgs.locale, "pluginVersionLine", map[string]any{"version": version, "author": author, "source": source})
+}
+
+// PluginIssue says "{code}: {arg}"
+// in the language the app shows.
+func PluginIssue(code string, arg string) string { return In(i18n.Locale()).PluginIssue(code, arg) }
+
+// PluginIssue says "{code}: {arg}"
+// in the language of msgs.
+func (msgs Messages) PluginIssue(code string, arg string) string {
+	return Catalog.Format(msgs.locale, "pluginIssue", map[string]any{"code": code, "arg": arg})
+}
+
+// PluginStatus says "{text}"
+// in the language the app shows.
+func PluginStatus(text string) string { return In(i18n.Locale()).PluginStatus(text) }
+
+// PluginStatus says "{text}"
+// in the language of msgs.
+func (msgs Messages) PluginStatus(text string) string {
+	return Catalog.Format(msgs.locale, "pluginStatus", map[string]any{"text": text})
+}
+
+// PluginCatalogLoaded says "loaded {count} plugins"
+// in the language the app shows.
+func PluginCatalogLoaded(count string) string { return In(i18n.Locale()).PluginCatalogLoaded(count) }
+
+// PluginCatalogLoaded says "loaded {count} plugins"
+// in the language of msgs.
+func (msgs Messages) PluginCatalogLoaded(count string) string {
+	return Catalog.Format(msgs.locale, "pluginCatalogLoaded", map[string]any{"count": count})
+}
+
+// PluginInstalledOK says "installed {name}"
+// in the language the app shows.
+func PluginInstalledOK(name string) string { return In(i18n.Locale()).PluginInstalledOK(name) }
+
+// PluginInstalledOK says "installed {name}"
+// in the language of msgs.
+func (msgs Messages) PluginInstalledOK(name string) string {
+	return Catalog.Format(msgs.locale, "pluginInstalledOK", map[string]any{"name": name})
+}
+
+// PluginCheckedBy says "checked {date}"
+// in the language the app shows.
+func PluginCheckedBy(date string) string { return In(i18n.Locale()).PluginCheckedBy(date) }
+
+// PluginCheckedBy says "checked {date}"
+// in the language of msgs.
+func (msgs Messages) PluginCheckedBy(date string) string {
+	return Catalog.Format(msgs.locale, "pluginCheckedBy", map[string]any{"date": date})
+}
+
+// SettingsTabCorePlugins says "Core integrated plugins"
+// in the language the app shows.
+func SettingsTabCorePlugins() string { return In(i18n.Locale()).SettingsTabCorePlugins() }
+
+// SettingsTabCorePlugins says "Core integrated plugins"
+// in the language of msgs.
+func (msgs Messages) SettingsTabCorePlugins() string {
+	return Catalog.Format(msgs.locale, "settingsTabCorePlugins", nil)
+}
+
+// SettingsTabCorePluginsNote says "Xinkgo's own built-in features; switch each one on or off"
+// in the language the app shows.
+func SettingsTabCorePluginsNote() string { return In(i18n.Locale()).SettingsTabCorePluginsNote() }
+
+// SettingsTabCorePluginsNote says "Xinkgo's own built-in features; switch each one on or off"
+// in the language of msgs.
+func (msgs Messages) SettingsTabCorePluginsNote() string {
+	return Catalog.Format(msgs.locale, "settingsTabCorePluginsNote", nil)
+}
+
+// SettingsTabCommunityPlugins says "Community plugins"
+// in the language the app shows.
+func SettingsTabCommunityPlugins() string { return In(i18n.Locale()).SettingsTabCommunityPlugins() }
+
+// SettingsTabCommunityPlugins says "Community plugins"
+// in the language of msgs.
+func (msgs Messages) SettingsTabCommunityPlugins() string {
+	return Catalog.Format(msgs.locale, "settingsTabCommunityPlugins", nil)
+}
+
+// SettingsTabCommunityPluginsNote says "Install and manage Obsidian-compatible third-party plugins"
+// in the language the app shows.
+func SettingsTabCommunityPluginsNote() string {
+	return In(i18n.Locale()).SettingsTabCommunityPluginsNote()
+}
+
+// SettingsTabCommunityPluginsNote says "Install and manage Obsidian-compatible third-party plugins"
+// in the language of msgs.
+func (msgs Messages) SettingsTabCommunityPluginsNote() string {
+	return Catalog.Format(msgs.locale, "settingsTabCommunityPluginsNote", nil)
+}
+
+// PluginTabCurated says "Curated compatible"
+// in the language the app shows.
+func PluginTabCurated() string { return In(i18n.Locale()).PluginTabCurated() }
+
+// PluginTabCurated says "Curated compatible"
+// in the language of msgs.
+func (msgs Messages) PluginTabCurated() string {
+	return Catalog.Format(msgs.locale, "pluginTabCurated", nil)
+}
+
+// PluginDetails says "Details"
+// in the language the app shows.
+func PluginDetails() string { return In(i18n.Locale()).PluginDetails() }
+
+// PluginDetails says "Details"
+// in the language of msgs.
+func (msgs Messages) PluginDetails() string {
+	return Catalog.Format(msgs.locale, "pluginDetails", nil)
+}
+
+// PluginDetailLine says "{label}: {value}"
+// in the language the app shows.
+func PluginDetailLine(label string, value string) string {
+	return In(i18n.Locale()).PluginDetailLine(label, value)
+}
+
+// PluginDetailLine says "{label}: {value}"
+// in the language of msgs.
+func (msgs Messages) PluginDetailLine(label string, value string) string {
+	return Catalog.Format(msgs.locale, "pluginDetailLine", map[string]any{"label": label, "value": value})
+}
+
+// PluginDetailDownloads says "Installs / downloads"
+// in the language the app shows.
+func PluginDetailDownloads() string { return In(i18n.Locale()).PluginDetailDownloads() }
+
+// PluginDetailDownloads says "Installs / downloads"
+// in the language of msgs.
+func (msgs Messages) PluginDetailDownloads() string {
+	return Catalog.Format(msgs.locale, "pluginDetailDownloads", nil)
+}
+
+// PluginDetailUpdated says "Updated"
+// in the language the app shows.
+func PluginDetailUpdated() string { return In(i18n.Locale()).PluginDetailUpdated() }
+
+// PluginDetailUpdated says "Updated"
+// in the language of msgs.
+func (msgs Messages) PluginDetailUpdated() string {
+	return Catalog.Format(msgs.locale, "pluginDetailUpdated", nil)
+}
+
+// PluginDetailVersion says "Version"
+// in the language the app shows.
+func PluginDetailVersion() string { return In(i18n.Locale()).PluginDetailVersion() }
+
+// PluginDetailVersion says "Version"
+// in the language of msgs.
+func (msgs Messages) PluginDetailVersion() string {
+	return Catalog.Format(msgs.locale, "pluginDetailVersion", nil)
+}
+
+// PluginDetailVersionDownloads says "Downloads for this version"
+// in the language the app shows.
+func PluginDetailVersionDownloads() string { return In(i18n.Locale()).PluginDetailVersionDownloads() }
+
+// PluginDetailVersionDownloads says "Downloads for this version"
+// in the language of msgs.
+func (msgs Messages) PluginDetailVersionDownloads() string {
+	return Catalog.Format(msgs.locale, "pluginDetailVersionDownloads", nil)
+}
+
+// PluginDetailMinAppVersion says "Minimum Obsidian"
+// in the language the app shows.
+func PluginDetailMinAppVersion() string { return In(i18n.Locale()).PluginDetailMinAppVersion() }
+
+// PluginDetailMinAppVersion says "Minimum Obsidian"
+// in the language of msgs.
+func (msgs Messages) PluginDetailMinAppVersion() string {
+	return Catalog.Format(msgs.locale, "pluginDetailMinAppVersion", nil)
+}
+
+// PluginDetailDesktopOnly says "Desktop only"
+// in the language the app shows.
+func PluginDetailDesktopOnly() string { return In(i18n.Locale()).PluginDetailDesktopOnly() }
+
+// PluginDetailDesktopOnly says "Desktop only"
+// in the language of msgs.
+func (msgs Messages) PluginDetailDesktopOnly() string {
+	return Catalog.Format(msgs.locale, "pluginDetailDesktopOnly", nil)
+}
+
+// PluginDetailHomepage says "Homepage"
+// in the language the app shows.
+func PluginDetailHomepage() string { return In(i18n.Locale()).PluginDetailHomepage() }
+
+// PluginDetailHomepage says "Homepage"
+// in the language of msgs.
+func (msgs Messages) PluginDetailHomepage() string {
+	return Catalog.Format(msgs.locale, "pluginDetailHomepage", nil)
+}
+
+// PluginDetailFunding says "Funding"
+// in the language the app shows.
+func PluginDetailFunding() string { return In(i18n.Locale()).PluginDetailFunding() }
+
+// PluginDetailFunding says "Funding"
+// in the language of msgs.
+func (msgs Messages) PluginDetailFunding() string {
+	return Catalog.Format(msgs.locale, "pluginDetailFunding", nil)
+}
+
+// PluginDetailRepository says "Repository"
+// in the language the app shows.
+func PluginDetailRepository() string { return In(i18n.Locale()).PluginDetailRepository() }
+
+// PluginDetailRepository says "Repository"
+// in the language of msgs.
+func (msgs Messages) PluginDetailRepository() string {
+	return Catalog.Format(msgs.locale, "pluginDetailRepository", nil)
+}
+
+// PluginDetailStars says "Stars"
+// in the language the app shows.
+func PluginDetailStars() string { return In(i18n.Locale()).PluginDetailStars() }
+
+// PluginDetailStars says "Stars"
+// in the language of msgs.
+func (msgs Messages) PluginDetailStars() string {
+	return Catalog.Format(msgs.locale, "pluginDetailStars", nil)
+}
+
+// PluginDetailLicense says "License"
+// in the language the app shows.
+func PluginDetailLicense() string { return In(i18n.Locale()).PluginDetailLicense() }
+
+// PluginDetailLicense says "License"
+// in the language of msgs.
+func (msgs Messages) PluginDetailLicense() string {
+	return Catalog.Format(msgs.locale, "pluginDetailLicense", nil)
+}
+
+// PluginDetailLastCommit says "Last commit"
+// in the language the app shows.
+func PluginDetailLastCommit() string { return In(i18n.Locale()).PluginDetailLastCommit() }
+
+// PluginDetailLastCommit says "Last commit"
+// in the language of msgs.
+func (msgs Messages) PluginDetailLastCommit() string {
+	return Catalog.Format(msgs.locale, "pluginDetailLastCommit", nil)
+}
+
+// PluginDetailYes says "yes"
+// in the language the app shows.
+func PluginDetailYes() string { return In(i18n.Locale()).PluginDetailYes() }
+
+// PluginDetailYes says "yes"
+// in the language of msgs.
+func (msgs Messages) PluginDetailYes() string {
+	return Catalog.Format(msgs.locale, "pluginDetailYes", nil)
+}
+
+// PluginDetailNo says "no"
+// in the language the app shows.
+func PluginDetailNo() string { return In(i18n.Locale()).PluginDetailNo() }
+
+// PluginDetailNo says "no"
+// in the language of msgs.
+func (msgs Messages) PluginDetailNo() string {
+	return Catalog.Format(msgs.locale, "pluginDetailNo", nil)
+}
+
+// PluginDetailLoading says "Loading plugin details..."
+// in the language the app shows.
+func PluginDetailLoading() string { return In(i18n.Locale()).PluginDetailLoading() }
+
+// PluginDetailLoading says "Loading plugin details..."
+// in the language of msgs.
+func (msgs Messages) PluginDetailLoading() string {
+	return Catalog.Format(msgs.locale, "pluginDetailLoading", nil)
+}
+
+// PluginDegraded says "Degraded"
+// in the language the app shows.
+func PluginDegraded() string { return In(i18n.Locale()).PluginDegraded() }
+
+// PluginDegraded says "Degraded"
+// in the language of msgs.
+func (msgs Messages) PluginDegraded() string {
+	return Catalog.Format(msgs.locale, "pluginDegraded", nil)
+}
+
+// PluginCore says "Core"
+// in the language the app shows.
+func PluginCore() string { return In(i18n.Locale()).PluginCore() }
+
+// PluginCore says "Core"
+// in the language of msgs.
+func (msgs Messages) PluginCore() string {
+	return Catalog.Format(msgs.locale, "pluginCore", nil)
+}
+
+// PluginCoreEmpty says "No core plugins in the checked list."
+// in the language the app shows.
+func PluginCoreEmpty() string { return In(i18n.Locale()).PluginCoreEmpty() }
+
+// PluginCoreEmpty says "No core plugins in the checked list."
+// in the language of msgs.
+func (msgs Messages) PluginCoreEmpty() string {
+	return Catalog.Format(msgs.locale, "pluginCoreEmpty", nil)
+}
+
+// PluginCoreToggle says "Enabled"
+// in the language the app shows.
+func PluginCoreToggle() string { return In(i18n.Locale()).PluginCoreToggle() }
+
+// PluginCoreToggle says "Enabled"
+// in the language of msgs.
+func (msgs Messages) PluginCoreToggle() string {
+	return Catalog.Format(msgs.locale, "pluginCoreToggle", nil)
+}
+
+// PluginCoreInstallFirst says "Install before enabling"
+// in the language the app shows.
+func PluginCoreInstallFirst() string { return In(i18n.Locale()).PluginCoreInstallFirst() }
+
+// PluginCoreInstallFirst says "Install before enabling"
+// in the language of msgs.
+func (msgs Messages) PluginCoreInstallFirst() string {
+	return Catalog.Format(msgs.locale, "pluginCoreInstallFirst", nil)
+}
+
+// PluginShowMore says "Show more"
+// in the language the app shows.
+func PluginShowMore() string { return In(i18n.Locale()).PluginShowMore() }
+
+// PluginShowMore says "Show more"
+// in the language of msgs.
+func (msgs Messages) PluginShowMore() string {
+	return Catalog.Format(msgs.locale, "pluginShowMore", nil)
+}
+
+// PluginBuiltinNote says "These are Xinkgo's own features. Turning one off hides its part of the window; nothing is installed or run."
+// in the language the app shows.
+func PluginBuiltinNote() string { return In(i18n.Locale()).PluginBuiltinNote() }
+
+// PluginBuiltinNote says "These are Xinkgo's own features. Turning one off hides its part of the window; nothing is installed or run."
+// in the language of msgs.
+func (msgs Messages) PluginBuiltinNote() string {
+	return Catalog.Format(msgs.locale, "pluginBuiltinNote", nil)
+}
+
+// CoreFileName says "File explorer"
+// in the language the app shows.
+func CoreFileName() string { return In(i18n.Locale()).CoreFileName() }
+
+// CoreFileName says "File explorer"
+// in the language of msgs.
+func (msgs Messages) CoreFileName() string {
+	return Catalog.Format(msgs.locale, "coreFileName", nil)
+}
+
+// CoreFileNote says "The vault's file tree on the left."
+// in the language the app shows.
+func CoreFileNote() string { return In(i18n.Locale()).CoreFileNote() }
+
+// CoreFileNote says "The vault's file tree on the left."
+// in the language of msgs.
+func (msgs Messages) CoreFileNote() string {
+	return Catalog.Format(msgs.locale, "coreFileNote", nil)
+}
+
+// CoreCommandPaletteName says "Command palette"
+// in the language the app shows.
+func CoreCommandPaletteName() string { return In(i18n.Locale()).CoreCommandPaletteName() }
+
+// CoreCommandPaletteName says "Command palette"
+// in the language of msgs.
+func (msgs Messages) CoreCommandPaletteName() string {
+	return Catalog.Format(msgs.locale, "coreCommandPaletteName", nil)
+}
+
+// CoreCommandPaletteNote says "Commands and quick switching from one place."
+// in the language the app shows.
+func CoreCommandPaletteNote() string { return In(i18n.Locale()).CoreCommandPaletteNote() }
+
+// CoreCommandPaletteNote says "Commands and quick switching from one place."
+// in the language of msgs.
+func (msgs Messages) CoreCommandPaletteNote() string {
+	return Catalog.Format(msgs.locale, "coreCommandPaletteNote", nil)
+}
+
+// CoreGlobalSearchName says "Global search"
+// in the language the app shows.
+func CoreGlobalSearchName() string { return In(i18n.Locale()).CoreGlobalSearchName() }
+
+// CoreGlobalSearchName says "Global search"
+// in the language of msgs.
+func (msgs Messages) CoreGlobalSearchName() string {
+	return Catalog.Format(msgs.locale, "coreGlobalSearchName", nil)
+}
+
+// CoreGlobalSearchNote says "Search across the whole vault."
+// in the language the app shows.
+func CoreGlobalSearchNote() string { return In(i18n.Locale()).CoreGlobalSearchNote() }
+
+// CoreGlobalSearchNote says "Search across the whole vault."
+// in the language of msgs.
+func (msgs Messages) CoreGlobalSearchNote() string {
+	return Catalog.Format(msgs.locale, "coreGlobalSearchNote", nil)
+}
+
+// CorePagePreviewName says "Page preview"
+// in the language the app shows.
+func CorePagePreviewName() string { return In(i18n.Locale()).CorePagePreviewName() }
+
+// CorePagePreviewName says "Page preview"
+// in the language of msgs.
+func (msgs Messages) CorePagePreviewName() string {
+	return Catalog.Format(msgs.locale, "corePagePreviewName", nil)
+}
+
+// CorePagePreviewNote says "The rendered note beside the editor."
+// in the language the app shows.
+func CorePagePreviewNote() string { return In(i18n.Locale()).CorePagePreviewNote() }
+
+// CorePagePreviewNote says "The rendered note beside the editor."
+// in the language of msgs.
+func (msgs Messages) CorePagePreviewNote() string {
+	return Catalog.Format(msgs.locale, "corePagePreviewNote", nil)
+}
+
+// CoreOutlineName says "Outline"
+// in the language the app shows.
+func CoreOutlineName() string { return In(i18n.Locale()).CoreOutlineName() }
+
+// CoreOutlineName says "Outline"
+// in the language of msgs.
+func (msgs Messages) CoreOutlineName() string {
+	return Catalog.Format(msgs.locale, "coreOutlineName", nil)
+}
+
+// CoreOutlineNote says "A panel of the note's headings."
+// in the language the app shows.
+func CoreOutlineNote() string { return In(i18n.Locale()).CoreOutlineNote() }
+
+// CoreOutlineNote says "A panel of the note's headings."
+// in the language of msgs.
+func (msgs Messages) CoreOutlineNote() string {
+	return Catalog.Format(msgs.locale, "coreOutlineNote", nil)
+}
+
+// CoreBacklinksName says "Backlinks"
+// in the language the app shows.
+func CoreBacklinksName() string { return In(i18n.Locale()).CoreBacklinksName() }
+
+// CoreBacklinksName says "Backlinks"
+// in the language of msgs.
+func (msgs Messages) CoreBacklinksName() string {
+	return Catalog.Format(msgs.locale, "coreBacklinksName", nil)
+}
+
+// CoreBacklinksNote says "A panel of notes that link here."
+// in the language the app shows.
+func CoreBacklinksNote() string { return In(i18n.Locale()).CoreBacklinksNote() }
+
+// CoreBacklinksNote says "A panel of notes that link here."
+// in the language of msgs.
+func (msgs Messages) CoreBacklinksNote() string {
+	return Catalog.Format(msgs.locale, "coreBacklinksNote", nil)
+}
+
+// CoreTagPaneName says "Tag pane"
+// in the language the app shows.
+func CoreTagPaneName() string { return In(i18n.Locale()).CoreTagPaneName() }
+
+// CoreTagPaneName says "Tag pane"
+// in the language of msgs.
+func (msgs Messages) CoreTagPaneName() string {
+	return Catalog.Format(msgs.locale, "coreTagPaneName", nil)
+}
+
+// CoreTagPaneNote says "A panel of the vault's tags."
+// in the language the app shows.
+func CoreTagPaneNote() string { return In(i18n.Locale()).CoreTagPaneNote() }
+
+// CoreTagPaneNote says "A panel of the vault's tags."
+// in the language of msgs.
+func (msgs Messages) CoreTagPaneNote() string {
+	return Catalog.Format(msgs.locale, "coreTagPaneNote", nil)
+}
+
+// CoreStatusBarName says "Status bar"
+// in the language the app shows.
+func CoreStatusBarName() string { return In(i18n.Locale()).CoreStatusBarName() }
+
+// CoreStatusBarName says "Status bar"
+// in the language of msgs.
+func (msgs Messages) CoreStatusBarName() string {
+	return Catalog.Format(msgs.locale, "coreStatusBarName", nil)
+}
+
+// CoreStatusBarNote says "The line at the foot of the window."
+// in the language the app shows.
+func CoreStatusBarNote() string { return In(i18n.Locale()).CoreStatusBarNote() }
+
+// CoreStatusBarNote says "The line at the foot of the window."
+// in the language of msgs.
+func (msgs Messages) CoreStatusBarNote() string {
+	return Catalog.Format(msgs.locale, "coreStatusBarNote", nil)
+}
+
+// CoreWordCountName says "Word count"
+// in the language the app shows.
+func CoreWordCountName() string { return In(i18n.Locale()).CoreWordCountName() }
+
+// CoreWordCountName says "Word count"
+// in the language of msgs.
+func (msgs Messages) CoreWordCountName() string {
+	return Catalog.Format(msgs.locale, "coreWordCountName", nil)
+}
+
+// CoreWordCountNote says "How many words the open note holds."
+// in the language the app shows.
+func CoreWordCountNote() string { return In(i18n.Locale()).CoreWordCountNote() }
+
+// CoreWordCountNote says "How many words the open note holds."
+// in the language of msgs.
+func (msgs Messages) CoreWordCountNote() string {
+	return Catalog.Format(msgs.locale, "coreWordCountNote", nil)
+}
+
+// CorePluginRibbonName says "Plugin ribbon"
+// in the language the app shows.
+func CorePluginRibbonName() string { return In(i18n.Locale()).CorePluginRibbonName() }
+
+// CorePluginRibbonName says "Plugin ribbon"
+// in the language of msgs.
+func (msgs Messages) CorePluginRibbonName() string {
+	return Catalog.Format(msgs.locale, "corePluginRibbonName", nil)
+}
+
+// CorePluginRibbonNote says "The strip of plugin icons by the file tree."
+// in the language the app shows.
+func CorePluginRibbonNote() string { return In(i18n.Locale()).CorePluginRibbonNote() }
+
+// CorePluginRibbonNote says "The strip of plugin icons by the file tree."
+// in the language of msgs.
+func (msgs Messages) CorePluginRibbonNote() string {
+	return Catalog.Format(msgs.locale, "corePluginRibbonNote", nil)
+}
+
+// StatusWordCount says "{count} words"
+// in the language the app shows.
+func StatusWordCount(count string) string { return In(i18n.Locale()).StatusWordCount(count) }
+
+// StatusWordCount says "{count} words"
+// in the language of msgs.
+func (msgs Messages) StatusWordCount(count string) string {
+	return Catalog.Format(msgs.locale, "statusWordCount", map[string]any{"count": count})
+}
+
+// PluginViewPick says "Pick a plugin view above to show it here."
+// in the language the app shows.
+func PluginViewPick() string { return In(i18n.Locale()).PluginViewPick() }
+
+// PluginViewPick says "Pick a plugin view above to show it here."
+// in the language of msgs.
+func (msgs Messages) PluginViewPick() string {
+	return Catalog.Format(msgs.locale, "pluginViewPick", nil)
+}
+
+// PluginShowDegraded says "Show degraded plugins"
+// in the language the app shows.
+func PluginShowDegraded() string { return In(i18n.Locale()).PluginShowDegraded() }
+
+// PluginShowDegraded says "Show degraded plugins"
+// in the language of msgs.
+func (msgs Messages) PluginShowDegraded() string {
+	return Catalog.Format(msgs.locale, "pluginShowDegraded", nil)
+}
+
+// PluginDegradedNote says "These plugins load but their own views and editor features are not available."
+// in the language the app shows.
+func PluginDegradedNote() string { return In(i18n.Locale()).PluginDegradedNote() }
+
+// PluginDegradedNote says "These plugins load but their own views and editor features are not available."
+// in the language of msgs.
+func (msgs Messages) PluginDegradedNote() string {
+	return Catalog.Format(msgs.locale, "pluginDegradedNote", nil)
+}
