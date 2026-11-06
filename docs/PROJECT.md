@@ -91,7 +91,8 @@ xinkgo/
 ├── scripts/
 │   ├── check.sh             提交前门禁
 │   ├── icon.sh              icon.png 从 xink.icns 导出
-│   └── package.sh           打包（含版本一致性校验）
+│   ├── package.sh           打包（含版本一致性校验）
+│   └── wt.sh                git worktree 任务工作树（new / list / path / done）
 └── docs/
     ├── PROJECT.md           本文：结构 / 启动 / 规范要点
     ├── CONTRIBUTING.md      代码风格 / 目录约定 / 提交 / 分支

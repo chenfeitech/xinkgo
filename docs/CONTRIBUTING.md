@@ -235,6 +235,65 @@ Closes #18
 - **禁止直接向 `main` 推送**、**禁止在未经确认时把分支合并到 `main`**：合并
   是人的决定，AI/脚本只负责在分支上提交与推送，完成后报告分支名等待确认。
 
+### Worktree 与 Codex CLI
+
+并行开发用 `git worktree`：**主工作树**就是你 clone 出来的仓库根目录
+（`git worktree list` 的第一行；脚本也从这里推导，不依赖它在哪台机器、哪个目录）。
+它永远停在 `main`，只做同步、评审、合并、推送；一个任务一个工作树。
+`scripts/wt.sh` 把流程固定下来，基线取 `git fetch` 后的 `origin/main`，不用可能
+落后的本地 `HEAD`：
+
+```sh
+scripts/wt.sh new fix-editor-padding                    # feature/fix-editor-padding
+scripts/wt.sh new config-lost bugfix                   # bugfix/config-lost
+scripts/wt.sh list                                     # 所有工作树及其实际路径
+scripts/wt.sh path fix-editor-padding                  # 打印该工作树的绝对路径
+scripts/wt.sh done fix-editor-padding                  # 只删工作树，保留分支
+scripts/wt.sh done fix-editor-padding --delete-branch  # 已合并后才用
+```
+
+`new` 会 `git fetch origin`，在普通终端跑；后面才把工作树交给 Codex CLI。
+
+- 工作树默认在**主工作树的同级目录** `xinkgo-wt/<slug>/`：脚本从
+  `git worktree list` 推出主工作树再取它的父目录，因此换机器、换 clone 位置都不用
+  改配置。`XINKGO_WT_ROOT` 可以覆盖（必须是绝对路径：`git worktree` 记录的是绝对
+  路径，`done` 也可能从别的目录调用）。
+- **不要放进仓库内**：`.gitignore` 没覆盖它，外面会看到一整棵未跟踪的目录。
+- `AGENTS.md` 是跟踪文件，每个工作树自带，不用复制；别在里面跑 `/init` 覆盖它。
+- `bin/`、`build/`、`.mygo/` 是忽略目录，新工作树里没有，`make build` /
+  `make check` 会自己生成；Go module cache 全局共用。
+- 在分支上提交并推送、`make check` 全绿后**报告分支名等确认**；不要在工作树里
+  合并或推送 `main`。`done` 只回收工作树，分支留到合并后再删。
+- Windows（Git Bash）用 `sh scripts/wt.sh new <slug>`；`XINKGO_WT_ROOT` 用
+  `/c/...` 形式的绝对路径。
+
+用 Codex CLI 进入工作树（全局 flag 必须放在子命令之前，见
+[OpenAI Docs: CLI Reference](https://developers.openai.com/codex/cli/reference)）；
+路径一律由 `scripts/wt.sh path` 给出，不要手抄本机路径：
+
+```sh
+wt=$(scripts/wt.sh path fix-editor-padding)
+codex -C "$wt"
+codex -C "$wt" exec "在 feature/fix-editor-padding 上完成 X，提交并推送该分支"
+codex -C "$wt" resume --last
+```
+
+- 先确认实际生效的配置（`echo "$CODEX_HOME"`）：未设置时是
+  `~/.codex/config.toml`，其中 `approval_policy = "never"`、
+  `sandbox_mode = "workspace-write"`、`network_access = false`。`scripts/wt.sh new`
+  需要时会提示把实际的工作树根目录加进 `writable_roots`（或启动时加
+  `--add-dir "$wt"`）；禁网时首次 `make deps` 若失败，先在普通终端跑一次预热
+  Go module cache。若 `CODEX_HOME` 指向另一套配置（例如 `danger-full-access`
+  且允许网络），按那套配置判断，不必加白名单。
+- 应用数据目录由 MyGo 的 `PathUserData` 决定（名字在 `internal/app` 里 `SetName`
+  时定下），被所有工作树共用，且在工作树之外；各平台的路径见
+  [HARNESS.md](HARNESS.md) 的「运行期目录」表。人工验收自己在终端 `make run`，同一
+  时刻只跑一个 app 实例；确实要让 Codex 跑 app，把该平台的应用数据目录加进
+  `--add-dir`，不要直接开 `danger-full-access`。
+- CLI 自带的托管 worktree（TUI 的 `/worktree`、`codex exec --worktree`）以 detached
+  HEAD 创建、不预先建分支，CLI 也不承诺自动回收；只适合临时探索，进去先
+  `git switch -c feature/<slug>`，完事手动 `git worktree remove`。
+
 ### 拉取请求
 
 - 标题即 squash 后的提交信息，遵循第 4 节格式。
