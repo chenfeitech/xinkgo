@@ -356,9 +356,6 @@ func (w *Workspace) View(c *ui.Context) {
 			// end, whatever the window's height is and whatever the
 			// line at the bottom of it says.
 			w.rail(c)
-			// What is written out is what the preview reads, so the
-			// way out of it stands over the preview and nowhere else.
-			w.exportBar(c)
 		})
 		w.followScroll(c)
 		if w.coreOn(CoreStatusBar) {
