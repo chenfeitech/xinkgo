@@ -87,39 +87,39 @@ const (
 	ExportPDF = "pdf"
 )
 
-// exportBar is the way out of the preview: the note on show, written out
-// as a page of HTML or as a PDF. It hangs over the preview's own top
-// corner, as the rail hangs over the panels, and takes no room from what
-// it writes out: the note is to begin at the top of the panel, as it does
-// in the tree's. A file the app only shows — a picture, a PDF — has
-// nothing in it to write out, and gets no button.
-func (w *Workspace) exportBar(c *ui.Context) {
+// exportButton is the way out of the preview: the note on show, written out
+// as a page of HTML or as a PDF. It stands in the head of the preview beside
+// the buttons of WeChat, so the ways out of what is read are found together.
+// A file the app only shows, a picture or a PDF, has nothing in it to write
+// out, and gets no button.
+func (w *Workspace) exportButton(c *ui.Context) {
 	n := w.Tabs.ActiveNote()
-	// What is written out is what the preview reads, so there is no
-	// writing out where the preview does not stand: not when its pane
-	// is shut, and not when the note has been given the whole window.
-	if n == nil || n.Preview || w.geometry().PreviewPaneWidth() <= 0 {
+	if n == nil || n.Preview {
 		return
 	}
-	// The corner it hangs in is the foot of the preview: the top of it
-	// belongs to the tab bar, whose button that makes a note stands at
-	// the end of the row the preview begins in.
-	ui.Row(c).Absolute().Right(w.geometry().RailBand() + w.geometry().PreviewPadX()/2).
-		Bottom(w.geometry().PreviewPadY() / 2).AlignItems(ui.Center).
-		Children(func() {
-			ui.MenuButton(c, locale.PreviewExport(), func(m *ui.Menu) {
-				if m.Item(locale.MenuExportPage()).Chosen() {
-					if w.OnExport != nil {
-						w.OnExport(ExportPage)
-					}
-				}
-				if m.Item(locale.MenuExportPdf()).Chosen() {
-					if w.OnExport != nil {
-						w.OnExport(ExportPDF)
-					}
-				}
-			}).Tooltip(locale.PreviewExportLabel())
-		})
+	ui.MenuButton(c, locale.PreviewExport(), func(m *ui.Menu) {
+		if m.Item(locale.MenuExportPage()).Chosen() {
+			if w.OnExport != nil {
+				w.OnExport(ExportPage)
+			}
+		}
+		if m.Item(locale.MenuExportPdf()).Chosen() {
+			if w.OnExport != nil {
+				w.OnExport(ExportPDF)
+			}
+		}
+	}).Padding(2, 4).Tooltip(locale.PreviewExportLabel())
+}
+
+// previewActions are the ways out of what the preview reads: set out for
+// WeChat, or written to a file. They stand together at the end of the head,
+// and a narrow pane gives what does not fit to the toolbar's overflow menu
+// rather than drawing the buttons over one another.
+func (w *Workspace) previewActions(c *ui.Context) {
+	ui.Toolbar(c, func() {
+		w.wechatButtons(c)
+		w.exportButton(c)
+	}).Gap(2).Padding(0, 0).Label(locale.CorePagePreviewName())
 }
 
 // ExportText is what an export is given: the very text the preview reads
@@ -135,16 +135,15 @@ func (w *Workspace) ExportText() (path, text string, ok bool) {
 }
 
 // previewHead is the row at the top of the preview's own pane: the button
-// that spreads the preview over the note. It stands in the corner the
-// note's toolbar is not in, and the room it takes is the pane's own top,
-// so that what is read begins under it and is never under the button
-// itself. The row is as tall as the tab bar's, which stands level with it
-// across the window: the button of one corner and the button of the other
-// are then drawn on one line, each keeping cornerGap from the edge of
-// its own pane, so that the two stand as far from the line that parts
-// the panes as one another. What the window shows and does not read —
-// a picture, a PDF — is spread as much as a note is: it is the same
-// pane, read wider.
+// that spreads the preview over the note at one end, and the buttons that
+// write what is read out and set it out for WeChat at the other. The spread
+// button stands in the corner the note's toolbar is not in. The row takes
+// the pane's own top, so what is read begins under it and never under the
+// buttons themselves, and is as tall as the tab bar's, which stands level
+// with it across the window: the corner buttons of the two panes are then
+// drawn on one line, each keeping cornerGap from the line that parts them.
+// What the window shows and does not read — a picture, a PDF — is spread
+// as much as a note is: it is the same pane, read wider.
 func (w *Workspace) previewHead(c *ui.Context) {
 	if w.Tabs.ActiveNote() == nil {
 		return
@@ -153,7 +152,7 @@ func (w *Workspace) previewHead(c *ui.Context) {
 		Gap(4).Padding(0, cornerGap).Children(func() {
 		w.spreadButton(c)
 		ui.Box(c).Grow(1)
-		w.wechatButtons(c)
+		w.previewActions(c)
 	})
 }
 
@@ -198,7 +197,8 @@ func (w *Workspace) spreadButton(c *ui.Context) {
 }
 
 // previewBar is the row at the top of the preview when the preview has
-// the whole window: the button that takes it away again, which is the way
+// the whole window: the buttons that write the note out and set it out for
+// WeChat, and the button that takes it away again, which is the way
 // out of a pane the note's toolbar is not drawn in. It stands at the
 // pane's own end, clear of the rail, whose buttons hang over it. A
 // preview in a pane of its own has the button of its corner there
@@ -208,7 +208,7 @@ func (w *Workspace) previewBar(c *ui.Context) {
 		Padding(4, 6).PaddingEnd(w.geometry().RailBand() - geom.RailStrip + 6).
 		Children(func() {
 			ui.Box(c).Grow(1)
-			w.wechatButtons(c)
+			w.previewActions(c)
 			w.zoomButton(c, "zoom-back", geom.ZoomPreview, iconZoomPreview,
 				locale.ZoomBack(), locale.ZoomBackTooltip())
 		})

@@ -22,8 +22,9 @@
 
 ## 2 入口与流程
 
-- 预览面板加"导出"按钮（图标 + 菜单：PDF / HTML）；File 菜单加"导出为 → PDF /
-  HTML…"（菜单归 `internal/app`，视图不碰）。
+- 预览顶栏加"导出"菜单按钮（PDF / HTML），与「公众号」按钮并排；窄窗格放不下时
+  一起进工具栏的溢出菜单。File 菜单加"导出为 → PDF / HTML…"（菜单归
+  `internal/app`，视图不碰）。
 - 视图只回调：`Workspace` 增加 `OnExport func(format string)`（沿用现有的
   `OnSnapshot` / `OnAiLoad` / `OnOpenOutside` 回调模式），由 app 接线；视图不做
   任何 I/O（AGENTS 第 6 条）。
@@ -116,10 +117,10 @@
   树）写出 HTML，套上配色（当前方案的明暗色）、排版与打印规则。图片三种处理：
   写进页面（默认，base64）、放在旁边（`assets/`，同名自动加序号）、省掉（留下
   它的描述）。
-- **`internal/app/export.go`**：File 菜单"导出为…"（HTML / PDF），预览右下角
-  一个浮动的"导出"按钮（绝对定位，不占预览的版面）；对话框由 app 问，生成与写
-  文件在 goroutine；PDF 走隐藏窗口 → `LoadFile` → `Page.PrintToPDF`（A4 或
-  Letter，来自配置）→ 写文件。机器上没有 webview 时，PDF 一项直接说明原因。
+- **`internal/app/export.go`**：File 菜单"导出为…"（HTML / PDF），预览顶栏的
+  "导出"按钮与"公众号"按钮并排；窄窗格收进工具栏的溢出菜单。对话框由 app 问，
+  生成与写文件在 goroutine；PDF 走隐藏窗口 → `LoadFile` → `Page.PrintToPDF`
+  （A4 或 Letter，来自配置）→ 写文件。机器上没有 webview 时，PDF 一项直接说明原因。
   打印用的临时页面（`.xinkgo-*.html`）与目标 PDF 同目录，打印结束或页面加载失败
   时才删除；另接 `Page.OnDidFailLoad`，页面读不出来时报错而不是一直等。
 - **`internal/config`**：`export`（纸张、图片）+ 默认值 + 校验 + 测试；设置窗口
