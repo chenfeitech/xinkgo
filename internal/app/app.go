@@ -115,6 +115,9 @@ type appState struct {
 	// histStatus is what last came of putting one back.
 	histStatus string
 	histScroll ui.ScrollState
+	// web is the Web viewer plugin's window, tabs and native pages. It is
+	// empty until the user opens the viewer for the first time.
+	web webViewerState
 }
 
 // Run starts the application and does not return until it quits.
@@ -171,7 +174,7 @@ func Run() error {
 			st.plugins.updateState()
 			// The built-in core features stand or fall with the
 			// choices in plugins.json, before any plugin page loads.
-			st.plugins.applyCoreFeatures()
+			st.plugins.publishCoreContributions()
 			st.plugins.startEnabled()
 		}
 		if err := st.watchVault(); err != nil {
@@ -188,6 +191,7 @@ func Run() error {
 		current.saveLayout()
 		current.saveOpenNotes()
 		current.stopWatch()
+		current.webQuit()
 	})
 
 	if isMacOS() {
@@ -326,10 +330,26 @@ func boot(app *mygo.Application) (*appState, error) {
 	ws.OnWechatStyle = st.setWechatStyle
 	ws.OnWechatCopy = st.copyWechat
 	if st.plugins != nil {
-		ws.OnPluginCommand = st.plugins.runCommand
-		ws.OnPluginAction = st.plugins.runAction
+		// Built-in core plugins and compatible plugins share the same
+		// surfaces; one dispatcher decides who owns an ID.
+		ws.OnPluginCommand = st.runCommand
+		ws.OnPluginAction = st.runAction
 		ws.OnPluginView = st.plugins.openPluginView
 	}
+	// Web viewer tabs live in the preview pane, so their controls are
+	// wired on the workspace rather than on a window of their own.
+	ws.OnWebNavigate = st.webNavigate
+	ws.OnWebBack = st.webBack
+	ws.OnWebForward = st.webForward
+	ws.OnWebReload = st.webReload
+	ws.OnWebHome = st.webHome
+	ws.OnWebReader = st.webToggleReader
+	ws.OnWebSave = st.webSaveToVault
+	ws.OnWebOpenExternal = st.webOpenInBrowser
+	ws.OnWebNewTab = func() { st.webNewTab("about:blank") }
+	ws.OnWebSelectTab = st.webSelectTab
+	ws.OnWebCloseTab = st.webCloseTab
+	ws.OnWebShowPreview = st.webShowPreview
 	ws.Tabs.OnSave = func(path string) {
 		slog.Debug("saved", "path", path)
 		// What is saved is what is set out: the article is laid out
@@ -373,6 +393,10 @@ func (s *appState) restore() {
 	}
 	s.openNotes = all
 	s.restoreOpenNotes()
+	// The daily notes plugin may open today's note on startup. It runs
+	// after the previous tabs are back, and Tabs.Open deduplicates by
+	// path, so a note already restored is not opened twice.
+	s.dailyOpenOnStartup()
 }
 
 // restoreOpenNotes opens again what was open in the vault that is open:

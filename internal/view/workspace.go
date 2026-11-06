@@ -2,6 +2,8 @@ package view
 
 import (
 	"context"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/egoist/mygo/ui"
@@ -60,6 +62,28 @@ type Workspace struct {
 	// show, or nil when none is. It belongs to the same window the view
 	// is drawn in, which is what ui.WebView needs.
 	PluginPage ui.NativeWebView
+	// WebTabs are the pages the Web viewer plugin opened in the preview
+	// pane. The preview shows one of them, or the note's own Markdown
+	// preview while WebTabActive is empty. Each page belongs to the main
+	// window, which is what ui.WebView needs.
+	WebTabs           []WebTabInfo
+	WebTabActive      string
+	WebAddress        string
+	WebStatus         string
+	WebCanBack        bool
+	WebCanForward     bool
+	OnWebNavigate     func(address string)
+	OnWebBack         func()
+	OnWebForward      func()
+	OnWebReload       func()
+	OnWebHome         func()
+	OnWebReader       func()
+	OnWebSave         func()
+	OnWebOpenExternal func()
+	OnWebNewTab       func()
+	OnWebSelectTab    func(id string)
+	OnWebCloseTab     func(id string)
+	OnWebShowPreview  func()
 	// PluginCommands are the commands of the Obsidian-compatible plugins
 	// that are enabled. The app fills the list; the palette only draws the
 	// visible ones and reports which was chosen.
@@ -162,6 +186,8 @@ type Workspace struct {
 	paletteQuery  string
 	paletteChosen int
 	paletteFocus  bool
+	// pickerState is the template chooser the app opens for a command.
+	pickerState Picker
 
 	// search is the search of the whole vault: what was typed, and
 	// what was found.
@@ -345,8 +371,10 @@ func (w *Workspace) View(c *ui.Context) {
 				// The preview stands as wide as the user left it,
 				// less what the note has stretched over of it: that
 				// room is the preview's still, and comes back whole.
+				// A web tab on show keeps the preview pane even when the
+				// note's own Page preview core plugin is turned off.
 				if right := w.geometry().PreviewPaneWidth(); right >= 1 &&
-					w.coreOn(CorePagePreview) {
+					(w.coreOn(CorePagePreview) || w.WebTabActive != "") {
 					w.divider(c, "divider-preview", &w.Layout.Right, -1)
 					w.previewPanel(c, right)
 				}
@@ -365,6 +393,7 @@ func (w *Workspace) View(c *ui.Context) {
 	if w.coreOn(CoreCommandPalette) {
 		w.palette(c)
 	}
+	w.picker(c)
 	if w.coreOn(CoreGlobalSearch) {
 		w.searchPanel(c)
 	}
@@ -498,4 +527,30 @@ func (w *Workspace) dragPanel(width *float32, v float32) {
 // Say puts a line at the bottom of the window.
 func (w *Workspace) Say(text string) {
 	w.status = text
+}
+
+// InsertInActive puts text at the caret of the note on show, as typing
+// would, and takes the change in so autosave and the preview see it. The
+// app owns file I/O; this only mutates the editor's own state.
+func (w *Workspace) InsertInActive(text string) bool {
+	n := w.Tabs.ActiveNote()
+	if n == nil || n.Preview || n.Editor == nil {
+		return false
+	}
+	ed := n.Editor
+	sel := ed.Selection()
+	ed.Select(sel.Anchor, sel.Head)
+	ed.Insert(text)
+	w.Tabs.Edited(n)
+	return true
+}
+
+// ActiveBasename is the file name of the note on show, without its
+// extension. A template's {{title}} is named after it.
+func (w *Workspace) ActiveBasename() string {
+	n := w.Tabs.ActiveNote()
+	if n == nil {
+		return ""
+	}
+	return strings.TrimSuffix(filepath.Base(n.Path), filepath.Ext(n.Path))
 }

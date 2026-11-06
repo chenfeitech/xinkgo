@@ -11,6 +11,7 @@ import (
 	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/config"
 	"github.com/helightxu/xinkgo/internal/locale"
+	"github.com/helightxu/xinkgo/internal/plugin"
 	"github.com/helightxu/xinkgo/internal/theme"
 	"github.com/helightxu/xinkgo/internal/view"
 	"github.com/helightxu/xinkgo/internal/wechat"
@@ -127,6 +128,16 @@ type settings struct {
 	// rows were drawn last, which is how a group chosen anew is known
 	// to start at its top.
 	tab, shown string
+	// coreOpts is the draft of the built-in core plugins' choices. It is
+	// read once when the window is drawn and written on a committed
+	// change, not once a frame.
+	coreOpts       plugin.CoreOptions
+	coreOptsLoaded bool
+	// tplFolderRead is the template folder the cached list below was read
+	// from; the list is refreshed only when the tab or folder changes.
+	tplFolderRead string
+	tplFiles      []coreTemplateInfo
+	tplBad        []string
 }
 
 // The groups the settings are in, as the list on the left shows them.
@@ -161,7 +172,7 @@ type settingsTab struct {
 // then how a note is written and how it is read, then the model that is
 // asked, and last the folders and the file the choices are kept in.
 func (s *appState) settingsTabs() []settingsTab {
-	return []settingsTab{
+	tabs := []settingsTab{
 		{tabBasic, locale.SettingsTabBasic(),
 			locale.SettingsTabBasicNote(), view.IconSettingsBasic,
 			func(c *ui.Context) {
@@ -203,6 +214,7 @@ func (s *appState) settingsTabs() []settingsTab {
 		{tabFile, locale.SettingsTabFile(), locale.SettingsTabFileNote(),
 			view.IconSettingsFile, s.configFile},
 	}
+	return append(tabs, s.coreOptionTabs()...)
 }
 
 // openSettings shows the settings window, or brings it back when it is
@@ -258,6 +270,11 @@ func (s *appState) openSettingsTab(tab string) {
 // group is drawn only while it is chosen, so that a group thousands of
 // rows deep would be no slower than a shallow one.
 func (s *appState) settingsView(c *ui.Context) {
+	// The built-in plugins' choices are a separate draft from config.json.
+	if !s.draft.coreOptsLoaded {
+		s.draft.coreOpts = s.coreOptions()
+		s.draft.coreOptsLoaded = true
+	}
 	theme.Apply(c, s.draft.cfg.Basic.Theme)
 	th := c.Theme()
 	ui.Row(c).Fill().Children(func() {
@@ -290,7 +307,19 @@ func (s *appState) settingsView(c *ui.Context) {
 func (s *appState) settingsNav(c *ui.Context) {
 	ui.Sidebar(c, &s.draft.tab, func() {
 		for _, tab := range s.settingsTabs() {
+			if isCoreOptionsTab(tab.ID) {
+				continue
+			}
 			ui.SidebarItem(c, tab.ID, tab.Icon, tab.Name)
+		}
+		options := s.coreOptionTabs()
+		if len(options) > 0 {
+			ui.SidebarSection(c, locale.SettingsSectionPluginOptions(),
+				nil, func() {
+					for _, tab := range options {
+						ui.SidebarItem(c, tab.ID, tab.Icon, tab.Name)
+					}
+				})
 		}
 	}).Width(settingsNavWidth).FillHeight()
 }
@@ -303,6 +332,18 @@ func (s *appState) chosenSettings(c *ui.Context) {
 	if s.draft.tab == "" {
 		s.draft.tab = tabs[0].ID
 	}
+	// A plugin turned off while its options page was on show leaves an
+	// ID with no page. Fall back rather than drawing an empty column.
+	found := false
+	for _, tab := range tabs {
+		if tab.ID == s.draft.tab {
+			found = true
+			break
+		}
+	}
+	if !found {
+		s.draft.tab = tabCorePlugins
+	}
 	// A group chosen anew is scrolled to its top, and not to where
 	// the one before it was left.
 	if s.draft.shown != s.draft.tab {
@@ -310,6 +351,9 @@ func (s *appState) chosenSettings(c *ui.Context) {
 		s.draft.scroll = ui.ScrollState{}
 		if isPluginTab(s.draft.tab) && s.plugins != nil {
 			s.plugins.prepareSettings()
+		}
+		if isCoreOptionsTab(s.draft.tab) {
+			s.draft.refreshCoreLists(s.root, s.draft.coreOpts)
 		}
 	}
 	for _, tab := range tabs {

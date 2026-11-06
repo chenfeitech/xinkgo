@@ -77,7 +77,26 @@ var (
 	IconSettingsPlugins = svgIcon(`<path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>`)
 	IconSettingsCore    = svgIcon(`<path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/><circle cx="12" cy="12" r="4"/>`)
 	IconPluginRibbon    = svgIcon(`<path d="M12 2v3"/><path d="M12 19v3"/><path d="M2 12h3"/><path d="M19 12h3"/><path d="M5 5l2 2"/><path d="M17 17l2 2"/><path d="M19 5l-2 2"/><path d="M7 17l-2 2"/><circle cx="12" cy="12" r="3"/>`)
+	IconDailyNote       = svgIcon(`<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/>`)
+	IconTemplate        = svgIcon(`<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/>`)
+	IconGlobe           = svgIcon(`<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>`)
 )
+
+// pluginIcon resolves an icon name a plugin put on the ribbon. Built-in
+// plugins get their own picture; an unknown name falls back to the generic
+// plugin mark, as third-party icons did before names were used.
+func pluginIcon(name string) *ui.SVG {
+	switch name {
+	case "calendar-days":
+		return IconDailyNote
+	case "layout-template":
+		return IconTemplate
+	case "globe":
+		return IconGlobe
+	default:
+		return IconPluginRibbon
+	}
+}
 
 // formatIcon is the picture a button of the Markdown toolbar shows.
 func formatIcon(f xmd.Format) *ui.SVG {

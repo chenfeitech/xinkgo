@@ -14,6 +14,9 @@ const (
 	CoreStatusBar      = "status-bar"
 	CoreWordCount      = "word-count"
 	CorePluginRibbon   = "plugin-ribbon"
+	CoreDailyNotes     = "daily-notes"
+	CoreTemplates      = "templates"
+	CoreWebView        = "web-viewer"
 )
 
 // coreOn reports whether a built-in core plugin stands. A feature the app
@@ -43,6 +46,9 @@ type PluginCommand struct {
 	ID      string
 	Name    string
 	Visible bool
+	// Group is the localized name of the plugin that owns the command.
+	// The palette shows it under the command instead of a raw ID.
+	Group string
 }
 
 // PluginAction is one icon an Obsidian-compatible plugin put on the left

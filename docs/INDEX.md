@@ -17,6 +17,7 @@
 | [design/wechat.md](design/wechat.md) | 公众号排版：样式菜单、手机宽度预览、行内样式的由来、样式目录与文件格式 | 动公众号排版前 |
 | [design/obsidian-plugins.md](design/obsidian-plugins.md) | **Obsidian 插件兼容（P0 spike 已实现）**：机制调研、兼容边界、非信任 WebView 宿主、API 映射与分阶段路线 | 做插件兼容前 |
 | [design/obsidian-core-plugins.md](design/obsidian-core-plugins.md) | **Obsidian 核心插件对照**：内置能力映射、下载榜前 20、Core 兼容插件与后续路线 | 规划核心插件前 |
+| [design/daily-notes-templates.md](design/daily-notes-templates.md) | **Daily notes / Templates / Web viewer 内置核心插件（v1 已实现）**：三者功能与设置页、插件机制改造、WebView 安全边界、数据模型与实现偏差 | 改这三个核心插件前 |
 | [design/modularity.md](design/modularity.md) | 模块化梳理：现状量出来的问题、`view`/`app` 的目标文件划分、分阶段计划与新约定 | 加功能前、觉得文件太大时 |
 | [design/wechat-style-guide.md](design/wechat-style-guide.md) | **写公众号样式的指引**：键位表、CSS 能做与不能做、改 → 看 → 试、排错清单 | 写/改一套公众号样式时 |
 | [exec-plans/xinkgo-port.md](exec-plans/xinkgo-port.md) | 研发计划与状态（T-1 ~ T-46） | 接着做、看进度 |
@@ -72,6 +73,16 @@
   已做性能收敛。
   P1/P2/P3 仍待做，全部插件直接兼容不是目标，见
   [design/obsidian-plugins.md](design/obsidian-plugins.md)。
+- **Daily notes / Templates / Web viewer 内置核心插件**：v1 已实现。内置核心
+  注册表扩到 13 项，新增设置页/命令/ribbon/WebView 可用性与释放钩子声明；命令
+  与 ribbon 由内置和第三方贡献**合并**发布、`appState` 统一分发；插件选项写进
+  `plugins.json` 的 `options`，设置侧栏新增动态的「插件选项」分组（三页）。
+  Web viewer 在**预览面板以标签页**打开（WebView 挂在主窗口），远程页非信任、
+  独立会话、只放行 http(s)，含阅读视图、保存到库与内容拦截；模板清单为卡片式
+  （图标、名称、路径/大小/时间、计数与空状态）；脚本与规则 `go:embed` 进二进制。
+  设计、取舍与实现偏差见
+  [design/daily-notes-templates.md](design/daily-notes-templates.md)，验收项
+  K1 ~ K17。
 
 ## 还剩什么
 

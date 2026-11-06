@@ -6579,3 +6579,1165 @@ func PluginDegradedNote() string { return In(i18n.Locale()).PluginDegradedNote()
 func (msgs Messages) PluginDegradedNote() string {
 	return Catalog.Format(msgs.locale, "pluginDegradedNote", nil)
 }
+
+// CoreDailyNotesName says "Daily notes"
+// in the language the app shows.
+func CoreDailyNotesName() string { return In(i18n.Locale()).CoreDailyNotesName() }
+
+// CoreDailyNotesName says "Daily notes"
+// in the language of msgs.
+func (msgs Messages) CoreDailyNotesName() string {
+	return Catalog.Format(msgs.locale, "coreDailyNotesName", nil)
+}
+
+// CoreDailyNotesNote says "Open or make a note named after a date."
+// in the language the app shows.
+func CoreDailyNotesNote() string { return In(i18n.Locale()).CoreDailyNotesNote() }
+
+// CoreDailyNotesNote says "Open or make a note named after a date."
+// in the language of msgs.
+func (msgs Messages) CoreDailyNotesNote() string {
+	return Catalog.Format(msgs.locale, "coreDailyNotesNote", nil)
+}
+
+// CoreTemplatesName says "Templates"
+// in the language the app shows.
+func CoreTemplatesName() string { return In(i18n.Locale()).CoreTemplatesName() }
+
+// CoreTemplatesName says "Templates"
+// in the language of msgs.
+func (msgs Messages) CoreTemplatesName() string {
+	return Catalog.Format(msgs.locale, "coreTemplatesName", nil)
+}
+
+// CoreTemplatesNote says "Insert a template or make a note from one."
+// in the language the app shows.
+func CoreTemplatesNote() string { return In(i18n.Locale()).CoreTemplatesNote() }
+
+// CoreTemplatesNote says "Insert a template or make a note from one."
+// in the language of msgs.
+func (msgs Messages) CoreTemplatesNote() string {
+	return Catalog.Format(msgs.locale, "coreTemplatesNote", nil)
+}
+
+// CoreWebViewName says "Web viewer"
+// in the language the app shows.
+func CoreWebViewName() string { return In(i18n.Locale()).CoreWebViewName() }
+
+// CoreWebViewName says "Web viewer"
+// in the language of msgs.
+func (msgs Messages) CoreWebViewName() string {
+	return Catalog.Format(msgs.locale, "coreWebViewName", nil)
+}
+
+// CoreWebViewNote says "Read web pages in tabs of the preview pane."
+// in the language the app shows.
+func CoreWebViewNote() string { return In(i18n.Locale()).CoreWebViewNote() }
+
+// CoreWebViewNote says "Read web pages in tabs of the preview pane."
+// in the language of msgs.
+func (msgs Messages) CoreWebViewNote() string {
+	return Catalog.Format(msgs.locale, "coreWebViewNote", nil)
+}
+
+// SettingsSectionPluginOptions says "Plugin options"
+// in the language the app shows.
+func SettingsSectionPluginOptions() string { return In(i18n.Locale()).SettingsSectionPluginOptions() }
+
+// SettingsSectionPluginOptions says "Plugin options"
+// in the language of msgs.
+func (msgs Messages) SettingsSectionPluginOptions() string {
+	return Catalog.Format(msgs.locale, "settingsSectionPluginOptions", nil)
+}
+
+// SettingsTabDailyNotes says "Daily notes"
+// in the language the app shows.
+func SettingsTabDailyNotes() string { return In(i18n.Locale()).SettingsTabDailyNotes() }
+
+// SettingsTabDailyNotes says "Daily notes"
+// in the language of msgs.
+func (msgs Messages) SettingsTabDailyNotes() string {
+	return Catalog.Format(msgs.locale, "settingsTabDailyNotes", nil)
+}
+
+// SettingsTabDailyNotesNote says "How a daily note is named and filled in"
+// in the language the app shows.
+func SettingsTabDailyNotesNote() string { return In(i18n.Locale()).SettingsTabDailyNotesNote() }
+
+// SettingsTabDailyNotesNote says "How a daily note is named and filled in"
+// in the language of msgs.
+func (msgs Messages) SettingsTabDailyNotesNote() string {
+	return Catalog.Format(msgs.locale, "settingsTabDailyNotesNote", nil)
+}
+
+// SettingsTabTemplates says "Templates"
+// in the language the app shows.
+func SettingsTabTemplates() string { return In(i18n.Locale()).SettingsTabTemplates() }
+
+// SettingsTabTemplates says "Templates"
+// in the language of msgs.
+func (msgs Messages) SettingsTabTemplates() string {
+	return Catalog.Format(msgs.locale, "settingsTabTemplates", nil)
+}
+
+// SettingsTabTemplatesNote says "Where templates live and how dates in them look"
+// in the language the app shows.
+func SettingsTabTemplatesNote() string { return In(i18n.Locale()).SettingsTabTemplatesNote() }
+
+// SettingsTabTemplatesNote says "Where templates live and how dates in them look"
+// in the language of msgs.
+func (msgs Messages) SettingsTabTemplatesNote() string {
+	return Catalog.Format(msgs.locale, "settingsTabTemplatesNote", nil)
+}
+
+// SettingsTabWebView says "Web viewer"
+// in the language the app shows.
+func SettingsTabWebView() string { return In(i18n.Locale()).SettingsTabWebView() }
+
+// SettingsTabWebView says "Web viewer"
+// in the language of msgs.
+func (msgs Messages) SettingsTabWebView() string {
+	return Catalog.Format(msgs.locale, "settingsTabWebView", nil)
+}
+
+// SettingsTabWebViewNote says "The address bar, saving pages and what the viewer may load"
+// in the language the app shows.
+func SettingsTabWebViewNote() string { return In(i18n.Locale()).SettingsTabWebViewNote() }
+
+// SettingsTabWebViewNote says "The address bar, saving pages and what the viewer may load"
+// in the language of msgs.
+func (msgs Messages) SettingsTabWebViewNote() string {
+	return Catalog.Format(msgs.locale, "settingsTabWebViewNote", nil)
+}
+
+// PluginOptionsButton says "Options"
+// in the language the app shows.
+func PluginOptionsButton() string { return In(i18n.Locale()).PluginOptionsButton() }
+
+// PluginOptionsButton says "Options"
+// in the language of msgs.
+func (msgs Messages) PluginOptionsButton() string {
+	return Catalog.Format(msgs.locale, "pluginOptionsButton", nil)
+}
+
+// CmdDailyOpenToday says "Open today's daily note"
+// in the language the app shows.
+func CmdDailyOpenToday() string { return In(i18n.Locale()).CmdDailyOpenToday() }
+
+// CmdDailyOpenToday says "Open today's daily note"
+// in the language of msgs.
+func (msgs Messages) CmdDailyOpenToday() string {
+	return Catalog.Format(msgs.locale, "cmdDailyOpenToday", nil)
+}
+
+// CmdDailyOpenPrevious says "Open previous daily note"
+// in the language the app shows.
+func CmdDailyOpenPrevious() string { return In(i18n.Locale()).CmdDailyOpenPrevious() }
+
+// CmdDailyOpenPrevious says "Open previous daily note"
+// in the language of msgs.
+func (msgs Messages) CmdDailyOpenPrevious() string {
+	return Catalog.Format(msgs.locale, "cmdDailyOpenPrevious", nil)
+}
+
+// CmdDailyOpenNext says "Open next daily note"
+// in the language the app shows.
+func CmdDailyOpenNext() string { return In(i18n.Locale()).CmdDailyOpenNext() }
+
+// CmdDailyOpenNext says "Open next daily note"
+// in the language of msgs.
+func (msgs Messages) CmdDailyOpenNext() string {
+	return Catalog.Format(msgs.locale, "cmdDailyOpenNext", nil)
+}
+
+// CmdTemplatesInsert says "Insert template"
+// in the language the app shows.
+func CmdTemplatesInsert() string { return In(i18n.Locale()).CmdTemplatesInsert() }
+
+// CmdTemplatesInsert says "Insert template"
+// in the language of msgs.
+func (msgs Messages) CmdTemplatesInsert() string {
+	return Catalog.Format(msgs.locale, "cmdTemplatesInsert", nil)
+}
+
+// CmdTemplatesCreateNote says "Create new note from template"
+// in the language the app shows.
+func CmdTemplatesCreateNote() string { return In(i18n.Locale()).CmdTemplatesCreateNote() }
+
+// CmdTemplatesCreateNote says "Create new note from template"
+// in the language of msgs.
+func (msgs Messages) CmdTemplatesCreateNote() string {
+	return Catalog.Format(msgs.locale, "cmdTemplatesCreateNote", nil)
+}
+
+// CmdWebOpen says "Open web viewer"
+// in the language the app shows.
+func CmdWebOpen() string { return In(i18n.Locale()).CmdWebOpen() }
+
+// CmdWebOpen says "Open web viewer"
+// in the language of msgs.
+func (msgs Messages) CmdWebOpen() string {
+	return Catalog.Format(msgs.locale, "cmdWebOpen", nil)
+}
+
+// CmdWebSave says "Save page to vault"
+// in the language the app shows.
+func CmdWebSave() string { return In(i18n.Locale()).CmdWebSave() }
+
+// CmdWebSave says "Save page to vault"
+// in the language of msgs.
+func (msgs Messages) CmdWebSave() string {
+	return Catalog.Format(msgs.locale, "cmdWebSave", nil)
+}
+
+// CmdWebReader says "Toggle reader view"
+// in the language the app shows.
+func CmdWebReader() string { return In(i18n.Locale()).CmdWebReader() }
+
+// CmdWebReader says "Toggle reader view"
+// in the language of msgs.
+func (msgs Messages) CmdWebReader() string {
+	return Catalog.Format(msgs.locale, "cmdWebReader", nil)
+}
+
+// CmdWebOpenExternal says "Open page in browser"
+// in the language the app shows.
+func CmdWebOpenExternal() string { return In(i18n.Locale()).CmdWebOpenExternal() }
+
+// CmdWebOpenExternal says "Open page in browser"
+// in the language of msgs.
+func (msgs Messages) CmdWebOpenExternal() string {
+	return Catalog.Format(msgs.locale, "cmdWebOpenExternal", nil)
+}
+
+// MenuOpenDailyNote says "Open Today's Daily Note"
+// in the language the app shows.
+func MenuOpenDailyNote() string { return In(i18n.Locale()).MenuOpenDailyNote() }
+
+// MenuOpenDailyNote says "Open Today's Daily Note"
+// in the language of msgs.
+func (msgs Messages) MenuOpenDailyNote() string {
+	return Catalog.Format(msgs.locale, "menuOpenDailyNote", nil)
+}
+
+// MenuInsertTemplate says "Insert Template…"
+// in the language the app shows.
+func MenuInsertTemplate() string { return In(i18n.Locale()).MenuInsertTemplate() }
+
+// MenuInsertTemplate says "Insert Template…"
+// in the language of msgs.
+func (msgs Messages) MenuInsertTemplate() string {
+	return Catalog.Format(msgs.locale, "menuInsertTemplate", nil)
+}
+
+// MenuNewNoteFromTemplate says "New Note from Template…"
+// in the language the app shows.
+func MenuNewNoteFromTemplate() string { return In(i18n.Locale()).MenuNewNoteFromTemplate() }
+
+// MenuNewNoteFromTemplate says "New Note from Template…"
+// in the language of msgs.
+func (msgs Messages) MenuNewNoteFromTemplate() string {
+	return Catalog.Format(msgs.locale, "menuNewNoteFromTemplate", nil)
+}
+
+// MenuOpenWebView says "Web Viewer"
+// in the language the app shows.
+func MenuOpenWebView() string { return In(i18n.Locale()).MenuOpenWebView() }
+
+// MenuOpenWebView says "Web Viewer"
+// in the language of msgs.
+func (msgs Messages) MenuOpenWebView() string {
+	return Catalog.Format(msgs.locale, "menuOpenWebView", nil)
+}
+
+// SettingBrowse says "Browse…"
+// in the language the app shows.
+func SettingBrowse() string { return In(i18n.Locale()).SettingBrowse() }
+
+// SettingBrowse says "Browse…"
+// in the language of msgs.
+func (msgs Messages) SettingBrowse() string {
+	return Catalog.Format(msgs.locale, "settingBrowse", nil)
+}
+
+// DialogChooseFolder says "Choose a folder"
+// in the language the app shows.
+func DialogChooseFolder() string { return In(i18n.Locale()).DialogChooseFolder() }
+
+// DialogChooseFolder says "Choose a folder"
+// in the language of msgs.
+func (msgs Messages) DialogChooseFolder() string {
+	return Catalog.Format(msgs.locale, "dialogChooseFolder", nil)
+}
+
+// SettingFormatPreview says "For example: {name}"
+// in the language the app shows.
+func SettingFormatPreview(name string) string { return In(i18n.Locale()).SettingFormatPreview(name) }
+
+// SettingFormatPreview says "For example: {name}"
+// in the language of msgs.
+func (msgs Messages) SettingFormatPreview(name string) string {
+	return Catalog.Format(msgs.locale, "settingFormatPreview", map[string]any{"name": name})
+}
+
+// SettingBadFormat says "That format is not usable."
+// in the language the app shows.
+func SettingBadFormat() string { return In(i18n.Locale()).SettingBadFormat() }
+
+// SettingBadFormat says "That format is not usable."
+// in the language of msgs.
+func (msgs Messages) SettingBadFormat() string {
+	return Catalog.Format(msgs.locale, "settingBadFormat", nil)
+}
+
+// GroupDailyNote says "Daily note"
+// in the language the app shows.
+func GroupDailyNote() string { return In(i18n.Locale()).GroupDailyNote() }
+
+// GroupDailyNote says "Daily note"
+// in the language of msgs.
+func (msgs Messages) GroupDailyNote() string {
+	return Catalog.Format(msgs.locale, "groupDailyNote", nil)
+}
+
+// DailyDateFormat says "Date format"
+// in the language the app shows.
+func DailyDateFormat() string { return In(i18n.Locale()).DailyDateFormat() }
+
+// DailyDateFormat says "Date format"
+// in the language of msgs.
+func (msgs Messages) DailyDateFormat() string {
+	return Catalog.Format(msgs.locale, "dailyDateFormat", nil)
+}
+
+// DailyDateFormatNote says "Moment-style tokens name the note; YYYY-MM-DD by default."
+// in the language the app shows.
+func DailyDateFormatNote() string { return In(i18n.Locale()).DailyDateFormatNote() }
+
+// DailyDateFormatNote says "Moment-style tokens name the note; YYYY-MM-DD by default."
+// in the language of msgs.
+func (msgs Messages) DailyDateFormatNote() string {
+	return Catalog.Format(msgs.locale, "dailyDateFormatNote", nil)
+}
+
+// DailyFolder says "New file location"
+// in the language the app shows.
+func DailyFolder() string { return In(i18n.Locale()).DailyFolder() }
+
+// DailyFolder says "New file location"
+// in the language of msgs.
+func (msgs Messages) DailyFolder() string {
+	return Catalog.Format(msgs.locale, "dailyFolder", nil)
+}
+
+// DailyFolderNote says "A folder inside the vault; empty is the vault's own."
+// in the language the app shows.
+func DailyFolderNote() string { return In(i18n.Locale()).DailyFolderNote() }
+
+// DailyFolderNote says "A folder inside the vault; empty is the vault's own."
+// in the language of msgs.
+func (msgs Messages) DailyFolderNote() string {
+	return Catalog.Format(msgs.locale, "dailyFolderNote", nil)
+}
+
+// DailyTemplate says "Template file location"
+// in the language the app shows.
+func DailyTemplate() string { return In(i18n.Locale()).DailyTemplate() }
+
+// DailyTemplate says "Template file location"
+// in the language of msgs.
+func (msgs Messages) DailyTemplate() string {
+	return Catalog.Format(msgs.locale, "dailyTemplate", nil)
+}
+
+// DailyTemplateNote says "A Markdown note in the vault used to fill a new daily note."
+// in the language the app shows.
+func DailyTemplateNote() string { return In(i18n.Locale()).DailyTemplateNote() }
+
+// DailyTemplateNote says "A Markdown note in the vault used to fill a new daily note."
+// in the language of msgs.
+func (msgs Messages) DailyTemplateNote() string {
+	return Catalog.Format(msgs.locale, "dailyTemplateNote", nil)
+}
+
+// DailyOpenOnStartup says "Open daily note on startup"
+// in the language the app shows.
+func DailyOpenOnStartup() string { return In(i18n.Locale()).DailyOpenOnStartup() }
+
+// DailyOpenOnStartup says "Open daily note on startup"
+// in the language of msgs.
+func (msgs Messages) DailyOpenOnStartup() string {
+	return Catalog.Format(msgs.locale, "dailyOpenOnStartup", nil)
+}
+
+// DailyOpenOnStartupNote says "Open today's note when the app starts."
+// in the language the app shows.
+func DailyOpenOnStartupNote() string { return In(i18n.Locale()).DailyOpenOnStartupNote() }
+
+// DailyOpenOnStartupNote says "Open today's note when the app starts."
+// in the language of msgs.
+func (msgs Messages) DailyOpenOnStartupNote() string {
+	return Catalog.Format(msgs.locale, "dailyOpenOnStartupNote", nil)
+}
+
+// DailyTemplateHint says "The template uses the date and time formats from Templates."
+// in the language the app shows.
+func DailyTemplateHint() string { return In(i18n.Locale()).DailyTemplateHint() }
+
+// DailyTemplateHint says "The template uses the date and time formats from Templates."
+// in the language of msgs.
+func (msgs Messages) DailyTemplateHint() string {
+	return Catalog.Format(msgs.locale, "dailyTemplateHint", nil)
+}
+
+// GroupTemplates says "Templates"
+// in the language the app shows.
+func GroupTemplates() string { return In(i18n.Locale()).GroupTemplates() }
+
+// GroupTemplates says "Templates"
+// in the language of msgs.
+func (msgs Messages) GroupTemplates() string {
+	return Catalog.Format(msgs.locale, "groupTemplates", nil)
+}
+
+// TplFolder says "Template folder location"
+// in the language the app shows.
+func TplFolder() string { return In(i18n.Locale()).TplFolder() }
+
+// TplFolder says "Template folder location"
+// in the language of msgs.
+func (msgs Messages) TplFolder() string {
+	return Catalog.Format(msgs.locale, "tplFolder", nil)
+}
+
+// TplFolderNote says "A folder inside the vault holding Markdown templates."
+// in the language the app shows.
+func TplFolderNote() string { return In(i18n.Locale()).TplFolderNote() }
+
+// TplFolderNote says "A folder inside the vault holding Markdown templates."
+// in the language of msgs.
+func (msgs Messages) TplFolderNote() string {
+	return Catalog.Format(msgs.locale, "tplFolderNote", nil)
+}
+
+// TplDateFormat says "Date format"
+// in the language the app shows.
+func TplDateFormat() string { return In(i18n.Locale()).TplDateFormat() }
+
+// TplDateFormat says "Date format"
+// in the language of msgs.
+func (msgs Messages) TplDateFormat() string {
+	return Catalog.Format(msgs.locale, "tplDateFormat", nil)
+}
+
+// TplDateFormatNote says "What '{{date}}' becomes in a template."
+// in the language the app shows.
+func TplDateFormatNote() string { return In(i18n.Locale()).TplDateFormatNote() }
+
+// TplDateFormatNote says "What '{{date}}' becomes in a template."
+// in the language of msgs.
+func (msgs Messages) TplDateFormatNote() string {
+	return Catalog.Format(msgs.locale, "tplDateFormatNote", nil)
+}
+
+// TplTimeFormat says "Time format"
+// in the language the app shows.
+func TplTimeFormat() string { return In(i18n.Locale()).TplTimeFormat() }
+
+// TplTimeFormat says "Time format"
+// in the language of msgs.
+func (msgs Messages) TplTimeFormat() string {
+	return Catalog.Format(msgs.locale, "tplTimeFormat", nil)
+}
+
+// TplTimeFormatNote says "What '{{time}}' becomes in a template."
+// in the language the app shows.
+func TplTimeFormatNote() string { return In(i18n.Locale()).TplTimeFormatNote() }
+
+// TplTimeFormatNote says "What '{{time}}' becomes in a template."
+// in the language of msgs.
+func (msgs Messages) TplTimeFormatNote() string {
+	return Catalog.Format(msgs.locale, "tplTimeFormatNote", nil)
+}
+
+// TplListTitle says "Templates in that folder"
+// in the language the app shows.
+func TplListTitle() string { return In(i18n.Locale()).TplListTitle() }
+
+// TplListTitle says "Templates in that folder"
+// in the language of msgs.
+func (msgs Messages) TplListTitle() string {
+	return Catalog.Format(msgs.locale, "tplListTitle", nil)
+}
+
+// TplListNone says "No templates in that folder yet."
+// in the language the app shows.
+func TplListNone() string { return In(i18n.Locale()).TplListNone() }
+
+// TplListNone says "No templates in that folder yet."
+// in the language of msgs.
+func (msgs Messages) TplListNone() string {
+	return Catalog.Format(msgs.locale, "tplListNone", nil)
+}
+
+// TplCount says "{count} templates"
+// in the language the app shows.
+func TplCount(count string) string { return In(i18n.Locale()).TplCount(count) }
+
+// TplCount says "{count} templates"
+// in the language of msgs.
+func (msgs Messages) TplCount(count string) string {
+	return Catalog.Format(msgs.locale, "tplCount", map[string]any{"count": count})
+}
+
+// TplEmptyHint says "Put Markdown files in the folder above and they will show up here."
+// in the language the app shows.
+func TplEmptyHint() string { return In(i18n.Locale()).TplEmptyHint() }
+
+// TplEmptyHint says "Put Markdown files in the folder above and they will show up here."
+// in the language of msgs.
+func (msgs Messages) TplEmptyHint() string {
+	return Catalog.Format(msgs.locale, "tplEmptyHint", nil)
+}
+
+// TplMeta says "{path} · {size} · {date}"
+// in the language the app shows.
+func TplMeta(path string, size string, date string) string {
+	return In(i18n.Locale()).TplMeta(path, size, date)
+}
+
+// TplMeta says "{path} · {size} · {date}"
+// in the language of msgs.
+func (msgs Messages) TplMeta(path string, size string, date string) string {
+	return Catalog.Format(msgs.locale, "tplMeta", map[string]any{"path": path, "size": size, "date": date})
+}
+
+// TplBadTitle says "Files that could not be used"
+// in the language the app shows.
+func TplBadTitle() string { return In(i18n.Locale()).TplBadTitle() }
+
+// TplBadTitle says "Files that could not be used"
+// in the language of msgs.
+func (msgs Messages) TplBadTitle() string {
+	return Catalog.Format(msgs.locale, "tplBadTitle", nil)
+}
+
+// TplVarsNote says "Variables: '{{title}}', '{{date}}', '{{time}}', '{{date:FORMAT}}', '{{time:FORMAT}}'."
+// in the language the app shows.
+func TplVarsNote() string { return In(i18n.Locale()).TplVarsNote() }
+
+// TplVarsNote says "Variables: '{{title}}', '{{date}}', '{{time}}', '{{date:FORMAT}}', '{{time:FORMAT}}'."
+// in the language of msgs.
+func (msgs Messages) TplVarsNote() string {
+	return Catalog.Format(msgs.locale, "tplVarsNote", nil)
+}
+
+// TplPickerInsert says "Insert template"
+// in the language the app shows.
+func TplPickerInsert() string { return In(i18n.Locale()).TplPickerInsert() }
+
+// TplPickerInsert says "Insert template"
+// in the language of msgs.
+func (msgs Messages) TplPickerInsert() string {
+	return Catalog.Format(msgs.locale, "tplPickerInsert", nil)
+}
+
+// TplPickerCreate says "New note from template"
+// in the language the app shows.
+func TplPickerCreate() string { return In(i18n.Locale()).TplPickerCreate() }
+
+// TplPickerCreate says "New note from template"
+// in the language of msgs.
+func (msgs Messages) TplPickerCreate() string {
+	return Catalog.Format(msgs.locale, "tplPickerCreate", nil)
+}
+
+// TplPickerEmpty says "Set a template folder in Templates options first."
+// in the language the app shows.
+func TplPickerEmpty() string { return In(i18n.Locale()).TplPickerEmpty() }
+
+// TplPickerEmpty says "Set a template folder in Templates options first."
+// in the language of msgs.
+func (msgs Messages) TplPickerEmpty() string {
+	return Catalog.Format(msgs.locale, "tplPickerEmpty", nil)
+}
+
+// GroupWebView says "Web viewer"
+// in the language the app shows.
+func GroupWebView() string { return In(i18n.Locale()).GroupWebView() }
+
+// GroupWebView says "Web viewer"
+// in the language of msgs.
+func (msgs Messages) GroupWebView() string {
+	return Catalog.Format(msgs.locale, "groupWebView", nil)
+}
+
+// WebHomepage says "Homepage"
+// in the language the app shows.
+func WebHomepage() string { return In(i18n.Locale()).WebHomepage() }
+
+// WebHomepage says "Homepage"
+// in the language of msgs.
+func (msgs Messages) WebHomepage() string {
+	return Catalog.Format(msgs.locale, "webHomepage", nil)
+}
+
+// WebHomepageNote says "The address a new tab opens; empty is a blank tab."
+// in the language the app shows.
+func WebHomepageNote() string { return In(i18n.Locale()).WebHomepageNote() }
+
+// WebHomepageNote says "The address a new tab opens; empty is a blank tab."
+// in the language of msgs.
+func (msgs Messages) WebHomepageNote() string {
+	return Catalog.Format(msgs.locale, "webHomepageNote", nil)
+}
+
+// WebSearchEngine says "Search engine"
+// in the language the app shows.
+func WebSearchEngine() string { return In(i18n.Locale()).WebSearchEngine() }
+
+// WebSearchEngine says "Search engine"
+// in the language of msgs.
+func (msgs Messages) WebSearchEngine() string {
+	return Catalog.Format(msgs.locale, "webSearchEngine", nil)
+}
+
+// WebSearchEngineNote says "A URL with a '{query}' placeholder where the words are put."
+// in the language the app shows.
+func WebSearchEngineNote() string { return In(i18n.Locale()).WebSearchEngineNote() }
+
+// WebSearchEngineNote says "A URL with a '{query}' placeholder where the words are put."
+// in the language of msgs.
+func (msgs Messages) WebSearchEngineNote() string {
+	return Catalog.Format(msgs.locale, "webSearchEngineNote", nil)
+}
+
+// WebSaveFolder says "Save page location"
+// in the language the app shows.
+func WebSaveFolder() string { return In(i18n.Locale()).WebSaveFolder() }
+
+// WebSaveFolder says "Save page location"
+// in the language of msgs.
+func (msgs Messages) WebSaveFolder() string {
+	return Catalog.Format(msgs.locale, "webSaveFolder", nil)
+}
+
+// WebSaveFolderNote says "A folder inside the vault for saved pages."
+// in the language the app shows.
+func WebSaveFolderNote() string { return In(i18n.Locale()).WebSaveFolderNote() }
+
+// WebSaveFolderNote says "A folder inside the vault for saved pages."
+// in the language of msgs.
+func (msgs Messages) WebSaveFolderNote() string {
+	return Catalog.Format(msgs.locale, "webSaveFolderNote", nil)
+}
+
+// WebSaveTemplate says "Save template"
+// in the language the app shows.
+func WebSaveTemplate() string { return In(i18n.Locale()).WebSaveTemplate() }
+
+// WebSaveTemplate says "Save template"
+// in the language of msgs.
+func (msgs Messages) WebSaveTemplate() string {
+	return Catalog.Format(msgs.locale, "webSaveTemplate", nil)
+}
+
+// WebSaveTemplateNote says "Optional template used when a page is saved."
+// in the language the app shows.
+func WebSaveTemplateNote() string { return In(i18n.Locale()).WebSaveTemplateNote() }
+
+// WebSaveTemplateNote says "Optional template used when a page is saved."
+// in the language of msgs.
+func (msgs Messages) WebSaveTemplateNote() string {
+	return Catalog.Format(msgs.locale, "webSaveTemplateNote", nil)
+}
+
+// WebAdBlock says "Block ads and trackers"
+// in the language the app shows.
+func WebAdBlock() string { return In(i18n.Locale()).WebAdBlock() }
+
+// WebAdBlock says "Block ads and trackers"
+// in the language of msgs.
+func (msgs Messages) WebAdBlock() string {
+	return Catalog.Format(msgs.locale, "webAdBlock", nil)
+}
+
+// WebAdBlockNote says "Apply the app's content rules to every page."
+// in the language the app shows.
+func WebAdBlockNote() string { return In(i18n.Locale()).WebAdBlockNote() }
+
+// WebAdBlockNote says "Apply the app's content rules to every page."
+// in the language of msgs.
+func (msgs Messages) WebAdBlockNote() string {
+	return Catalog.Format(msgs.locale, "webAdBlockNote", nil)
+}
+
+// WebRuleFile says "Rule file"
+// in the language the app shows.
+func WebRuleFile() string { return In(i18n.Locale()).WebRuleFile() }
+
+// WebRuleFile says "Rule file"
+// in the language of msgs.
+func (msgs Messages) WebRuleFile() string {
+	return Catalog.Format(msgs.locale, "webRuleFile", nil)
+}
+
+// WebRuleFileNote says "An optional local JSON file of WebKit content rules."
+// in the language the app shows.
+func WebRuleFileNote() string { return In(i18n.Locale()).WebRuleFileNote() }
+
+// WebRuleFileNote says "An optional local JSON file of WebKit content rules."
+// in the language of msgs.
+func (msgs Messages) WebRuleFileNote() string {
+	return Catalog.Format(msgs.locale, "webRuleFileNote", nil)
+}
+
+// WebAllowLocal says "Allow local addresses"
+// in the language the app shows.
+func WebAllowLocal() string { return In(i18n.Locale()).WebAllowLocal() }
+
+// WebAllowLocal says "Allow local addresses"
+// in the language of msgs.
+func (msgs Messages) WebAllowLocal() string {
+	return Catalog.Format(msgs.locale, "webAllowLocal", nil)
+}
+
+// WebAllowLocalNote says "Let pages reach loopback and private network addresses."
+// in the language the app shows.
+func WebAllowLocalNote() string { return In(i18n.Locale()).WebAllowLocalNote() }
+
+// WebAllowLocalNote says "Let pages reach loopback and private network addresses."
+// in the language of msgs.
+func (msgs Messages) WebAllowLocalNote() string {
+	return Catalog.Format(msgs.locale, "webAllowLocalNote", nil)
+}
+
+// WebClearOnQuit says "Clear browsing data on quit"
+// in the language the app shows.
+func WebClearOnQuit() string { return In(i18n.Locale()).WebClearOnQuit() }
+
+// WebClearOnQuit says "Clear browsing data on quit"
+// in the language of msgs.
+func (msgs Messages) WebClearOnQuit() string {
+	return Catalog.Format(msgs.locale, "webClearOnQuit", nil)
+}
+
+// WebClearOnQuitNote says "Forget cookies and caches when the app closes."
+// in the language the app shows.
+func WebClearOnQuitNote() string { return In(i18n.Locale()).WebClearOnQuitNote() }
+
+// WebClearOnQuitNote says "Forget cookies and caches when the app closes."
+// in the language of msgs.
+func (msgs Messages) WebClearOnQuitNote() string {
+	return Catalog.Format(msgs.locale, "webClearOnQuitNote", nil)
+}
+
+// WebClearData says "Clear browsing data"
+// in the language the app shows.
+func WebClearData() string { return In(i18n.Locale()).WebClearData() }
+
+// WebClearData says "Clear browsing data"
+// in the language of msgs.
+func (msgs Messages) WebClearData() string {
+	return Catalog.Format(msgs.locale, "webClearData", nil)
+}
+
+// WebClearConfirmTitle says "Clear browsing data?"
+// in the language the app shows.
+func WebClearConfirmTitle() string { return In(i18n.Locale()).WebClearConfirmTitle() }
+
+// WebClearConfirmTitle says "Clear browsing data?"
+// in the language of msgs.
+func (msgs Messages) WebClearConfirmTitle() string {
+	return Catalog.Format(msgs.locale, "webClearConfirmTitle", nil)
+}
+
+// WebClearConfirmMessage says "This forgets the cookies and caches of the Web viewer."
+// in the language the app shows.
+func WebClearConfirmMessage() string { return In(i18n.Locale()).WebClearConfirmMessage() }
+
+// WebClearConfirmMessage says "This forgets the cookies and caches of the Web viewer."
+// in the language of msgs.
+func (msgs Messages) WebClearConfirmMessage() string {
+	return Catalog.Format(msgs.locale, "webClearConfirmMessage", nil)
+}
+
+// WebClearConfirmOk says "Clear"
+// in the language the app shows.
+func WebClearConfirmOk() string { return In(i18n.Locale()).WebClearConfirmOk() }
+
+// WebClearConfirmOk says "Clear"
+// in the language of msgs.
+func (msgs Messages) WebClearConfirmOk() string {
+	return Catalog.Format(msgs.locale, "webClearConfirmOk", nil)
+}
+
+// WebLinkOpenNote says "Whether external links open in the app is set under Preview › Link open."
+// in the language the app shows.
+func WebLinkOpenNote() string { return In(i18n.Locale()).WebLinkOpenNote() }
+
+// WebLinkOpenNote says "Whether external links open in the app is set under Preview › Link open."
+// in the language of msgs.
+func (msgs Messages) WebLinkOpenNote() string {
+	return Catalog.Format(msgs.locale, "webLinkOpenNote", nil)
+}
+
+// WebLinkOpenButton says "Go to Preview settings"
+// in the language the app shows.
+func WebLinkOpenButton() string { return In(i18n.Locale()).WebLinkOpenButton() }
+
+// WebLinkOpenButton says "Go to Preview settings"
+// in the language of msgs.
+func (msgs Messages) WebLinkOpenButton() string {
+	return Catalog.Format(msgs.locale, "webLinkOpenButton", nil)
+}
+
+// WebNoWebView says "This machine has no webview, so the Web viewer cannot run."
+// in the language the app shows.
+func WebNoWebView() string { return In(i18n.Locale()).WebNoWebView() }
+
+// WebNoWebView says "This machine has no webview, so the Web viewer cannot run."
+// in the language of msgs.
+func (msgs Messages) WebNoWebView() string {
+	return Catalog.Format(msgs.locale, "webNoWebView", nil)
+}
+
+// WebAddressPlaceholder says "Enter a URL or words to search"
+// in the language the app shows.
+func WebAddressPlaceholder() string { return In(i18n.Locale()).WebAddressPlaceholder() }
+
+// WebAddressPlaceholder says "Enter a URL or words to search"
+// in the language of msgs.
+func (msgs Messages) WebAddressPlaceholder() string {
+	return Catalog.Format(msgs.locale, "webAddressPlaceholder", nil)
+}
+
+// WebBack says "Back"
+// in the language the app shows.
+func WebBack() string { return In(i18n.Locale()).WebBack() }
+
+// WebBack says "Back"
+// in the language of msgs.
+func (msgs Messages) WebBack() string {
+	return Catalog.Format(msgs.locale, "webBack", nil)
+}
+
+// WebForward says "Forward"
+// in the language the app shows.
+func WebForward() string { return In(i18n.Locale()).WebForward() }
+
+// WebForward says "Forward"
+// in the language of msgs.
+func (msgs Messages) WebForward() string {
+	return Catalog.Format(msgs.locale, "webForward", nil)
+}
+
+// WebReload says "Reload"
+// in the language the app shows.
+func WebReload() string { return In(i18n.Locale()).WebReload() }
+
+// WebReload says "Reload"
+// in the language of msgs.
+func (msgs Messages) WebReload() string {
+	return Catalog.Format(msgs.locale, "webReload", nil)
+}
+
+// WebHome says "Homepage"
+// in the language the app shows.
+func WebHome() string { return In(i18n.Locale()).WebHome() }
+
+// WebHome says "Homepage"
+// in the language of msgs.
+func (msgs Messages) WebHome() string {
+	return Catalog.Format(msgs.locale, "webHome", nil)
+}
+
+// WebReader says "Reader view"
+// in the language the app shows.
+func WebReader() string { return In(i18n.Locale()).WebReader() }
+
+// WebReader says "Reader view"
+// in the language of msgs.
+func (msgs Messages) WebReader() string {
+	return Catalog.Format(msgs.locale, "webReader", nil)
+}
+
+// WebSave says "Save to vault"
+// in the language the app shows.
+func WebSave() string { return In(i18n.Locale()).WebSave() }
+
+// WebSave says "Save to vault"
+// in the language of msgs.
+func (msgs Messages) WebSave() string {
+	return Catalog.Format(msgs.locale, "webSave", nil)
+}
+
+// WebExternal says "Open in browser"
+// in the language the app shows.
+func WebExternal() string { return In(i18n.Locale()).WebExternal() }
+
+// WebExternal says "Open in browser"
+// in the language of msgs.
+func (msgs Messages) WebExternal() string {
+	return Catalog.Format(msgs.locale, "webExternal", nil)
+}
+
+// WebNewTab says "New tab"
+// in the language the app shows.
+func WebNewTab() string { return In(i18n.Locale()).WebNewTab() }
+
+// WebNewTab says "New tab"
+// in the language of msgs.
+func (msgs Messages) WebNewTab() string {
+	return Catalog.Format(msgs.locale, "webNewTab", nil)
+}
+
+// WebTabPreview says "Preview"
+// in the language the app shows.
+func WebTabPreview() string { return In(i18n.Locale()).WebTabPreview() }
+
+// WebTabPreview says "Preview"
+// in the language of msgs.
+func (msgs Messages) WebTabPreview() string {
+	return Catalog.Format(msgs.locale, "webTabPreview", nil)
+}
+
+// WebCloseTab says "Close tab"
+// in the language the app shows.
+func WebCloseTab() string { return In(i18n.Locale()).WebCloseTab() }
+
+// WebCloseTab says "Close tab"
+// in the language of msgs.
+func (msgs Messages) WebCloseTab() string {
+	return Catalog.Format(msgs.locale, "webCloseTab", nil)
+}
+
+// WebUntitled says "New tab"
+// in the language the app shows.
+func WebUntitled() string { return In(i18n.Locale()).WebUntitled() }
+
+// WebUntitled says "New tab"
+// in the language of msgs.
+func (msgs Messages) WebUntitled() string {
+	return Catalog.Format(msgs.locale, "webUntitled", nil)
+}
+
+// WebLoading says "Loading…"
+// in the language the app shows.
+func WebLoading() string { return In(i18n.Locale()).WebLoading() }
+
+// WebLoading says "Loading…"
+// in the language of msgs.
+func (msgs Messages) WebLoading() string {
+	return Catalog.Format(msgs.locale, "webLoading", nil)
+}
+
+// WebLoadFailed says "The page could not be loaded."
+// in the language the app shows.
+func WebLoadFailed() string { return In(i18n.Locale()).WebLoadFailed() }
+
+// WebLoadFailed says "The page could not be loaded."
+// in the language of msgs.
+func (msgs Messages) WebLoadFailed() string {
+	return Catalog.Format(msgs.locale, "webLoadFailed", nil)
+}
+
+// SayDailyOpened says "opened {name}"
+// in the language the app shows.
+func SayDailyOpened(name string) string { return In(i18n.Locale()).SayDailyOpened(name) }
+
+// SayDailyOpened says "opened {name}"
+// in the language of msgs.
+func (msgs Messages) SayDailyOpened(name string) string {
+	return Catalog.Format(msgs.locale, "sayDailyOpened", map[string]any{"name": name})
+}
+
+// SayDailyNotMade says "the daily note could not be made"
+// in the language the app shows.
+func SayDailyNotMade() string { return In(i18n.Locale()).SayDailyNotMade() }
+
+// SayDailyNotMade says "the daily note could not be made"
+// in the language of msgs.
+func (msgs Messages) SayDailyNotMade() string {
+	return Catalog.Format(msgs.locale, "sayDailyNotMade", nil)
+}
+
+// SayDailyNoEarlier says "no earlier daily note"
+// in the language the app shows.
+func SayDailyNoEarlier() string { return In(i18n.Locale()).SayDailyNoEarlier() }
+
+// SayDailyNoEarlier says "no earlier daily note"
+// in the language of msgs.
+func (msgs Messages) SayDailyNoEarlier() string {
+	return Catalog.Format(msgs.locale, "sayDailyNoEarlier", nil)
+}
+
+// SayDailyNoLater says "no later daily note"
+// in the language the app shows.
+func SayDailyNoLater() string { return In(i18n.Locale()).SayDailyNoLater() }
+
+// SayDailyNoLater says "no later daily note"
+// in the language of msgs.
+func (msgs Messages) SayDailyNoLater() string {
+	return Catalog.Format(msgs.locale, "sayDailyNoLater", nil)
+}
+
+// SayDailyNoVault says "open a vault first"
+// in the language the app shows.
+func SayDailyNoVault() string { return In(i18n.Locale()).SayDailyNoVault() }
+
+// SayDailyNoVault says "open a vault first"
+// in the language of msgs.
+func (msgs Messages) SayDailyNoVault() string {
+	return Catalog.Format(msgs.locale, "sayDailyNoVault", nil)
+}
+
+// SayDailyBadFormat says "the daily notes date format is not usable"
+// in the language the app shows.
+func SayDailyBadFormat() string { return In(i18n.Locale()).SayDailyBadFormat() }
+
+// SayDailyBadFormat says "the daily notes date format is not usable"
+// in the language of msgs.
+func (msgs Messages) SayDailyBadFormat() string {
+	return Catalog.Format(msgs.locale, "sayDailyBadFormat", nil)
+}
+
+// SayTemplateInserted says "template inserted"
+// in the language the app shows.
+func SayTemplateInserted() string { return In(i18n.Locale()).SayTemplateInserted() }
+
+// SayTemplateInserted says "template inserted"
+// in the language of msgs.
+func (msgs Messages) SayTemplateInserted() string {
+	return Catalog.Format(msgs.locale, "sayTemplateInserted", nil)
+}
+
+// SayTemplateNotRead says "the template could not be read"
+// in the language the app shows.
+func SayTemplateNotRead() string { return In(i18n.Locale()).SayTemplateNotRead() }
+
+// SayTemplateNotRead says "the template could not be read"
+// in the language of msgs.
+func (msgs Messages) SayTemplateNotRead() string {
+	return Catalog.Format(msgs.locale, "sayTemplateNotRead", nil)
+}
+
+// SayTemplateNoActive says "open a note first"
+// in the language the app shows.
+func SayTemplateNoActive() string { return In(i18n.Locale()).SayTemplateNoActive() }
+
+// SayTemplateNoActive says "open a note first"
+// in the language of msgs.
+func (msgs Messages) SayTemplateNoActive() string {
+	return Catalog.Format(msgs.locale, "sayTemplateNoActive", nil)
+}
+
+// SayTemplateFolderNotSet says "set a template folder in Templates options first"
+// in the language the app shows.
+func SayTemplateFolderNotSet() string { return In(i18n.Locale()).SayTemplateFolderNotSet() }
+
+// SayTemplateFolderNotSet says "set a template folder in Templates options first"
+// in the language of msgs.
+func (msgs Messages) SayTemplateFolderNotSet() string {
+	return Catalog.Format(msgs.locale, "sayTemplateFolderNotSet", nil)
+}
+
+// SayTemplateNotMade says "the note could not be made"
+// in the language the app shows.
+func SayTemplateNotMade() string { return In(i18n.Locale()).SayTemplateNotMade() }
+
+// SayTemplateNotMade says "the note could not be made"
+// in the language of msgs.
+func (msgs Messages) SayTemplateNotMade() string {
+	return Catalog.Format(msgs.locale, "sayTemplateNotMade", nil)
+}
+
+// SayOptionOutsideVault says "that path is outside the vault"
+// in the language the app shows.
+func SayOptionOutsideVault() string { return In(i18n.Locale()).SayOptionOutsideVault() }
+
+// SayOptionOutsideVault says "that path is outside the vault"
+// in the language of msgs.
+func (msgs Messages) SayOptionOutsideVault() string {
+	return Catalog.Format(msgs.locale, "sayOptionOutsideVault", nil)
+}
+
+// SayOptionBadFormat says "that format is not usable"
+// in the language the app shows.
+func SayOptionBadFormat() string { return In(i18n.Locale()).SayOptionBadFormat() }
+
+// SayOptionBadFormat says "that format is not usable"
+// in the language of msgs.
+func (msgs Messages) SayOptionBadFormat() string {
+	return Catalog.Format(msgs.locale, "sayOptionBadFormat", nil)
+}
+
+// SayWebNoPage says "open a page first"
+// in the language the app shows.
+func SayWebNoPage() string { return In(i18n.Locale()).SayWebNoPage() }
+
+// SayWebNoPage says "open a page first"
+// in the language of msgs.
+func (msgs Messages) SayWebNoPage() string {
+	return Catalog.Format(msgs.locale, "sayWebNoPage", nil)
+}
+
+// SayWebSaved says "saved as {name}"
+// in the language the app shows.
+func SayWebSaved(name string) string { return In(i18n.Locale()).SayWebSaved(name) }
+
+// SayWebSaved says "saved as {name}"
+// in the language of msgs.
+func (msgs Messages) SayWebSaved(name string) string {
+	return Catalog.Format(msgs.locale, "sayWebSaved", map[string]any{"name": name})
+}
+
+// SayWebSaveFailed says "the page could not be saved"
+// in the language the app shows.
+func SayWebSaveFailed() string { return In(i18n.Locale()).SayWebSaveFailed() }
+
+// SayWebSaveFailed says "the page could not be saved"
+// in the language of msgs.
+func (msgs Messages) SayWebSaveFailed() string {
+	return Catalog.Format(msgs.locale, "sayWebSaveFailed", nil)
+}
+
+// SayWebNoVault says "open a vault first"
+// in the language the app shows.
+func SayWebNoVault() string { return In(i18n.Locale()).SayWebNoVault() }
+
+// SayWebNoVault says "open a vault first"
+// in the language of msgs.
+func (msgs Messages) SayWebNoVault() string {
+	return Catalog.Format(msgs.locale, "sayWebNoVault", nil)
+}
+
+// SayWebBlocked says "that address is not allowed"
+// in the language the app shows.
+func SayWebBlocked() string { return In(i18n.Locale()).SayWebBlocked() }
+
+// SayWebBlocked says "that address is not allowed"
+// in the language of msgs.
+func (msgs Messages) SayWebBlocked() string {
+	return Catalog.Format(msgs.locale, "sayWebBlocked", nil)
+}
+
+// SayWebNoWebView says "this machine has no webview"
+// in the language the app shows.
+func SayWebNoWebView() string { return In(i18n.Locale()).SayWebNoWebView() }
+
+// SayWebNoWebView says "this machine has no webview"
+// in the language of msgs.
+func (msgs Messages) SayWebNoWebView() string {
+	return Catalog.Format(msgs.locale, "sayWebNoWebView", nil)
+}
+
+// SayWebRuleBad says "the content rules could not be read"
+// in the language the app shows.
+func SayWebRuleBad() string { return In(i18n.Locale()).SayWebRuleBad() }
+
+// SayWebRuleBad says "the content rules could not be read"
+// in the language of msgs.
+func (msgs Messages) SayWebRuleBad() string {
+	return Catalog.Format(msgs.locale, "sayWebRuleBad", nil)
+}

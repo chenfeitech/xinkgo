@@ -101,6 +101,21 @@ func pageTitle(address string) string {
 // log, for there is nothing the user can do about it.
 func (s *appState) openOutside(address string) {
 	if s.config.Preview.LinkOpen == config.LinkInApp {
+		// The Web viewer, when it is on and the machine has a webview,
+		// takes external links into its own tab strip. When it is off or
+		// refuses the address, the old bare-window path still stands
+		// only when the viewer is off: a refused address must not be
+		// loaded by a less-guarded window of this app.
+		if s.coreEnabled("web-viewer") {
+			if s.webOpenURL(address) {
+				return
+			}
+			if err := mygo.Shell.OpenExternal(address); err != nil {
+				slog.Warn("the link could not be opened",
+					"url", address, "err", err)
+			}
+			return
+		}
 		if err := openWebURL(address); err != nil {
 			slog.Warn("the page could not be opened here",
 				"url", address, "err", err)

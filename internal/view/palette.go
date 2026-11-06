@@ -229,12 +229,21 @@ func (w *Workspace) pluginItems() []paletteItem {
 		}
 		items = append(items, paletteItem{
 			Name:      r.Text,
-			Title:     one.ID,
+			Title:     commandGroup(one),
 			Positions: r.Positions,
 			Plugin:    one,
 		})
 	}
 	return items
+}
+
+// commandGroup is the line under a command's name: the plugin's own name
+// when the host gave one, or the raw ID for an older third-party command.
+func commandGroup(one *PluginCommand) string {
+	if one.Group != "" {
+		return one.Group
+	}
+	return one.ID
 }
 
 // pluginCommandNamed is the visible command of that name.

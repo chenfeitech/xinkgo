@@ -15,6 +15,11 @@ import (
 // user moved is the one the menu shows, and the vaults are the ones the
 // user can open.
 func mainMenu(bound []keymap.Resolved, vaults vault.Registry) *mygo.Menu {
+	// A built-in plugin's menu entry stands only while the plugin is on
+	// and can run on this machine.
+	coreOn := func(id string) bool {
+		return current != nil && current.coreEnabled(id)
+	}
 	key := func(action string) string {
 		for _, r := range bound {
 			if r.Action == action {
@@ -103,6 +108,13 @@ func mainMenu(bound []keymap.Resolved, vaults vault.Registry) *mygo.Menu {
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current != nil {
 						current.newFolderIn(current.ws.Tree.DirOf())
+					}
+				}},
+			{Label: locale.MenuOpenDailyNote(),
+				Hidden: !coreOn("daily-notes"),
+				Click: func(*mygo.MenuItem, *mygo.Window) {
+					if current != nil {
+						current.dailyOpenToday()
 					}
 				}},
 			{Label: locale.MenuPasteIntoVault(), Accelerator: "CmdOrCtrl+Shift+V",
@@ -206,6 +218,20 @@ func mainMenu(bound []keymap.Resolved, vaults vault.Registry) *mygo.Menu {
 				}},
 		)},
 		{Label: locale.MenuNote(), Submenu: []*mygo.MenuItem{
+			{Label: locale.MenuInsertTemplate(),
+				Hidden: !coreOn("templates"),
+				Click: func(*mygo.MenuItem, *mygo.Window) {
+					if current != nil {
+						current.templatesInsert()
+					}
+				}},
+			{Label: locale.MenuNewNoteFromTemplate(),
+				Hidden: !coreOn("templates"),
+				Click: func(*mygo.MenuItem, *mygo.Window) {
+					if current != nil {
+						current.templatesCreateNote()
+					}
+				}},
 			{Label: locale.MenuRename(), Accelerator: key("RenameItem"),
 				Click: func(*mygo.MenuItem, *mygo.Window) {
 					if current != nil {
@@ -234,6 +260,13 @@ func mainMenu(bound []keymap.Resolved, vaults vault.Registry) *mygo.Menu {
 		}},
 		{
 			Label: locale.MenuView(), Submenu: []*mygo.MenuItem{
+				{Label: locale.MenuOpenWebView(),
+					Hidden: !coreOn("web-viewer"),
+					Click: func(*mygo.MenuItem, *mygo.Window) {
+						if current != nil {
+							current.webOpen()
+						}
+					}},
 				{Label: locale.MenuToggleTheme(),
 					Accelerator: key("ToggleTheme"),
 					Click: func(*mygo.MenuItem, *mygo.Window) {

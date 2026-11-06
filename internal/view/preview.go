@@ -38,6 +38,14 @@ func (w *Workspace) previewPanel(c *ui.Context, width float32) {
 		} else {
 			w.previewHead(c)
 		}
+		// The Web viewer's tabs stand in the preview pane. A web tab on
+		// show takes the pane's content instead of the note's Markdown
+		// preview, until the Preview tab is chosen again.
+		w.webTabStrip(c)
+		if w.WebTabActive != "" {
+			w.webPane(c)
+			return
+		}
 		n := w.Tabs.ActiveNote()
 		if n == nil {
 			return

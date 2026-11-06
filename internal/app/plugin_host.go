@@ -343,50 +343,10 @@ func (h *pluginHost) notifyState(name string) {
 }
 
 // refreshCommands publishes the registered plugin commands to the native
-// command palette. A view is never allowed to call into the plugin runtime.
+// command palette. Built-in core plugins contribute to the same lists, so
+// the merge lives in publishCoreContributions, which this calls.
 func (h *pluginHost) refreshCommands() {
-	h.mu.RLock()
-	commands := []view.PluginCommand{}
-	ribbon := []view.PluginAction{}
-	views := []view.PluginView{}
-	for _, inst := range h.instances {
-		if !inst.ready {
-			continue
-		}
-		for _, one := range inst.commands {
-			commands = append(commands, one)
-		}
-		for _, one := range inst.ribbon {
-			ribbon = append(ribbon, one)
-		}
-		for _, one := range inst.views {
-			views = append(views, one)
-		}
-	}
-	h.mu.RUnlock()
-	sort.Slice(commands, func(i, j int) bool {
-		return strings.ToLower(commands[i].Name) <
-			strings.ToLower(commands[j].Name)
-	})
-	sort.Slice(ribbon, func(i, j int) bool {
-		return strings.ToLower(ribbon[i].Name) <
-			strings.ToLower(ribbon[j].Name)
-	})
-	sort.Slice(views, func(i, j int) bool {
-		return strings.ToLower(views[i].Name) <
-			strings.ToLower(views[j].Name)
-	})
-	h.setWorkspace(func(ws *view.Workspace) {
-		ws.PluginCommands = commands
-		ws.PluginRibbon = ribbon
-		ws.PluginViews = views
-		// A surface whose plugin went away is put away too.
-		if ws.PluginViewActive != "" && !viewInList(views,
-			ws.PluginViewActive) {
-			ws.PluginViewActive = ""
-			ws.PluginPage = nil
-		}
-	})
+	h.publishCoreContributions()
 }
 
 func viewInList(list []view.PluginView, id string) bool {

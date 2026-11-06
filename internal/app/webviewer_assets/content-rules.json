@@ -1,0 +1,9 @@
+[
+  {"trigger":{"url-filter":".*doubleclick.*"},"action":{"type":"block"}},
+  {"trigger":{"url-filter":".*googlesyndication.*"},"action":{"type":"block"}},
+  {"trigger":{"url-filter":".*googleadservices.*"},"action":{"type":"block"}},
+  {"trigger":{"url-filter":".*googletagmanager.*"},"action":{"type":"block"}},
+  {"trigger":{"url-filter":".*scorecardresearch.*"},"action":{"type":"block"}},
+  {"trigger":{"url-filter":".*criteo.*"},"action":{"type":"block"}},
+  {"trigger":{"url-filter":".*","load-type":["third-party"]},"action":{"type":"css-display-none","selector":".ad, .ads, .advertisement, #ad, #ads"}}
+]

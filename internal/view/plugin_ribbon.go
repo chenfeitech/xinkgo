@@ -27,7 +27,7 @@ func (w *Workspace) pluginRibbon(c *ui.Context) {
 				Radius(th.Radius).Justify(ui.Center).
 				AlignItems(ui.Center)
 			button.Children(func() {
-				ui.Icon(c, IconPluginRibbon).
+				ui.Icon(c, pluginIcon(action.Icon)).
 					Size(pluginRibbonIcon, pluginRibbonIcon).
 					TextColor(th.TextMuted)
 			})

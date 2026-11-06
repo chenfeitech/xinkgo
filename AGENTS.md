@@ -70,6 +70,7 @@ make doctor         # 环境自检
 | 加一个公众号排版样式 | `internal/wechat` 加内建主题，或往 `<用户数据>/wechat/` 放一个 JSON（见 [docs/design/wechat.md](docs/design/wechat.md)） |
 | 加界面文案 / 加一门语言 | `internal/locale`：en.json 加键（+ zh-Hans.json），`go tool mygo generate`，代码调 `locale.Xxx()`；见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) 第 6 节 |
 | 加配置项 | `internal/config`（字段 + 默认值 + 校验 + 测试） |
+| 加内置核心插件 | `internal/plugin/core.go` 注册表 + `internal/plugin/options.go` 选项 + `internal/app/core_contrib.go` 贡献表 + 对应 `internal/app/*_settings.go`/插件文件 + `internal/locale`；见 [docs/design/daily-notes-templates.md](docs/design/daily-notes-templates.md) |
 | 加 Web 窗口 / 前端 | `internal/app/web.go` 的绑定服务，`mygo generate` 生成 TS 客户端 |
 | 加平台差异行为 | `internal/app/platform_<goos>.go` |
 | 改版本号 | `mygo.json` + `internal/app/app.go` 两处 |

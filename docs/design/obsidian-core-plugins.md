@@ -1,13 +1,18 @@
 # Obsidian 核心插件对照与 Xinkgo 核心插件
 
-日期：2026-11-05。状态：**设计梳理、浏览器 Core 标记、内置核心注册表与开关
-已落地**。本文回答两件事：Obsidian 的「核心插件」在 Xinkgo 里对应什么；哪些最
-常用的社区插件值得当作 Xinkgo 的核心兼容插件优先维护。
+日期：2026-11-05（2026-11-06 更新）。状态：**设计梳理、浏览器 Core 标记、
+内置核心注册表与开关已落地**；Daily notes / Templates / Web viewer 三个内置
+核心插件已实现。本文回答两件事：Obsidian 的「核心插件」在 Xinkgo 里对应什么；
+哪些最常用的社区插件值得当作 Xinkgo 的核心兼容插件优先维护。
 
 > 2026-11-05：此前「核心插件」只指社区热门插件的 Core 标记。本轮把它分成三层：
 > **内置核心能力**（Xinkgo 自己实现、统一开关、写 `plugins.json`，见 §4）、
 > **核心兼容插件**（社区热门、打 Core 标记、仍按 C3/C4 降级，§2）、**其他插件**。
 > 下表的「已内置」项现在都是可开关的内置核心插件。
+
+> 2026-11-06：内置核心从 10 项扩到 13 项，注册表新增设置页、命令、ribbon、
+> WebView 可用性与释放钩子的声明；Daily notes / Templates / Web viewer 的完整
+> 设计见 [daily-notes-templates.md](daily-notes-templates.md)。
 
 这里把「核心插件」分成两层，避免把内置功能和外部插件混为一谈：
 
@@ -30,8 +35,9 @@
 | Editor status bar | 底部状态行 | 部分内置 | 有状态提示，但没有字数、行数、光标位置等常驻统计 |
 | Format converter | Markdown 工具栏 | 部分内置 | 14 个格式按钮；没有 Obsidian 的完整转换命令集 |
 | Page preview | 无 | 未内置 | 悬停预览双链尚未实现 |
-| Daily notes | 无 | 未内置 | 日期笔记、模板、导航均未实现 |
-| Templates | 无 | 未内置 | 可考虑复用 AI 动作与 Skills，但不是模板系统 |
+| Daily notes | 内置核心插件 `daily-notes` | 已内置 | 按日期取名、模板填充、前/后导航、启动打开、ribbon 与三条命令；见 [daily-notes-templates.md](daily-notes-templates.md) |
+| Templates | 内置核心插件 `templates` | 已内置 | 模板文件夹、变量展开、插入与从模板新建、ribbon 模板图标；见 [daily-notes-templates.md](daily-notes-templates.md) |
+| Web viewer | 内置核心插件 `web-viewer` | 已内置 | 预览面板里的网页标签与地址栏、非信任页安全边界、阅读视图、保存到库、内容拦截；见 [daily-notes-templates.md](daily-notes-templates.md) |
 | Note composer | 无 | 未内置 | 合并/拆分笔记尚未实现 |
 | Slash commands | 无 | 未内置 | 编辑器不是 CodeMirror 6 |
 | Bookmarks | 无 | 未内置 | 无书签数据模型与面板 |
@@ -41,9 +47,10 @@
 | Sync | 无 | 未内置 | 无官方同步；外部云同步由社区插件承担 |
 | Bases / Properties | 无 | 未内置 | 无数据库式属性查询 |
 
-建议按收益排序补内置能力：字数/光标统计、最近文件、书签、Daily notes、
-Templates、Page preview、Graph view。前四个是轻量原生 UI；后三个需要新的数据模型
-或 DOM 表面，放到 P2/P3。
+建议按收益排序补内置能力：字数/光标统计、最近文件、书签、Page preview、
+Graph view。Daily notes / Templates / Web viewer 已按
+[daily-notes-templates.md](daily-notes-templates.md) 统一落地；前者是轻量原生
+UI，后两者需要新的数据模型或 DOM 表面，放到 P2/P3。
 
 ## 2 最常用的社区插件
 
@@ -84,6 +91,9 @@ Core 不是「保证全部功能可用」：它表示这个插件在维护优先
 - 插件管理分成「内置核心」「核心插件」「已安装」「浏览」四页。「内置核心」是
   Xinkgo 自带的原生能力（§4）；「核心插件」仍是 10 个社区热门兼容插件的 Core
   标记页；已安装页与浏览页排除 Core 插件，避免同一插件重复出现。
+- 设置侧栏另有动态的 **Plugin options** 分组：只有开启且声明了 `Settings` 的
+  内置核心插件才出现自己的一页，现在是 Daily notes / Templates / Web viewer
+  三页；关掉开关，页与命令、ribbon 一起消失。
 - 核心兼容插件安装后用 `Enabled` 复选框控制启用/停用，状态写进 `plugins.json`；
   未安装时先显示 Install 和「安装后可启用」。
 - 内置核心能力也写进 `plugins.json` 的 `core` 字段，在「内置核心」页用复选框开关
@@ -98,10 +108,10 @@ Core 不是「保证全部功能可用」：它表示这个插件在维护优先
   的内置核心能力。
 - Core 插件在核心插件页显示 `Core` 徽标；C3/C4 仍显示「受限/降级」徽标。
 
-## 4 内置核心插件注册表（2026-11-05 落地）
+## 4 内置核心插件注册表（2026-11-05 落地，2026-11-06 扩展）
 
-`internal/plugin/core.go` 列出 10 项内置核心能力，ID 稳定（会写进
-`plugins.json`），每项有默认开启值：
+`internal/plugin/core.go` 列出 13 项内置核心能力，ID 稳定（会写进
+`plugins.json`），每项有默认开启值、设置页/命令/ribbon 声明：
 
 | ID | 对应界面 | 关闭后 |
 |---|---|---|
@@ -113,12 +123,19 @@ Core 不是「保证全部功能可用」：它表示这个插件在维护优先
 | `status-bar` | 底部状态行 | 整行隐藏 |
 | `word-count` | 状态行右侧的字数 | 隐藏字数（本轮补的轻量原生能力，CJK 按字计） |
 | `plugin-ribbon` | 文件树左侧插件窄条 | 窄条隐藏 |
+| `daily-notes` | 日历 ribbon 图标 + 三条命令 + 设置页 | 命令与图标消失，不再按日期建笔记 |
+| `templates` | 模板 ribbon 图标 + 选择框 + 两条命令 + 设置页 | 图标与命令消失，不再读模板目录 |
+| `web-viewer` | 预览面板的网页标签 + 设置页 | 释放所有 WebView 与标签，面板回到笔记预览，外链回落到原来的裸窗口/浏览器 |
 
 开关链路：设置页 `builtinView` → `pluginHost.setCore`（写 `plugins.json`）→
-`applyCoreFeatures`（`plugins.json` 的 `core` 转成 `map[string]bool`）→
-`view.Workspace.CoreFeatures` → 各绘制点的 `w.coreOn(id)` 门控。缺字段按默认，
-显式 `false` 保留，与兼容插件的 `enabled`/`grants` 同一文件、同一套读写。
-不加载任何 WebView，不受降级兼容影响。
+`publishCoreContributions`（把 `core` 转成 `map[string]bool`，并与兼容插件的
+注册**合并**成 `PluginCommands` / `PluginRibbon` / `PluginViews`）→
+`view.Workspace` → 各绘制点的 `w.coreOn(id)` 门控。`appState.runCommand` /
+`runAction` 统一分发内置与第三方 ID。缺字段按默认，显式 `false` 保留，与兼容
+插件的 `enabled`/`grants` 同一文件、同一套读写；三个新插件的选项写在
+`plugins.json` 的 `options` 字段。除 Web viewer 自身外不加载 WebView，不受
+降级兼容影响；`web-viewer` 声明 `NeedsWebView`，无 WebView 的机器开关不可开，
+关掉时通过 `onDisable` 钩子释放原生资源。
 
 ## 5 参考
 

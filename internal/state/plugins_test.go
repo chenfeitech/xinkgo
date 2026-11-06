@@ -122,3 +122,31 @@ func TestPluginState_normalizedDropsUnknownCore(t *testing.T) {
 		t.Fatal("an unknown core id was kept")
 	}
 }
+
+func TestPluginState_optionsRoundTrip(t *testing.T) {
+	dir := t.TempDir()
+	want := plugin.DefaultCoreOptions()
+	want.DailyNotes.Folder = "Daily notes"
+	want.DailyNotes.OpenOnStartup = true
+	want.WebViewer.AdBlock = false
+	st := PluginState{Core: map[string]bool{"daily-notes": true}}.
+		WithOptions(want)
+	if err := SavePlugins(dir, st); err != nil {
+		t.Fatal(err)
+	}
+	got, err := LoadPlugins(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	o := got.OptionsOf()
+	if o.DailyNotes.Folder != "Daily notes" ||
+		!o.DailyNotes.OpenOnStartup || o.WebViewer.AdBlock {
+		t.Fatalf("options did not survive: %+v", o)
+	}
+	if o.Templates.TimeFormat != "HH:mm" {
+		t.Fatal("a field the file left out did not take its default")
+	}
+	if (PluginState{}).OptionsOf().DailyNotes.DateFormat != "YYYY-MM-DD" {
+		t.Fatal("a missing options field did not take its default")
+	}
+}

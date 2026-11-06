@@ -12,9 +12,10 @@ import (
 
 // PluginState is what the app keeps of its plugins: the enabled Obsidian-
 // compatible ones, the capabilities granted to each, and which of Xinkgo's
-// own built-in core plugins stand. All three live in the one plugins.json,
-// so one place says what the user turned on. A missing or broken file
-// enables nothing rather than keeping the app from starting.
+// own built-in core plugins stand, and the options of those core plugins.
+// All of it lives in the one plugins.json, so one place says what the user
+// turned on. A missing or broken file enables nothing rather than keeping
+// the app from starting.
 type PluginState struct {
 	Enabled map[string]bool     `json:"enabled,omitempty"`
 	Grants  map[string][]string `json:"grants,omitempty"`
@@ -22,6 +23,10 @@ type PluginState struct {
 	// ID the file leaves out takes its default, so an older file keeps
 	// working when a new core plugin is added.
 	Core map[string]bool `json:"core,omitempty"`
+	// Options holds the choices of the built-in core plugins. A pointer,
+	// so a file that has none is told apart from one that set every field
+	// to its zero value; a missing one takes the defaults.
+	Options *plugin.CoreOptions `json:"options,omitempty"`
 }
 
 // EnabledOf reports whether a plugin was enabled on the last run.
@@ -45,6 +50,25 @@ func (s PluginState) CoreOf(id string) bool {
 		return on
 	}
 	return plugin.DefaultCore()[id]
+}
+
+// OptionsOf gives back the built-in core plugins' choices. A file that
+// never had them takes the defaults; a file that did is cleaned up so a
+// field it left out still reads as its default.
+func (s PluginState) OptionsOf() plugin.CoreOptions {
+	if s.Options == nil {
+		return plugin.DefaultCoreOptions()
+	}
+	return s.Options.Sanitized()
+}
+
+// WithOptions returns a copy with the built-in core plugins' choices
+// changed.
+func (s PluginState) WithOptions(o plugin.CoreOptions) PluginState {
+	out := s.copy()
+	clean := o.Sanitized()
+	out.Options = &clean
+	return out
 }
 
 // WithCore returns a copy with one built-in core plugin's choice changed.
@@ -109,6 +133,10 @@ func (s PluginState) copy() PluginState {
 	for id, on := range s.Core {
 		out.Core[id] = on
 	}
+	if s.Options != nil {
+		options := s.Options.Sanitized()
+		out.Options = &options
+	}
 	return out
 }
 
@@ -166,6 +194,10 @@ func (s PluginState) normalized() PluginState {
 		if len(kept) > 0 {
 			out.Grants[id] = kept
 		}
+	}
+	if s.Options != nil {
+		options := s.Options.Sanitized()
+		out.Options = &options
 	}
 	return out
 }

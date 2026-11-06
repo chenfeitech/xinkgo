@@ -141,13 +141,26 @@ func (h *pluginHost) builtinView(c *ui.Context, th *ui.Theme) {
 			for _, one := range plugin.CorePlugins {
 				name, note := builtinCoreText(one.ID)
 				id := one.ID
+				spec := one
 				settingRow(c, name, note, settingsControlWidth, func() {
 					on := h.coreOn(id)
-					if ui.Switch(c.Key("plugin-builtin-"+id), &on).
-						Label("").Changed() {
+					usable := !spec.NeedsWebView || mygo.WebViewAvailable()
+					switchBox := ui.Switch(c.Key("plugin-builtin-"+id), &on).
+						Label("").Disabled(!usable)
+					if switchBox.Changed() {
 						h.setCore(id, on)
 					}
+					if spec.Settings && on && usable && h.st != nil {
+						if ui.Button(c.Key("plugin-options-"+id),
+							locale.PluginOptionsButton()).Clicked() {
+							h.st.openSettingsTab(coreOptionsTab(id))
+						}
+					}
 				})
+				if spec.NeedsWebView && !mygo.WebViewAvailable() {
+					ui.Text(c, locale.WebNoWebView()).
+						FontSize(th.FontSize - 1).TextColor(th.TextMuted)
+				}
 			}
 		})
 	})
@@ -177,6 +190,12 @@ func builtinCoreText(id string) (name, note string) {
 		return locale.CoreWordCountName(), locale.CoreWordCountNote()
 	case view.CorePluginRibbon:
 		return locale.CorePluginRibbonName(), locale.CorePluginRibbonNote()
+	case view.CoreDailyNotes:
+		return locale.CoreDailyNotesName(), locale.CoreDailyNotesNote()
+	case view.CoreTemplates:
+		return locale.CoreTemplatesName(), locale.CoreTemplatesNote()
+	case view.CoreWebView:
+		return locale.CoreWebViewName(), locale.CoreWebViewNote()
 	default:
 		return id, ""
 	}
