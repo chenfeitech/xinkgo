@@ -115,3 +115,29 @@ func TestExpand_defaults(t *testing.T) {
 		t.Errorf("defaults did not expand: %q", got)
 	}
 }
+
+// A caller may supply variables of its own, such as the tags of the
+// vault, without this package having to know their names. Unknown ones
+// are still left alone.
+func TestExpand_extras(t *testing.T) {
+	v := Vars{
+		Title: "Daily",
+		Extras: map[string]string{
+			"known_tags": "work, ideas",
+			"selection":  "the selected words",
+		},
+	}
+	got, err := Expand(
+		"# {{title}}\nTags: {{known_tags}}\n{{selection}}\n{{unknown}}", v)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{
+		"# Daily", "Tags: work, ideas", "the selected words",
+		"{{unknown}}",
+	} {
+		if !strings.Contains(got, want) {
+			t.Errorf("expansion is missing %q:\n%s", want, got)
+		}
+	}
+}

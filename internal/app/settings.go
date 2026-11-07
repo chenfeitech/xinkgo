@@ -128,6 +128,12 @@ type settings struct {
 	// rows were drawn last, which is how a group chosen anew is known
 	// to start at its top.
 	tab, shown string
+	// aiSection is which group of the AI settings is on show. The ID is
+	// stable, so switching language does not lose the choice.
+	aiSection string
+	// aiProviders is the service list of the AI settings: the draft of
+	// one about to be added, and the model lists fetched for each.
+	aiProviders aiProviderUI
 	// coreOpts is the draft of the built-in core plugins' choices. It is
 	// read once when the window is drawn and written on a committed
 	// change, not once a frame.

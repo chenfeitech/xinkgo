@@ -27,7 +27,7 @@ func (w *Workspace) aiTalk(c *ui.Context, s *aiSession, n *OpenNote) {
 				// The last of them is still being written, and
 				// is shown as it comes.
 				coming := busy && i == len(blocks)-1
-				w.aiSaid(c, i, blocks[i], opts, coming)
+				w.aiSaid(c, i, blocks[i], opts, coming, s)
 			}
 		})
 	})
@@ -37,11 +37,24 @@ func (w *Workspace) aiTalk(c *ui.Context, s *aiSession, n *OpenNote) {
 // Markdown, for that is how a model answers.
 func (w *Workspace) aiSaid(
 	c *ui.Context, at int, b aiBlock, opts *markdown.Options,
-	coming bool,
+	coming bool, s *aiSession,
 ) {
 	ui.Column(c).Gap(2).Children(func() {
 		if b.Role == ai.User {
-			ui.Text(c, b.Text).TextColor(c.Theme().TextMuted)
+			ui.Row(c).Gap(c.Theme().Space(1)).AlignItems(ui.Center).
+				Children(func() {
+					shown := b.Text
+					if b.Secret {
+						shown = locale.AiQuestionPrivate()
+					}
+					ui.Text(c, shown).TextColor(c.Theme().TextMuted)
+					if !b.Secret &&
+						ui.Button(c.Key("ai-edit#"+
+							strconv.Itoa(at)), locale.AiEdit()).
+							FontSize(11).Clicked() {
+						w.editUserBlock(s, at, b.Text)
+					}
+				})
 			return
 		}
 		if b.Thinking != "" {
@@ -70,6 +83,16 @@ func (w *Workspace) aiSaid(
 			ui.Text(c, b.Failed).FontSize(12).
 				TextColor(c.Theme().Danger)
 		}
+		// What the answer cost, when the model said so: a quiet line at
+		// the foot of the answer, not a badge in the middle of it.
+		if b.Usage != nil && b.Over {
+			ui.Text(c, locale.AiUsage(usageCount(b.Usage.PromptTokens),
+				usageCount(b.Usage.CompletionTokens),
+				usageCount(b.Usage.DurationMs))).
+				FontSize(11).TextColor(c.Theme().TextMuted)
+			w.usageBar(c, b)
+		}
+		w.timelineLine(c, b, s)
 		// An answer that is over and has words in it can be looked over
 		// as a revision of the note: what the model made of it, a
 		// change at a time.
@@ -79,6 +102,32 @@ func (w *Workspace) aiSaid(
 				Label(locale.AiLookOverLabel()).
 				Clicked() {
 				w.StartReview(b.Text)
+			}
+			// An answer may also be copied or appended to a note.
+			// These only add words; a revision still goes through
+			// the diff review above.
+			if w.OnAiReply != nil {
+				options := []struct{ kind, label string }{
+					{"copy", locale.AiReplyCopy()},
+				}
+				if w.Config.Ai.Permission == config.PermissionAppend {
+					options = append(options,
+						struct{ kind, label string }{
+							"daily", locale.AiReplyDaily()},
+						struct{ kind, label string }{
+							"note", locale.AiReplyNote()})
+				}
+				ui.Row(c).Gap(c.Theme().Space(1)).Wrap().
+					Children(func() {
+						for _, one := range options {
+							one := one
+							if ui.Button(c.Key("ai-reply-"+
+								one.kind+"#"+strconv.Itoa(at)),
+								one.label).FontSize(11).Clicked() {
+								w.OnAiReply(one.kind, b.Text)
+							}
+						}
+					})
 			}
 		}
 	})
@@ -95,11 +144,22 @@ func oneLine(text string) string {
 	return flat
 }
 
+// usageCount is a cost the model reported, or a dash for one it did not.
+func usageCount(n *uint64) string {
+	if n == nil {
+		return "-"
+	}
+	return strconv.FormatUint(*n, 10)
+}
+
 // aiTold is what the model is told: what the note is, and all that has
 // been said in this conversation so far.
 func (w *Workspace) aiTold(s *aiSession, n *OpenNote) []ai.Message {
+	// The contexts must be in place even when the composer was not
+	// drawn first, as when a command came from the palette.
+	w.syncContexts(s, n)
 	out := []ai.Message{{
-		Role: ai.System, Content: w.aiBrief(n),
+		Role: ai.System, Content: w.aiBrief(s, n),
 	}}
 	// What a model is told of the skills there are; and, when one has
 	// been taken up, what that one says, whole.
@@ -125,10 +185,10 @@ func (w *Workspace) aiTold(s *aiSession, n *OpenNote) []ai.Message {
 	return out
 }
 
-// aiBrief is what the model is told before it is asked: which note this
-// is about, so that it need not be told twice, and the tongue it is to
-// answer in.
-func (w *Workspace) aiBrief(n *OpenNote) string {
+// aiBrief is what the model is told before it is asked: the tongue it
+// is to answer in, and whatever contexts the user has left attached.
+// A context removed above the composer is not sent.
+func (w *Workspace) aiBrief(s *aiSession, n *OpenNote) string {
 	var said strings.Builder
 	said.WriteString("You help the user write notes in Markdown, in the " +
 		"app xinkgo. Answer in the note's own tongue unless told " +
@@ -142,13 +202,30 @@ func (w *Workspace) aiBrief(n *OpenNote) string {
 	if n == nil {
 		return said.String()
 	}
-	said.WriteString("\nThe note being edited is " + PathOf(n.Path) + ":\n\n")
-	text := n.Editor.Buffer.String()
 	// A note of a hundred thousand words is not sent whole: the model
-	// is given as much of it as the settings allow.
-	if at := int(w.Config.Ai.MaxContextChars); at > 0 && len(text) > at {
-		text = text[:at]
+	// is given as much of each context as the settings allow.
+	at := w.contextMaxChars()
+	for _, one := range s.Contexts {
+		if one.Removed {
+			continue
+		}
+		text := one.Text
+		if at > 0 && len(text) > at {
+			text = text[:at]
+		}
+		switch one.Kind {
+		case "note":
+			said.WriteString("\nThe note being edited is " +
+				PathOf(n.Path) + ":\n\n")
+		case "selection":
+			said.WriteString("\nThe selected text is:\n\n")
+		case "ref":
+			said.WriteString("\nAn attached note (" + one.Label +
+				") is:\n\n")
+		default:
+			continue
+		}
+		said.WriteString(text)
 	}
-	said.WriteString(text)
 	return said.String()
 }

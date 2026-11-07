@@ -3272,6 +3272,890 @@ func (msgs Messages) AiSettingAskAtAllNote() string {
 	return Catalog.Format(msgs.locale, "aiSettingAskAtAllNote", nil)
 }
 
+// AiProviderAdd says "Add a service"
+// in the language the app shows.
+func AiProviderAdd() string { return In(i18n.Locale()).AiProviderAdd() }
+
+// AiProviderAdd says "Add a service"
+// in the language of msgs.
+func (msgs Messages) AiProviderAdd() string {
+	return Catalog.Format(msgs.locale, "aiProviderAdd", nil)
+}
+
+// AiProviderAddTitle says "Add a model service"
+// in the language the app shows.
+func AiProviderAddTitle() string { return In(i18n.Locale()).AiProviderAddTitle() }
+
+// AiProviderAddTitle says "Add a model service"
+// in the language of msgs.
+func (msgs Messages) AiProviderAddTitle() string {
+	return Catalog.Format(msgs.locale, "aiProviderAddTitle", nil)
+}
+
+// AiProviderAddNote says "One address and key can then add many models."
+// in the language the app shows.
+func AiProviderAddNote() string { return In(i18n.Locale()).AiProviderAddNote() }
+
+// AiProviderAddNote says "One address and key can then add many models."
+// in the language of msgs.
+func (msgs Messages) AiProviderAddNote() string {
+	return Catalog.Format(msgs.locale, "aiProviderAddNote", nil)
+}
+
+// AiProviderPreset says "Preset"
+// in the language the app shows.
+func AiProviderPreset() string { return In(i18n.Locale()).AiProviderPreset() }
+
+// AiProviderPreset says "Preset"
+// in the language of msgs.
+func (msgs Messages) AiProviderPreset() string {
+	return Catalog.Format(msgs.locale, "aiProviderPreset", nil)
+}
+
+// AiProviderPresetNote says "Pick a known endpoint, or Custom to type its address"
+// in the language the app shows.
+func AiProviderPresetNote() string { return In(i18n.Locale()).AiProviderPresetNote() }
+
+// AiProviderPresetNote says "Pick a known endpoint, or Custom to type its address"
+// in the language of msgs.
+func (msgs Messages) AiProviderPresetNote() string {
+	return Catalog.Format(msgs.locale, "aiProviderPresetNote", nil)
+}
+
+// AiProviderCustom says "Custom"
+// in the language the app shows.
+func AiProviderCustom() string { return In(i18n.Locale()).AiProviderCustom() }
+
+// AiProviderCustom says "Custom"
+// in the language of msgs.
+func (msgs Messages) AiProviderCustom() string {
+	return Catalog.Format(msgs.locale, "aiProviderCustom", nil)
+}
+
+// AiProviderName says "Name"
+// in the language the app shows.
+func AiProviderName() string { return In(i18n.Locale()).AiProviderName() }
+
+// AiProviderName says "Name"
+// in the language of msgs.
+func (msgs Messages) AiProviderName() string {
+	return Catalog.Format(msgs.locale, "aiProviderName", nil)
+}
+
+// AiProviderNameNote says "What this service is called in the settings"
+// in the language the app shows.
+func AiProviderNameNote() string { return In(i18n.Locale()).AiProviderNameNote() }
+
+// AiProviderNameNote says "What this service is called in the settings"
+// in the language of msgs.
+func (msgs Messages) AiProviderNameNote() string {
+	return Catalog.Format(msgs.locale, "aiProviderNameNote", nil)
+}
+
+// AiProviderKey says "API key"
+// in the language the app shows.
+func AiProviderKey() string { return In(i18n.Locale()).AiProviderKey() }
+
+// AiProviderKey says "API key"
+// in the language of msgs.
+func (msgs Messages) AiProviderKey() string {
+	return Catalog.Format(msgs.locale, "aiProviderKey", nil)
+}
+
+// AiProviderKeyNote says "Kept the same way as a model's own key"
+// in the language the app shows.
+func AiProviderKeyNote() string { return In(i18n.Locale()).AiProviderKeyNote() }
+
+// AiProviderKeyNote says "Kept the same way as a model's own key"
+// in the language of msgs.
+func (msgs Messages) AiProviderKeyNote() string {
+	return Catalog.Format(msgs.locale, "aiProviderKeyNote", nil)
+}
+
+// AiProviderRefresh says "Refresh models"
+// in the language the app shows.
+func AiProviderRefresh() string { return In(i18n.Locale()).AiProviderRefresh() }
+
+// AiProviderRefresh says "Refresh models"
+// in the language of msgs.
+func (msgs Messages) AiProviderRefresh() string {
+	return Catalog.Format(msgs.locale, "aiProviderRefresh", nil)
+}
+
+// AiProviderRemove says "Remove"
+// in the language the app shows.
+func AiProviderRemove() string { return In(i18n.Locale()).AiProviderRemove() }
+
+// AiProviderRemove says "Remove"
+// in the language of msgs.
+func (msgs Messages) AiProviderRemove() string {
+	return Catalog.Format(msgs.locale, "aiProviderRemove", nil)
+}
+
+// AiProviderShow says "Show models"
+// in the language the app shows.
+func AiProviderShow() string { return In(i18n.Locale()).AiProviderShow() }
+
+// AiProviderShow says "Show models"
+// in the language of msgs.
+func (msgs Messages) AiProviderShow() string {
+	return Catalog.Format(msgs.locale, "aiProviderShow", nil)
+}
+
+// AiProviderHide says "Hide models"
+// in the language the app shows.
+func AiProviderHide() string { return In(i18n.Locale()).AiProviderHide() }
+
+// AiProviderHide says "Hide models"
+// in the language of msgs.
+func (msgs Messages) AiProviderHide() string {
+	return Catalog.Format(msgs.locale, "aiProviderHide", nil)
+}
+
+// AiProviderModels says "{count} models"
+// in the language the app shows.
+func AiProviderModels(count string) string { return In(i18n.Locale()).AiProviderModels(count) }
+
+// AiProviderModels says "{count} models"
+// in the language of msgs.
+func (msgs Messages) AiProviderModels(count string) string {
+	return Catalog.Format(msgs.locale, "aiProviderModels", map[string]any{"count": count})
+}
+
+// AiProviderUngrouped says "Ungrouped"
+// in the language the app shows.
+func AiProviderUngrouped() string { return In(i18n.Locale()).AiProviderUngrouped() }
+
+// AiProviderUngrouped says "Ungrouped"
+// in the language of msgs.
+func (msgs Messages) AiProviderUngrouped() string {
+	return Catalog.Format(msgs.locale, "aiProviderUngrouped", nil)
+}
+
+// AiProviderHeld says "Fetched models: pick one to add it"
+// in the language the app shows.
+func AiProviderHeld() string { return In(i18n.Locale()).AiProviderHeld() }
+
+// AiProviderHeld says "Fetched models: pick one to add it"
+// in the language of msgs.
+func (msgs Messages) AiProviderHeld() string {
+	return Catalog.Format(msgs.locale, "aiProviderHeld", nil)
+}
+
+// AiProviderBusy says "Fetching the model list..."
+// in the language the app shows.
+func AiProviderBusy() string { return In(i18n.Locale()).AiProviderBusy() }
+
+// AiProviderBusy says "Fetching the model list..."
+// in the language of msgs.
+func (msgs Messages) AiProviderBusy() string {
+	return Catalog.Format(msgs.locale, "aiProviderBusy", nil)
+}
+
+// AiProviderFailed says "Could not list models: {error}"
+// in the language the app shows.
+func AiProviderFailed(error string) string { return In(i18n.Locale()).AiProviderFailed(error) }
+
+// AiProviderFailed says "Could not list models: {error}"
+// in the language of msgs.
+func (msgs Messages) AiProviderFailed(error string) string {
+	return Catalog.Format(msgs.locale, "aiProviderFailed", map[string]any{"error": error})
+}
+
+// AiProviderNone says "No services yet. Add one, or write a model in by hand below."
+// in the language the app shows.
+func AiProviderNone() string { return In(i18n.Locale()).AiProviderNone() }
+
+// AiProviderNone says "No services yet. Add one, or write a model in by hand below."
+// in the language of msgs.
+func (msgs Messages) AiProviderNone() string {
+	return Catalog.Format(msgs.locale, "aiProviderNone", nil)
+}
+
+// AiProviderGroupOverseas says "Overseas"
+// in the language the app shows.
+func AiProviderGroupOverseas() string { return In(i18n.Locale()).AiProviderGroupOverseas() }
+
+// AiProviderGroupOverseas says "Overseas"
+// in the language of msgs.
+func (msgs Messages) AiProviderGroupOverseas() string {
+	return Catalog.Format(msgs.locale, "aiProviderGroupOverseas", nil)
+}
+
+// AiProviderGroupCN says "China"
+// in the language the app shows.
+func AiProviderGroupCN() string { return In(i18n.Locale()).AiProviderGroupCN() }
+
+// AiProviderGroupCN says "China"
+// in the language of msgs.
+func (msgs Messages) AiProviderGroupCN() string {
+	return Catalog.Format(msgs.locale, "aiProviderGroupCN", nil)
+}
+
+// AiProviderGroupRelay says "Aggregators"
+// in the language the app shows.
+func AiProviderGroupRelay() string { return In(i18n.Locale()).AiProviderGroupRelay() }
+
+// AiProviderGroupRelay says "Aggregators"
+// in the language of msgs.
+func (msgs Messages) AiProviderGroupRelay() string {
+	return Catalog.Format(msgs.locale, "aiProviderGroupRelay", nil)
+}
+
+// AiProviderGroupCustom says "Custom"
+// in the language the app shows.
+func AiProviderGroupCustom() string { return In(i18n.Locale()).AiProviderGroupCustom() }
+
+// AiProviderGroupCustom says "Custom"
+// in the language of msgs.
+func (msgs Messages) AiProviderGroupCustom() string {
+	return Catalog.Format(msgs.locale, "aiProviderGroupCustom", nil)
+}
+
+// AiProviderSave says "Add"
+// in the language the app shows.
+func AiProviderSave() string { return In(i18n.Locale()).AiProviderSave() }
+
+// AiProviderSave says "Add"
+// in the language of msgs.
+func (msgs Messages) AiProviderSave() string {
+	return Catalog.Format(msgs.locale, "aiProviderSave", nil)
+}
+
+// AiProviderCancel says "Cancel"
+// in the language the app shows.
+func AiProviderCancel() string { return In(i18n.Locale()).AiProviderCancel() }
+
+// AiProviderCancel says "Cancel"
+// in the language of msgs.
+func (msgs Messages) AiProviderCancel() string {
+	return Catalog.Format(msgs.locale, "aiProviderCancel", nil)
+}
+
+// AiProviderGroup says "Service"
+// in the language the app shows.
+func AiProviderGroup() string { return In(i18n.Locale()).AiProviderGroup() }
+
+// AiProviderGroup says "Service"
+// in the language of msgs.
+func (msgs Messages) AiProviderGroup() string {
+	return Catalog.Format(msgs.locale, "aiProviderGroup", nil)
+}
+
+// AiProviderGroupNote says "Models fetched from this address"
+// in the language the app shows.
+func AiProviderGroupNote() string { return In(i18n.Locale()).AiProviderGroupNote() }
+
+// AiProviderGroupNote says "Models fetched from this address"
+// in the language of msgs.
+func (msgs Messages) AiProviderGroupNote() string {
+	return Catalog.Format(msgs.locale, "aiProviderGroupNote", nil)
+}
+
+// AiReplyCopy says "Copy"
+// in the language the app shows.
+func AiReplyCopy() string { return In(i18n.Locale()).AiReplyCopy() }
+
+// AiReplyCopy says "Copy"
+// in the language of msgs.
+func (msgs Messages) AiReplyCopy() string {
+	return Catalog.Format(msgs.locale, "aiReplyCopy", nil)
+}
+
+// AiReplyDaily says "Append to today's note"
+// in the language the app shows.
+func AiReplyDaily() string { return In(i18n.Locale()).AiReplyDaily() }
+
+// AiReplyDaily says "Append to today's note"
+// in the language of msgs.
+func (msgs Messages) AiReplyDaily() string {
+	return Catalog.Format(msgs.locale, "aiReplyDaily", nil)
+}
+
+// AiReplyNote says "Append to a note..."
+// in the language the app shows.
+func AiReplyNote() string { return In(i18n.Locale()).AiReplyNote() }
+
+// AiReplyNote says "Append to a note..."
+// in the language of msgs.
+func (msgs Messages) AiReplyNote() string {
+	return Catalog.Format(msgs.locale, "aiReplyNote", nil)
+}
+
+// AiReplyCopied says "answer copied"
+// in the language the app shows.
+func AiReplyCopied() string { return In(i18n.Locale()).AiReplyCopied() }
+
+// AiReplyCopied says "answer copied"
+// in the language of msgs.
+func (msgs Messages) AiReplyCopied() string {
+	return Catalog.Format(msgs.locale, "aiReplyCopied", nil)
+}
+
+// AiReplyAppended says "answer appended to {name}"
+// in the language the app shows.
+func AiReplyAppended(name string) string { return In(i18n.Locale()).AiReplyAppended(name) }
+
+// AiReplyAppended says "answer appended to {name}"
+// in the language of msgs.
+func (msgs Messages) AiReplyAppended(name string) string {
+	return Catalog.Format(msgs.locale, "aiReplyAppended", map[string]any{"name": name})
+}
+
+// AiReplyFailed says "the answer could not be saved"
+// in the language the app shows.
+func AiReplyFailed() string { return In(i18n.Locale()).AiReplyFailed() }
+
+// AiReplyFailed says "the answer could not be saved"
+// in the language of msgs.
+func (msgs Messages) AiReplyFailed() string {
+	return Catalog.Format(msgs.locale, "aiReplyFailed", nil)
+}
+
+// AiReplyPickNote says "Choose a note to append to"
+// in the language the app shows.
+func AiReplyPickNote() string { return In(i18n.Locale()).AiReplyPickNote() }
+
+// AiReplyPickNote says "Choose a note to append to"
+// in the language of msgs.
+func (msgs Messages) AiReplyPickNote() string {
+	return Catalog.Format(msgs.locale, "aiReplyPickNote", nil)
+}
+
+// AiContextNote says "Note: {name}"
+// in the language the app shows.
+func AiContextNote(name string) string { return In(i18n.Locale()).AiContextNote(name) }
+
+// AiContextNote says "Note: {name}"
+// in the language of msgs.
+func (msgs Messages) AiContextNote(name string) string {
+	return Catalog.Format(msgs.locale, "aiContextNote", map[string]any{"name": name})
+}
+
+// AiContextSelection says "Selected {count} characters"
+// in the language the app shows.
+func AiContextSelection(count string) string { return In(i18n.Locale()).AiContextSelection(count) }
+
+// AiContextSelection says "Selected {count} characters"
+// in the language of msgs.
+func (msgs Messages) AiContextSelection(count string) string {
+	return Catalog.Format(msgs.locale, "aiContextSelection", map[string]any{"count": count})
+}
+
+// AiContextRemove says "Remove this context"
+// in the language the app shows.
+func AiContextRemove() string { return In(i18n.Locale()).AiContextRemove() }
+
+// AiContextRemove says "Remove this context"
+// in the language of msgs.
+func (msgs Messages) AiContextRemove() string {
+	return Catalog.Format(msgs.locale, "aiContextRemove", nil)
+}
+
+// AiStarterTitle says "Ask about this note"
+// in the language the app shows.
+func AiStarterTitle() string { return In(i18n.Locale()).AiStarterTitle() }
+
+// AiStarterTitle says "Ask about this note"
+// in the language of msgs.
+func (msgs Messages) AiStarterTitle() string {
+	return Catalog.Format(msgs.locale, "aiStarterTitle", nil)
+}
+
+// AiStarterSelection says "Ask about the selection"
+// in the language the app shows.
+func AiStarterSelection() string { return In(i18n.Locale()).AiStarterSelection() }
+
+// AiStarterSelection says "Ask about the selection"
+// in the language of msgs.
+func (msgs Messages) AiStarterSelection() string {
+	return Catalog.Format(msgs.locale, "aiStarterSelection", nil)
+}
+
+// AiStarterEmpty says "Ask anything about the vault"
+// in the language the app shows.
+func AiStarterEmpty() string { return In(i18n.Locale()).AiStarterEmpty() }
+
+// AiStarterEmpty says "Ask anything about the vault"
+// in the language of msgs.
+func (msgs Messages) AiStarterEmpty() string {
+	return Catalog.Format(msgs.locale, "aiStarterEmpty", nil)
+}
+
+// AiStarterHint says "A note, the selection and what is on screen go with the question."
+// in the language the app shows.
+func AiStarterHint() string { return In(i18n.Locale()).AiStarterHint() }
+
+// AiStarterHint says "A note, the selection and what is on screen go with the question."
+// in the language of msgs.
+func (msgs Messages) AiStarterHint() string {
+	return Catalog.Format(msgs.locale, "aiStarterHint", nil)
+}
+
+// AiModelSearch says "Filter, or type a model ID"
+// in the language the app shows.
+func AiModelSearch() string { return In(i18n.Locale()).AiModelSearch() }
+
+// AiModelSearch says "Filter, or type a model ID"
+// in the language of msgs.
+func (msgs Messages) AiModelSearch() string {
+	return Catalog.Format(msgs.locale, "aiModelSearch", nil)
+}
+
+// AiModelRecent says "Recent"
+// in the language the app shows.
+func AiModelRecent() string { return In(i18n.Locale()).AiModelRecent() }
+
+// AiModelRecent says "Recent"
+// in the language of msgs.
+func (msgs Messages) AiModelRecent() string {
+	return Catalog.Format(msgs.locale, "aiModelRecent", nil)
+}
+
+// AiModelSourceOllama says "Ollama"
+// in the language the app shows.
+func AiModelSourceOllama() string { return In(i18n.Locale()).AiModelSourceOllama() }
+
+// AiModelSourceOllama says "Ollama"
+// in the language of msgs.
+func (msgs Messages) AiModelSourceOllama() string {
+	return Catalog.Format(msgs.locale, "aiModelSourceOllama", nil)
+}
+
+// AiModelSourceOther says "Other"
+// in the language the app shows.
+func AiModelSourceOther() string { return In(i18n.Locale()).AiModelSourceOther() }
+
+// AiModelSourceOther says "Other"
+// in the language of msgs.
+func (msgs Messages) AiModelSourceOther() string {
+	return Catalog.Format(msgs.locale, "aiModelSourceOther", nil)
+}
+
+// AiBlankTitle says "Fill in the prompt"
+// in the language the app shows.
+func AiBlankTitle() string { return In(i18n.Locale()).AiBlankTitle() }
+
+// AiBlankTitle says "Fill in the prompt"
+// in the language of msgs.
+func (msgs Messages) AiBlankTitle() string {
+	return Catalog.Format(msgs.locale, "aiBlankTitle", nil)
+}
+
+// AiBlankSend says "Send"
+// in the language the app shows.
+func AiBlankSend() string { return In(i18n.Locale()).AiBlankSend() }
+
+// AiBlankSend says "Send"
+// in the language of msgs.
+func (msgs Messages) AiBlankSend() string {
+	return Catalog.Format(msgs.locale, "aiBlankSend", nil)
+}
+
+// AiBlankCancel says "Cancel"
+// in the language the app shows.
+func AiBlankCancel() string { return In(i18n.Locale()).AiBlankCancel() }
+
+// AiBlankCancel says "Cancel"
+// in the language of msgs.
+func (msgs Messages) AiBlankCancel() string {
+	return Catalog.Format(msgs.locale, "aiBlankCancel", nil)
+}
+
+// AiTimeline says "Explored {reads} files, {searches} searches"
+// in the language the app shows.
+func AiTimeline(reads string, searches string) string {
+	return In(i18n.Locale()).AiTimeline(reads, searches)
+}
+
+// AiTimeline says "Explored {reads} files, {searches} searches"
+// in the language of msgs.
+func (msgs Messages) AiTimeline(reads string, searches string) string {
+	return Catalog.Format(msgs.locale, "aiTimeline", map[string]any{"reads": reads, "searches": searches})
+}
+
+// AiTimelineShow says "Show work"
+// in the language the app shows.
+func AiTimelineShow() string { return In(i18n.Locale()).AiTimelineShow() }
+
+// AiTimelineShow says "Show work"
+// in the language of msgs.
+func (msgs Messages) AiTimelineShow() string {
+	return Catalog.Format(msgs.locale, "aiTimelineShow", nil)
+}
+
+// AiTimelineHide says "Fold work"
+// in the language the app shows.
+func AiTimelineHide() string { return In(i18n.Locale()).AiTimelineHide() }
+
+// AiTimelineHide says "Fold work"
+// in the language of msgs.
+func (msgs Messages) AiTimelineHide() string {
+	return Catalog.Format(msgs.locale, "aiTimelineHide", nil)
+}
+
+// AiTimelineStep says "{verb} {target}"
+// in the language the app shows.
+func AiTimelineStep(verb string, target string) string {
+	return In(i18n.Locale()).AiTimelineStep(verb, target)
+}
+
+// AiTimelineStep says "{verb} {target}"
+// in the language of msgs.
+func (msgs Messages) AiTimelineStep(verb string, target string) string {
+	return Catalog.Format(msgs.locale, "aiTimelineStep", map[string]any{"verb": verb, "target": target})
+}
+
+// AiTimelineDone says "Handled in {ms} ms"
+// in the language the app shows.
+func AiTimelineDone(ms string) string { return In(i18n.Locale()).AiTimelineDone(ms) }
+
+// AiTimelineDone says "Handled in {ms} ms"
+// in the language of msgs.
+func (msgs Messages) AiTimelineDone(ms string) string {
+	return Catalog.Format(msgs.locale, "aiTimelineDone", map[string]any{"ms": ms})
+}
+
+// AiUsagePct says "{pct}% of context window"
+// in the language the app shows.
+func AiUsagePct(pct string) string { return In(i18n.Locale()).AiUsagePct(pct) }
+
+// AiUsagePct says "{pct}% of context window"
+// in the language of msgs.
+func (msgs Messages) AiUsagePct(pct string) string {
+	return Catalog.Format(msgs.locale, "aiUsagePct", map[string]any{"pct": pct})
+}
+
+// AiQuestionSkip says "Skip"
+// in the language the app shows.
+func AiQuestionSkip() string { return In(i18n.Locale()).AiQuestionSkip() }
+
+// AiQuestionSkip says "Skip"
+// in the language of msgs.
+func (msgs Messages) AiQuestionSkip() string {
+	return Catalog.Format(msgs.locale, "aiQuestionSkip", nil)
+}
+
+// AiQuestionSend says "Submit"
+// in the language the app shows.
+func AiQuestionSend() string { return In(i18n.Locale()).AiQuestionSend() }
+
+// AiQuestionSend says "Submit"
+// in the language of msgs.
+func (msgs Messages) AiQuestionSend() string {
+	return Catalog.Format(msgs.locale, "aiQuestionSend", nil)
+}
+
+// AiQuestionOther says "Type an answer"
+// in the language the app shows.
+func AiQuestionOther() string { return In(i18n.Locale()).AiQuestionOther() }
+
+// AiQuestionOther says "Type an answer"
+// in the language of msgs.
+func (msgs Messages) AiQuestionOther() string {
+	return Catalog.Format(msgs.locale, "aiQuestionOther", nil)
+}
+
+// AiQuestionPrivate says "private answer"
+// in the language the app shows.
+func AiQuestionPrivate() string { return In(i18n.Locale()).AiQuestionPrivate() }
+
+// AiQuestionPrivate says "private answer"
+// in the language of msgs.
+func (msgs Messages) AiQuestionPrivate() string {
+	return Catalog.Format(msgs.locale, "aiQuestionPrivate", nil)
+}
+
+// AiEdit says "Edit"
+// in the language the app shows.
+func AiEdit() string { return In(i18n.Locale()).AiEdit() }
+
+// AiEdit says "Edit"
+// in the language of msgs.
+func (msgs Messages) AiEdit() string {
+	return Catalog.Format(msgs.locale, "aiEdit", nil)
+}
+
+// AiSessions says "Recent conversations"
+// in the language the app shows.
+func AiSessions() string { return In(i18n.Locale()).AiSessions() }
+
+// AiSessions says "Recent conversations"
+// in the language of msgs.
+func (msgs Messages) AiSessions() string {
+	return Catalog.Format(msgs.locale, "aiSessions", nil)
+}
+
+// AiSessionsNone says "No other conversations"
+// in the language the app shows.
+func AiSessionsNone() string { return In(i18n.Locale()).AiSessionsNone() }
+
+// AiSessionsNone says "No other conversations"
+// in the language of msgs.
+func (msgs Messages) AiSessionsNone() string {
+	return Catalog.Format(msgs.locale, "aiSessionsNone", nil)
+}
+
+// AiAtHint says "Type @ to attach a note"
+// in the language the app shows.
+func AiAtHint() string { return In(i18n.Locale()).AiAtHint() }
+
+// AiAtHint says "Type @ to attach a note"
+// in the language of msgs.
+func (msgs Messages) AiAtHint() string {
+	return Catalog.Format(msgs.locale, "aiAtHint", nil)
+}
+
+// AiAtAttached says "Attached {name}"
+// in the language the app shows.
+func AiAtAttached(name string) string { return In(i18n.Locale()).AiAtAttached(name) }
+
+// AiAtAttached says "Attached {name}"
+// in the language of msgs.
+func (msgs Messages) AiAtAttached(name string) string {
+	return Catalog.Format(msgs.locale, "aiAtAttached", map[string]any{"name": name})
+}
+
+// AiPermission says "File access"
+// in the language the app shows.
+func AiPermission() string { return In(i18n.Locale()).AiPermission() }
+
+// AiPermission says "File access"
+// in the language of msgs.
+func (msgs Messages) AiPermission() string {
+	return Catalog.Format(msgs.locale, "aiPermission", nil)
+}
+
+// AiPermissionNote says "What the AI may do with your notes"
+// in the language the app shows.
+func AiPermissionNote() string { return In(i18n.Locale()).AiPermissionNote() }
+
+// AiPermissionNote says "What the AI may do with your notes"
+// in the language of msgs.
+func (msgs Messages) AiPermissionNote() string {
+	return Catalog.Format(msgs.locale, "aiPermissionNote", nil)
+}
+
+// AiPermissionRead says "Read only"
+// in the language the app shows.
+func AiPermissionRead() string { return In(i18n.Locale()).AiPermissionRead() }
+
+// AiPermissionRead says "Read only"
+// in the language of msgs.
+func (msgs Messages) AiPermissionRead() string {
+	return Catalog.Format(msgs.locale, "aiPermissionRead", nil)
+}
+
+// AiPermissionWrite says "Allow appending to notes"
+// in the language the app shows.
+func AiPermissionWrite() string { return In(i18n.Locale()).AiPermissionWrite() }
+
+// AiPermissionWrite says "Allow appending to notes"
+// in the language of msgs.
+func (msgs Messages) AiPermissionWrite() string {
+	return Catalog.Format(msgs.locale, "aiPermissionWrite", nil)
+}
+
+// AiUndoRound says "Undo this change"
+// in the language the app shows.
+func AiUndoRound() string { return In(i18n.Locale()).AiUndoRound() }
+
+// AiUndoRound says "Undo this change"
+// in the language of msgs.
+func (msgs Messages) AiUndoRound() string {
+	return Catalog.Format(msgs.locale, "aiUndoRound", nil)
+}
+
+// AiUndoOk says "change undone"
+// in the language the app shows.
+func AiUndoOk() string { return In(i18n.Locale()).AiUndoOk() }
+
+// AiUndoOk says "change undone"
+// in the language of msgs.
+func (msgs Messages) AiUndoOk() string {
+	return Catalog.Format(msgs.locale, "aiUndoOk", nil)
+}
+
+// AiUndoConflict says "the note changed since; not undone"
+// in the language the app shows.
+func AiUndoConflict() string { return In(i18n.Locale()).AiUndoConflict() }
+
+// AiUndoConflict says "the note changed since; not undone"
+// in the language of msgs.
+func (msgs Messages) AiUndoConflict() string {
+	return Catalog.Format(msgs.locale, "aiUndoConflict", nil)
+}
+
+// AiReplyDenied says "file access is read only"
+// in the language the app shows.
+func AiReplyDenied() string { return In(i18n.Locale()).AiReplyDenied() }
+
+// AiReplyDenied says "file access is read only"
+// in the language of msgs.
+func (msgs Messages) AiReplyDenied() string {
+	return Catalog.Format(msgs.locale, "aiReplyDenied", nil)
+}
+
+// AiQuickPinned says "Pin to the strip"
+// in the language the app shows.
+func AiQuickPinned() string { return In(i18n.Locale()).AiQuickPinned() }
+
+// AiQuickPinned says "Pin to the strip"
+// in the language of msgs.
+func (msgs Messages) AiQuickPinned() string {
+	return Catalog.Format(msgs.locale, "aiQuickPinned", nil)
+}
+
+// AiQuickPinnedNote says "Pinned prompts stand first in the quick strip."
+// in the language the app shows.
+func AiQuickPinnedNote() string { return In(i18n.Locale()).AiQuickPinnedNote() }
+
+// AiQuickPinnedNote says "Pinned prompts stand first in the quick strip."
+// in the language of msgs.
+func (msgs Messages) AiQuickPinnedNote() string {
+	return Catalog.Format(msgs.locale, "aiQuickPinnedNote", nil)
+}
+
+// AiQuickPinnedBadge says "Pinned"
+// in the language the app shows.
+func AiQuickPinnedBadge() string { return In(i18n.Locale()).AiQuickPinnedBadge() }
+
+// AiQuickPinnedBadge says "Pinned"
+// in the language of msgs.
+func (msgs Messages) AiQuickPinnedBadge() string {
+	return Catalog.Format(msgs.locale, "aiQuickPinnedBadge", nil)
+}
+
+// AiQuickCategory says "Category"
+// in the language the app shows.
+func AiQuickCategory() string { return In(i18n.Locale()).AiQuickCategory() }
+
+// AiQuickCategory says "Category"
+// in the language of msgs.
+func (msgs Messages) AiQuickCategory() string {
+	return Catalog.Format(msgs.locale, "aiQuickCategory", nil)
+}
+
+// AiQuickCategoryNote says "Groups prompts in the library."
+// in the language the app shows.
+func AiQuickCategoryNote() string { return In(i18n.Locale()).AiQuickCategoryNote() }
+
+// AiQuickCategoryNote says "Groups prompts in the library."
+// in the language of msgs.
+func (msgs Messages) AiQuickCategoryNote() string {
+	return Catalog.Format(msgs.locale, "aiQuickCategoryNote", nil)
+}
+
+// AiQuickScene says "Scene"
+// in the language the app shows.
+func AiQuickScene() string { return In(i18n.Locale()).AiQuickScene() }
+
+// AiQuickScene says "Scene"
+// in the language of msgs.
+func (msgs Messages) AiQuickScene() string {
+	return Catalog.Format(msgs.locale, "aiQuickScene", nil)
+}
+
+// AiQuickSceneNote says "Which kind of note this prompt suits."
+// in the language the app shows.
+func AiQuickSceneNote() string { return In(i18n.Locale()).AiQuickSceneNote() }
+
+// AiQuickSceneNote says "Which kind of note this prompt suits."
+// in the language of msgs.
+func (msgs Messages) AiQuickSceneNote() string {
+	return Catalog.Format(msgs.locale, "aiQuickSceneNote", nil)
+}
+
+// AiSection says "AI section"
+// in the language the app shows.
+func AiSection() string { return In(i18n.Locale()).AiSection() }
+
+// AiSection says "AI section"
+// in the language of msgs.
+func (msgs Messages) AiSection() string {
+	return Catalog.Format(msgs.locale, "aiSection", nil)
+}
+
+// AiSectionNote says "Which part of the AI settings is on show"
+// in the language the app shows.
+func AiSectionNote() string { return In(i18n.Locale()).AiSectionNote() }
+
+// AiSectionNote says "Which part of the AI settings is on show"
+// in the language of msgs.
+func (msgs Messages) AiSectionNote() string {
+	return Catalog.Format(msgs.locale, "aiSectionNote", nil)
+}
+
+// AiSectionModels says "Models"
+// in the language the app shows.
+func AiSectionModels() string { return In(i18n.Locale()).AiSectionModels() }
+
+// AiSectionModels says "Models"
+// in the language of msgs.
+func (msgs Messages) AiSectionModels() string {
+	return Catalog.Format(msgs.locale, "aiSectionModels", nil)
+}
+
+// AiSectionChat says "Asking"
+// in the language the app shows.
+func AiSectionChat() string { return In(i18n.Locale()).AiSectionChat() }
+
+// AiSectionChat says "Asking"
+// in the language of msgs.
+func (msgs Messages) AiSectionChat() string {
+	return Catalog.Format(msgs.locale, "aiSectionChat", nil)
+}
+
+// AiSectionActions says "Actions and prompts"
+// in the language the app shows.
+func AiSectionActions() string { return In(i18n.Locale()).AiSectionActions() }
+
+// AiSectionActions says "Actions and prompts"
+// in the language of msgs.
+func (msgs Messages) AiSectionActions() string {
+	return Catalog.Format(msgs.locale, "aiSectionActions", nil)
+}
+
+// AiSectionTools says "Tools and skills"
+// in the language the app shows.
+func AiSectionTools() string { return In(i18n.Locale()).AiSectionTools() }
+
+// AiSectionTools says "Tools and skills"
+// in the language of msgs.
+func (msgs Messages) AiSectionTools() string {
+	return Catalog.Format(msgs.locale, "aiSectionTools", nil)
+}
+
+// AiUsage says "{in} in · {out} out · {ms} ms"
+// in the language the app shows.
+func AiUsage(in string, out string, ms string) string { return In(i18n.Locale()).AiUsage(in, out, ms) }
+
+// AiUsage says "{in} in · {out} out · {ms} ms"
+// in the language of msgs.
+func (msgs Messages) AiUsage(in string, out string, ms string) string {
+	return Catalog.Format(msgs.locale, "aiUsage", map[string]any{"in": in, "out": out, "ms": ms})
+}
+
+// AiSnapshotOtherVault says "that snapshot belongs to another vault"
+// in the language the app shows.
+func AiSnapshotOtherVault() string { return In(i18n.Locale()).AiSnapshotOtherVault() }
+
+// AiSnapshotOtherVault says "that snapshot belongs to another vault"
+// in the language of msgs.
+func (msgs Messages) AiSnapshotOtherVault() string {
+	return Catalog.Format(msgs.locale, "aiSnapshotOtherVault", nil)
+}
+
+// AiSnapshotNotFound says "that note is not in this vault"
+// in the language the app shows.
+func AiSnapshotNotFound() string { return In(i18n.Locale()).AiSnapshotNotFound() }
+
+// AiSnapshotNotFound says "that note is not in this vault"
+// in the language of msgs.
+func (msgs Messages) AiSnapshotNotFound() string {
+	return Catalog.Format(msgs.locale, "aiSnapshotNotFound", nil)
+}
+
 // AiGroupSkills says "Skills"
 // in the language the app shows.
 func AiGroupSkills() string { return In(i18n.Locale()).AiGroupSkills() }

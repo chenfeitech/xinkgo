@@ -29,6 +29,7 @@ func (s *appState) ask(
 	if !ok {
 		return nil, ai.ErrNoModel
 	}
+	s.noteRecentModel(entry.ID)
 	endpoint := ai.NewEndpoint(entry, cfg)
 	req := ai.Request{
 		Model:    entry.ID,
@@ -59,6 +60,27 @@ func (s *appState) ask(
 		return nil, err
 	}
 	return ai.Events(endpoint, pieces), nil
+}
+
+// noteRecentModel remembers which model was last asked. The list is kept
+// on the workspace for the picker and written to disk off the frame, so
+// asking a question never waits on a file.
+func (s *appState) noteRecentModel(id string) {
+	if id == "" || s.ws == nil {
+		return
+	}
+	list := []string{id}
+	for _, one := range s.ws.RecentModels {
+		if one != id && len(list) < 8 {
+			list = append(list, one)
+		}
+	}
+	s.ws.RecentModels = list
+	go func() {
+		if err := state.SaveRecentModels(s.dir, list); err != nil {
+			slog.Warn("the recent models could not be kept", "err", err)
+		}
+	}()
 }
 
 // discoverSkills looks for skills in the vault and in the application's
@@ -98,8 +120,24 @@ func (s *appState) publishActions() {
 // A note that cannot be kept is not a reason to stop the revision: it is
 // said in the log, and the user is not told their work failed.
 func (s *appState) snapshotNote(path, text string) string {
-	where, err := snapshot.Write(snapshot.Dir(s.dir),
-		filepath.Base(path), text)
+	dir := snapshot.Dir(s.dir)
+	var (
+		where string
+		err   error
+	)
+	// A snapshot remembers both the vault and the note's path inside
+	// it, so two notes of the same name are no longer confused and a
+	// snapshot from another vault is not put back here. Without a vault
+	// yet, fall back to the old file-name-only form.
+	if vault := s.vaultID(); vault != "" {
+		if rel, ok := s.relativeToVault(path); ok {
+			where, err = snapshot.WriteFor(dir, vault, rel, text)
+		} else {
+			where, err = snapshot.Write(dir, filepath.Base(path), text)
+		}
+	} else {
+		where, err = snapshot.Write(dir, filepath.Base(path), text)
+	}
 	if err != nil {
 		slog.Warn("the note could not be kept before it was changed",
 			"err", err)

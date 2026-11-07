@@ -73,7 +73,7 @@ func (w *Workspace) aiSave(path string, s *aiSession) {
 func (w *Workspace) aiStored(blocks []aiBlock) []state.AiBlock {
 	out := make([]state.AiBlock, 0, len(blocks))
 	for _, b := range blocks {
-		if b.Text == "" || b.Failed != "" {
+		if b.Text == "" || b.Failed != "" || b.Secret {
 			continue
 		}
 		if b.Role != ai.User && b.Role != ai.Assistant {

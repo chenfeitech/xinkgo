@@ -115,17 +115,19 @@
 |---|---|---|---|
 | 对话条 `Cmd+Shift+A` | ✅ | `internal/view/ai_bar.go:134` `aiBar` | 按笔记归属 |
 | 会话持久化（30 会话 / 200 块） | ✅ | `internal/state/ai_sessions.go`、`internal/view/ai_bar.go` | |
-| 快捷动作（内置 6 项 + 命令面板入口） | ⚠️ | `internal/view/ai_ask.go:19` `DefaultActions`、`internal/view/ai_ask.go:19` `runAction` | 整篇 + 选区；**增删改无 UI**，只能改 `config.json` |
-| **提示词变量**（`{{known_tags}}`） | ❌ | — | |
+| 快捷动作（内置 6 项 + 命令面板入口） | ✅ | `internal/view/ai_ask.go` `runAction`、`internal/app/settings_quick.go` `aiQuickWords` | 整篇 + 选区；设置 ▸ AI ▸ 动作与提示词里可增删改、恢复内置项 |
+| **提示词变量** | ✅ | `internal/view/ai_vars.go` `expandActionPrompt`、`internal/templating/expand.go` | `{{title}}` / `{{note}}` / `{{selection}}` / `{{known_tags}}` / `{{date}}` / `{{time}}` / `{{date:格式}}`；未知变量原样保留 |
 | 结果落法 | ⚠️ | `internal/view/review.go` / `:60` | 一律走评审 diff；`Apply=insert/replace` 自动落盘未实现（已决策） |
 | 修订评审（逐块接受/拒绝） | ✅ | `internal/view/review.go:101` `reviewPane` | 整篇与选区两种 |
 | 改前快照 + 取回窗口 | ✅ | `internal/snapshot/snapshot.go`、`internal/app/history_window.go` | 上限 200，取回前先存当前 |
 | Provider：Ollama / OpenAI 兼容 | ✅ | `internal/ai/ollama.go`、`internal/ai/openai.go` | |
 | 流式解析（分帧 + 语义） | ✅ | `internal/ai/framing.go`、`internal/ai/parse.go` | NDJSON / SSE |
 | 重试与备用模型 / 两类超时 | ✅ | `internal/ai/ai.go` `Ask` | |
-| **场景路由**（对话/动作/Skill/Agent 各指定模型） | ❌ | `internal/view/ai_bar.go:235` 有字段 | 仍无读取点；但对话可在 AI 栏选模型（`internal/view/ai_bar.go:235` `aiModelPick`），动作可用 `AiAction.Model` |
-| 上下文裁剪 | ⚠️ | `internal/view/ai_bar.go` | 只用全局 `MaxContextChars`；模型侧 `ContextLimit` 未参与 |
-| 密钥管理 | ⚠️ | `internal/ai/ai.go` `keyOf` | 明文 + 环境变量已实现；`keychain` 仍未实现（Sanitize 一律归为明文） |
+| **场景路由**（对话/动作/Skill/Agent 各指定模型） | ✅ | `internal/config/ai.go` `ResolveModel`、`internal/view/ai_vars.go` `askModel` | 动作指定 > 场景路由 > 栏内手选 > 默认 > 首个启用；带工具循环的对话走 Agent 路由，带 Skill 的走 Skill 路由 |
+| 上下文裁剪 | ✅ | `internal/view/ai_vars.go` `contextMaxChars` | 全局 `MaxContextChars` 与模型 `ContextLimit` 取较小值（token 按 2 字符保守折算） |
+| 密钥管理 | ✅ | `internal/ai/ai.go` `keyOf`、`internal/secret/` | 明文 / 环境变量 / Keychain 三来源，`KeyRef` 稳定命名 |
+| 生成用量显示 | ✅ | `internal/view/ai_talk.go` `aiSaid`、`internal/ai/event.go` `Usage` | 回答尾部显示输入 / 输出 token 与耗时，模型未上报则显示 `-` |
+| AI 设置分组 | ✅ | `internal/app/settings_ai.go` `ai` | 模型 / 提问 / 动作与提示词 / 工具与技能四组，稳定 ID 切语言不丢 |
 | 连接测试（探针） | ✅ | `internal/ai/probe.go` `Try`、`internal/app/settings_ai.go` | |
 | 从 Ollama 拉模型列表 | ✅ | `internal/ai/discover.go` `OllamaModels`、`internal/app/settings_ai.go` | 设置 · AI 里点 Refresh：`/api/tags` 取名、`/api/show` 取能力；勾选用即入库 |
 | 其他模型：地址 / 密钥 / 列出端点模型 | ✅ | `internal/app/settings_ai.go:267` `aiOtherModel`、`internal/app/settings_ai.go:267` `OpenAIModels` | 密钥可明文或环境变量；OpenAI 兼容端点可 `GET /models` 选取模型名 |
@@ -138,6 +140,21 @@
 | Skills（`SKILL.md` 两级发现、启停、命令面板） | ✅ | `internal/skill/skill.go` `Discover` | |
 | 库级批量任务（加/改/删标签） | ✅ | `internal/task/task.go`、`internal/app/tasks_window.go` | 只读计划 + 分批执行可续跑 |
 | 截断可见 | ✅ | `internal/view/ai_bar.go` | 区分「预算耗尽」与「连接中断」 |
+| 服务商分层（预设 / 拉取模型列表 / 批量加入） | ✅ | `internal/config/ai_providers.go`、`internal/app/settings_ai_provider.go` | `Models` 仍是扁平可调用列表，`ProviderID` 归组；老 `config.json` 按地址自动迁移；Ollama 保持独立入口 |
+| 模型选择器 popover | ✅ | `internal/view/ai_p1.go` `aiModelPick` | 搜索、最近使用、按服务商 / Ollama 分组，替代原生下拉 |
+| 最近使用模型 | ✅ | `internal/state/recent_models.go` | 运行期状态，最多 8 个，不写 `config.json` |
+| 上下文 chip（可移除） | ✅ | `internal/view/ai_p1.go` `syncContexts` / `contextStrip` | 当前笔记与选区各自成一个 chip；移除后不再发给模型，直到笔记或选区变化 |
+| 自由指令改写选区 | ✅ | `internal/ai/inline.go` `Replacement`、`internal/view/ai_ask.go` `aiReviewDone` | 回答含 `<replacement>` 时只对选中片段做 diff 评审，笔记变过则拒绝写回 |
+| 回复落地 | ✅ | `internal/app/ai_reply.go` | 复制 / 追加到今日日记 / 追加到指定笔记，只追加不覆盖 |
+| Prompt 库（固定 / 分类 / 场景 / blanks） | ✅ | `internal/config/ai.go` `AiAction`、`internal/view/ai_p1.go` `blankForm` | `{{blank}}` 运行前弹表单；固定的排快捷条最前；文件化未做（可选项） |
+| 首屏场景化 | ✅ | `internal/view/ai_p1.go` `starterStrip` | 按有选区 / 有笔记 / 无笔记给标题与提示，建议复用 quickStrip |
+| 问题卡（模型向用户提问） | ✅ | `internal/ai/{event.go,question.go,agent.go}`、`internal/view/ai_p2.go` `questionCard` | `ask_user` 工具 + `EventQuestion`；一次一题，可选项 / 自填 / 跳过；私密回答不写进会话 |
+| 工作时间线与折叠 | ✅ | `internal/view/ai_p2.go` `timelineLine` | 「已探索 N 个文件，M 次搜索」折叠，可展开逐步与用时 |
+| 上下文用量条 | ✅ | `internal/view/ai_p2.go` `usageBar` | 模型声明 `ContextLimit` 时显示已用百分比；未声明则不画 |
+| 编辑重发 / 会话列表 | ✅ | `internal/view/ai_p2.go` `editUserBlock` / `sessionList` | 编辑用户消息截断后续分支；头部 popover 列出有对话的笔记并切换 |
+| `@笔记` 引用 | ✅ | `internal/view/ai_p2.go` `atCompletions` | `@` 弹库内笔记补全，附加为可移除上下文；未做 `@文件夹` |
+| 按轮撤销 | ✅ | `internal/view/review.go`、`internal/app/ai_reply.go` `aiUndo` | 撤销最近一次评审写回，撤销前检查笔记未被改动 |
+| 文件权限两档 | ✅ | `internal/config/ai.go` `Permission` | 只读（默认）/ 允许追加；工具集始终只读，评审写回始终过 diff |
 | **生成预算用量显示** | ❌ | `internal/ai/event.go` `Used` 已发出 | UI 未显示 `EventUsage` |
 
 ## 7. 界面与外观
@@ -216,10 +233,10 @@
 9. 「放弃改动并重新加载」入口（外部改动冲突时的第三个选项）。
 10. 图片点击放大。
 11. 编辑区 Markdown 装饰（行首标记淡化、链接文字着色）。
-12. AI：密钥只支持明文 → 补环境变量 / Keychain 两条来源。
-13. AI：场景路由 `Ai.Route` 接线（现在只按默认模型）。
-14. AI：快捷动作增删改界面 + 提示词变量（`{{known_tags}}`）。
-15. AI：从 Ollama 拉模型列表；生成预算用量显示。
+12. ~~AI：补环境变量 / Keychain 两条密钥来源~~ 已补。
+13. ~~AI：场景路由 `Ai.Route` 接线~~ 已补（`ResolveModel` / `askModel`，见 L1）。
+14. ~~AI：快捷动作增删改界面 + 提示词变量~~ 已补（见 L4）。
+15. ~~AI：从 Ollama 拉模型列表；生成预算用量显示~~ 已补（见 L2）。
 16. 设置：搜索、单项重置、「暂未生效」标注。
 17. 目录树滚动位置的显式保存/恢复。
 18. YAML / TOML 校验与格式化（卡在 `gopkg.in/yaml.v3` 取不到，需联网或换方案）。

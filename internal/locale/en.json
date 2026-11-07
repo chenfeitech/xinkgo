@@ -386,6 +386,153 @@
   "cancel": "Cancel",
   "aiSettingAskAtAll": "Ask a model at all",
   "aiSettingAskAtAllNote": "Turning this on is what lets a note be asked about",
+  "aiProviderAdd": "Add a service",
+  "aiProviderAddTitle": "Add a model service",
+  "aiProviderAddNote": "One address and key can then add many models.",
+  "aiProviderPreset": "Preset",
+  "aiProviderPresetNote": "Pick a known endpoint, or Custom to type its address",
+  "aiProviderCustom": "Custom",
+  "aiProviderName": "Name",
+  "aiProviderNameNote": "What this service is called in the settings",
+  "aiProviderKey": "API key",
+  "aiProviderKeyNote": "Kept the same way as a model's own key",
+  "aiProviderRefresh": "Refresh models",
+  "aiProviderRemove": "Remove",
+  "aiProviderShow": "Show models",
+  "aiProviderHide": "Hide models",
+  "aiProviderModels": "{count} models",
+  "@aiProviderModels": {
+    "placeholders": {
+      "count": { "type": "String" }
+    }
+  },
+  "aiProviderUngrouped": "Ungrouped",
+  "aiProviderHeld": "Fetched models: pick one to add it",
+  "aiProviderBusy": "Fetching the model list...",
+  "aiProviderFailed": "Could not list models: {error}",
+  "@aiProviderFailed": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "aiProviderNone": "No services yet. Add one, or write a model in by hand below.",
+  "aiProviderGroupOverseas": "Overseas",
+  "aiProviderGroupCN": "China",
+  "aiProviderGroupRelay": "Aggregators",
+  "aiProviderGroupCustom": "Custom",
+  "aiProviderSave": "Add",
+  "aiProviderCancel": "Cancel",
+  "aiProviderGroup": "Service",
+  "aiProviderGroupNote": "Models fetched from this address",
+  "aiReplyCopy": "Copy",
+  "aiReplyDaily": "Append to today's note",
+  "aiReplyNote": "Append to a note...",
+  "aiReplyCopied": "answer copied",
+  "aiReplyAppended": "answer appended to {name}",
+  "@aiReplyAppended": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "aiReplyFailed": "the answer could not be saved",
+  "aiReplyPickNote": "Choose a note to append to",
+  "aiContextNote": "Note: {name}",
+  "@aiContextNote": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "aiContextSelection": "Selected {count} characters",
+  "@aiContextSelection": {
+    "placeholders": {
+      "count": { "type": "String" }
+    }
+  },
+  "aiContextRemove": "Remove this context",
+  "aiStarterTitle": "Ask about this note",
+  "aiStarterSelection": "Ask about the selection",
+  "aiStarterEmpty": "Ask anything about the vault",
+  "aiStarterHint": "A note, the selection and what is on screen go with the question.",
+  "aiModelSearch": "Filter, or type a model ID",
+  "aiModelRecent": "Recent",
+  "aiModelSourceOllama": "Ollama",
+  "aiModelSourceOther": "Other",
+  "aiBlankTitle": "Fill in the prompt",
+  "aiBlankSend": "Send",
+  "aiBlankCancel": "Cancel",
+  "aiTimeline": "Explored {reads} files, {searches} searches",
+  "@aiTimeline": {
+    "placeholders": {
+      "reads": { "type": "String" },
+      "searches": { "type": "String" }
+    }
+  },
+  "aiTimelineShow": "Show work",
+  "aiTimelineHide": "Fold work",
+  "aiTimelineStep": "{verb} {target}",
+  "@aiTimelineStep": {
+    "placeholders": {
+      "verb": { "type": "String" },
+      "target": { "type": "String" }
+    }
+  },
+  "aiTimelineDone": "Handled in {ms} ms",
+  "@aiTimelineDone": {
+    "placeholders": {
+      "ms": { "type": "String" }
+    }
+  },
+  "aiUsagePct": "{pct}% of context window",
+  "@aiUsagePct": {
+    "placeholders": {
+      "pct": { "type": "String" }
+    }
+  },
+  "aiQuestionSkip": "Skip",
+  "aiQuestionSend": "Submit",
+  "aiQuestionOther": "Type an answer",
+  "aiQuestionPrivate": "private answer",
+  "aiEdit": "Edit",
+  "aiSessions": "Recent conversations",
+  "aiSessionsNone": "No other conversations",
+  "aiAtHint": "Type @ to attach a note",
+  "aiAtAttached": "Attached {name}",
+  "@aiAtAttached": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "aiPermission": "File access",
+  "aiPermissionNote": "What the AI may do with your notes",
+  "aiPermissionRead": "Read only",
+  "aiPermissionWrite": "Allow appending to notes",
+  "aiUndoRound": "Undo this change",
+  "aiUndoOk": "change undone",
+  "aiUndoConflict": "the note changed since; not undone",
+  "aiReplyDenied": "file access is read only",
+  "aiQuickPinned": "Pin to the strip",
+  "aiQuickPinnedNote": "Pinned prompts stand first in the quick strip.",
+  "aiQuickPinnedBadge": "Pinned",
+  "aiQuickCategory": "Category",
+  "aiQuickCategoryNote": "Groups prompts in the library.",
+  "aiQuickScene": "Scene",
+  "aiQuickSceneNote": "Which kind of note this prompt suits.",
+  "aiSection": "AI section",
+  "aiSectionNote": "Which part of the AI settings is on show",
+  "aiSectionModels": "Models",
+  "aiSectionChat": "Asking",
+  "aiSectionActions": "Actions and prompts",
+  "aiSectionTools": "Tools and skills",
+  "aiUsage": "{in} in · {out} out · {ms} ms",
+  "@aiUsage": {
+    "placeholders": {
+      "in": { "type": "String" },
+      "out": { "type": "String" },
+      "ms": { "type": "String" }
+    }
+  },
+  "aiSnapshotOtherVault": "that snapshot belongs to another vault",
+  "aiSnapshotNotFound": "that note is not in this vault",
   "aiGroupSkills": "Skills",
   "aiSkillsNone": "No skills yet: write one at <vault>/.xink/skills/<name>/SKILL.md",
   "aiSkillIssue": "{path}: {reason}",

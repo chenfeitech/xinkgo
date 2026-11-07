@@ -101,3 +101,27 @@ func TestAiSettings_tickingAModelTheMachineHoldsAsksIt(t *testing.T) {
 		t.Fatalf("on = %v there = %v, want it asked", on, there)
 	}
 }
+
+// The AI settings show one group at a time. The models are the first
+// screen; switching to Asking hides them and shows the asking knobs.
+func TestAiSettings_sectionsSwitch(t *testing.T) {
+	s := aiSettingsShown(t)
+	tester := ui.NewTester(func(c *ui.Context) { s.ai(c) }, 760, 1000)
+	tester.Frame()
+	if !tester.HasText("Which one is asked") {
+		t.Fatal("the models section is not the first screen")
+	}
+	s.draft.aiSection = "chat"
+	tester.Frame()
+	if !tester.HasText("Answer in") {
+		t.Error("the asking section was not drawn")
+	}
+	if tester.HasText("Which one is asked") {
+		t.Error("the models section stayed on show")
+	}
+	s.draft.aiSection = "tools"
+	tester.Frame()
+	if !tester.HasText("Skills") {
+		t.Error("the tools section was not drawn")
+	}
+}

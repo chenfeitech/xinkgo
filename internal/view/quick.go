@@ -86,9 +86,17 @@ func (w *Workspace) quickKeys(
 func (w *Workspace) quickRun(
 	n *OpenNote, s *aiSession, a config.AiAction, extra string,
 ) {
+	// A prompt with blanks waits for its little form; running and
+	// editing are separate, so a chip without blanks still sends at once.
+	withExtra := askingMore(a, extra)
+	if len(config.ActionBlanks(withExtra.Prompt)) > 0 {
+		w.openBlankForm(withExtra, "")
+		return
+	}
 	w.quickChosen = 0
 	s.Input = ""
-	w.runAction(askingMore(a, extra))
+	w.aiP1.blankAnswers = nil
+	w.runAction(withExtra)
 }
 
 // quickWords is the words standing above the place to ask: all of them
@@ -101,14 +109,26 @@ func (w *Workspace) quickWords(query string) []config.AiAction {
 		return nil
 	}
 	if query == "" {
-		// Nothing was typed: the words as they were set, and not as
-		// an alphabet would have them.
+		// Nothing was typed: the pinned prompts first, then the rest
+		// in the order they were set, and not as an alphabet would
+		// have them.
 		out := make([]config.AiAction, 0, len(w.Actions))
 		for i := range w.Actions {
+			if w.Actions[i].Pinned {
+				out = append(out, w.Actions[i])
+			}
+		}
+		for i := range w.Actions {
+			if w.Actions[i].Pinned {
+				continue
+			}
 			out = append(out, w.Actions[i])
-			if len(out) == quickLimit {
+			if len(out) >= quickLimit {
 				break
 			}
+		}
+		if len(out) > quickLimit {
+			out = out[:quickLimit]
 		}
 		return out
 	}

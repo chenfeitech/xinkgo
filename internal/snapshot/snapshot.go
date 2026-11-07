@@ -42,6 +42,82 @@ func Name(fileName string) string {
 	return stamp + "-" + fileName
 }
 
+// NameFor is what a snapshot of one note in one vault is called:
+// `<stamp>-<vault id>~<encoded vault-relative path>`. A path, unlike a
+// bare file name, says which vault and which folder the note stood in,
+// so two notes of the same name are no longer confused, and a snapshot
+// taken in another vault is not put back into this one.
+//
+// The encoding is reversible: `_` becomes `_u`, `/` becomes `_s` and
+// `~` becomes `_t`. Nothing else is changed, so a name still sorts by
+// the stamp at its front.
+func NameFor(vaultID, rel string) string {
+	stamp := time.Now().UTC().Format(stampFormat)
+	return stamp + "-" + vaultID + "~" + encodeRel(rel)
+}
+
+func encodeRel(rel string) string {
+	rel = filepath.ToSlash(strings.TrimSpace(rel))
+	var b strings.Builder
+	for _, r := range rel {
+		switch r {
+		case '_':
+			b.WriteString("_u")
+		case '/':
+			b.WriteString("_s")
+		case '~':
+			b.WriteString("_t")
+		default:
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
+}
+
+func decodeRel(s string) string {
+	var b strings.Builder
+	for i := 0; i < len(s); i++ {
+		if s[i] == '_' && i+1 < len(s) {
+			switch s[i+1] {
+			case 'u':
+				b.WriteByte('_')
+				i++
+				continue
+			case 's':
+				b.WriteByte('/')
+				i++
+				continue
+			case 't':
+				b.WriteByte('~')
+				i++
+				continue
+			}
+		}
+		b.WriteByte(s[i])
+	}
+	return b.String()
+}
+
+// Scope is the vault and vault-relative path a snapshot was taken of.
+// It reports false for a snapshot written by an older version, which
+// only kept the file's name.
+func Scope(snapshotPath string) (vaultID, rel string, ok bool) {
+	base := filepath.Base(snapshotPath)
+	parts := strings.SplitN(base, "-", 4)
+	if len(parts) < 4 {
+		return "", "", false
+	}
+	_, name, found := strings.Cut(parts[3], "-")
+	if !found || name == "" {
+		return "", "", false
+	}
+	vault, encoded, cut := strings.Cut(name, "~")
+	if !cut || vault == "" {
+		return "", "", false
+	}
+	return vault, decodeRel(encoded), true
+}
+
 // Dir is where the snapshots of this application stand.
 func Dir(appData string) string {
 	return filepath.Join(appData, DirName)
@@ -53,16 +129,25 @@ func Dir(appData string) string {
 // already written, and a folder with too many old snapshots in it is not
 // a reason to tell the user their save failed.
 func Write(dir, fileName, content string) (string, error) {
+	return writeNamed(dir, Name(fileName), content)
+}
+
+// WriteFor keeps what a note said, remembering which vault and which
+// path in it the note stood at.
+func WriteFor(dir, vaultID, rel, content string) (string, error) {
+	return writeNamed(dir, NameFor(vaultID, rel), content)
+}
+
+func writeNamed(dir, name, content string) (string, error) {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return "", fmt.Errorf("make %s: %w", dir, err)
 	}
-	path := filepath.Join(dir, Name(fileName))
+	path := filepath.Join(dir, name)
 	if _, err := os.Stat(path); err == nil {
 		// Twice in the same second: a number is put after it, rather
 		// than one overwriting the other.
 		for n := 1; ; n++ {
-			other := filepath.Join(dir, fmt.Sprintf("%s-%d",
-				Name(fileName), n))
+			other := filepath.Join(dir, fmt.Sprintf("%s-%d", name, n))
 			if _, err := os.Stat(other); err != nil {
 				path = other
 				break
@@ -176,7 +261,8 @@ func list(dir string) ([]string, bool) {
 // after the first dash-and-a-name's worth of stamp.
 //
 // It is how a snapshot is shown: `2026-10-31-104500-a.md` is a snapshot
-// of a.md.
+// of a.md. A snapshot written with NameFor gives back the note's
+// vault-relative path instead, so subfolders are visible in the list.
 func Original(snapshotPath string) string {
 	base := filepath.Base(snapshotPath)
 	// The stamp is `yyyy-mm-dd-HHMMSS`, so the name of the file comes
@@ -188,6 +274,9 @@ func Original(snapshotPath string) string {
 	_, name, found := strings.Cut(parts[3], "-")
 	if !found || name == "" {
 		return base
+	}
+	if _, rel, ok := Scope(snapshotPath); ok {
+		return rel
 	}
 	return name
 }

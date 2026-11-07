@@ -17,6 +17,10 @@ const (
 	EventToolResult
 	// EventUsage is what the answer cost.
 	EventUsage
+	// EventQuestion is a model asking the user to decide something
+	// before it can go on. The turn ends here; an answer starts a new
+	// one, with the answer as the next thing the user said.
+	EventQuestion
 	// EventTruncated is a model that ran out of budget and stopped: it
 	// came to an end of its own, and what it gave is only half of what
 	// it would have said. It is said before EventDone, for a Done is
@@ -41,6 +45,8 @@ func (k EventKind) String() string {
 		return "tool result"
 	case EventUsage:
 		return "usage"
+	case EventQuestion:
+		return "question"
 	case EventTruncated:
 		return "truncated"
 	case EventDone:
@@ -63,6 +69,8 @@ type Event struct {
 	Result Result
 	// Used is what the answer cost.
 	Used Usage
+	// Asked is the decision the model needs from the user.
+	Asked Question
 	// Err is what went wrong.
 	Err error
 }
@@ -90,6 +98,11 @@ func Found(result Result) Event {
 // Used is what the answer cost.
 func Used(usage Usage) Event { return Event{Kind: EventUsage, Used: usage} }
 
+// Asked is a model putting a question to the user.
+func Asked(q Question) Event {
+	return Event{Kind: EventQuestion, Asked: q}
+}
+
 // Truncated is a model that stopped because it had said as much as it was
 // allowed to.
 func Truncated() Event { return Event{Kind: EventTruncated} }
@@ -116,4 +129,15 @@ type Usage struct {
 	PromptTokens     *uint64
 	CompletionTokens *uint64
 	DurationMs       *uint64
+}
+
+// Question is one decision a model needs. Options are short labels; an
+// empty list means the user types an answer instead of choosing one.
+type Question struct {
+	ID         string
+	Header     string
+	Text       string
+	Options    []string
+	AllowOther bool
+	Secret     bool
 }

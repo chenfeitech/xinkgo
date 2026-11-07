@@ -243,7 +243,10 @@ func TestAiBrief_theTongueTheAnswerIsToComeIn(t *testing.T) {
 	if _, err := w.Tabs.Open(a); err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	if said := w.aiBrief(w.Tabs.ActiveNote()); !strings.Contains(
+	n := w.Tabs.ActiveNote()
+	s := w.aiOf(a)
+	w.syncContexts(s, n)
+	if said := w.aiBrief(s, n); !strings.Contains(
 		said, "Answer in Chinese") {
 		t.Fatalf("brief = %q, want it told to answer in Chinese", said)
 	}
@@ -264,7 +267,9 @@ func TestAiBrief_aLongNoteIsNotSentWhole(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	said := w.aiBrief(n)
+	s := w.aiOf(path)
+	w.syncContexts(s, n)
+	said := w.aiBrief(s, n)
 	if !strings.HasSuffix(said, strings.Repeat("w", 64)) {
 		t.Fatalf("brief ends %q, want it cut at 64 characters",
 			said[len(said)-70:])

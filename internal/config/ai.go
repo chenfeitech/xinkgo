@@ -41,19 +41,100 @@ const (
 	defaultOllamaKeepAlive = "5m"
 )
 
+// The four kinds of request a model may be chosen for. They name the
+// fields of AiRouteConfig, so a route is one stable string everywhere.
+const (
+	RouteKindChat   = "chat"
+	RouteKindAction = "action"
+	RouteKindSkill  = "skill"
+	RouteKindAgent  = "agent"
+)
+
+// The two file-access levels. The AI's tools are always read-only; this
+// decides whether an answer may also be appended to a note at all.
+const (
+	PermissionRead   = "read"
+	PermissionAppend = "append"
+)
+
+// ResolveModel is the one place that decides which model a request goes
+// to. An action that names its own model wins; then the route for this
+// kind of request; then a model picked by hand in the AI bar; then the
+// default and the fallback; and finally the first enabled model.
+//
+// Only enabled models are returned, so a stale route or a model the user
+// turned off never reaches ai.Ask. A fallback that cannot answer is asked
+// by ai.Ask itself; this only picks the primary.
+func (c AiConfig) ResolveModel(
+	kind string, action *AiAction, picked string,
+) string {
+	candidates := []string{}
+	if action != nil && action.Model != nil {
+		candidates = append(candidates, strings.TrimSpace(*action.Model))
+	}
+	candidates = append(candidates, routeOf(c.Route, kind))
+	candidates = append(candidates, picked, c.DefaultModel,
+		c.FallbackModel)
+	for _, id := range candidates {
+		if id == "" {
+			continue
+		}
+		for _, m := range c.Models {
+			if m.ID == id && m.Enabled {
+				return id
+			}
+		}
+	}
+	for _, m := range c.Models {
+		if m.Enabled {
+			return m.ID
+		}
+	}
+	return ""
+}
+
+// routeOf is the model a route names, or "" when it names none.
+func routeOf(r AiRouteConfig, kind string) string {
+	var chosen *string
+	switch kind {
+	case RouteKindChat:
+		chosen = r.Chat
+	case RouteKindAction:
+		chosen = r.Action
+	case RouteKindSkill:
+		chosen = r.Skill
+	case RouteKindAgent:
+		chosen = r.Agent
+	}
+	if chosen == nil {
+		return ""
+	}
+	return strings.TrimSpace(*chosen)
+}
+
 // AiConfig is everything the AI features use.
 type AiConfig struct {
-	Enabled              bool          `json:"enabled"`
-	DefaultModel         string        `json:"default_model"`
-	Models               []ModelEntry  `json:"models"`
-	Ollama               OllamaConfig  `json:"ollama"`
-	TimeoutSecs          uint64        `json:"timeout_secs"`
-	MaxContextChars      uint64        `json:"max_context_chars"`
-	MaxSteps             uint64        `json:"max_steps"`
-	Agentic              bool          `json:"agentic"`
-	MaxToolChars         uint64        `json:"max_tool_chars"`
-	OutputLanguage       string        `json:"output_language"`
-	AutoApply            bool          `json:"auto_apply"`
+	Enabled      bool         `json:"enabled"`
+	DefaultModel string       `json:"default_model"`
+	Models       []ModelEntry `json:"models"`
+	// Providers are the services the models come from. Models stays the
+	// flat list of callable models every reader already uses; a provider
+	// is the shared address and key that a group of them was fetched
+	// from, so one connection can add many models at once.
+	Providers       []AiProvider `json:"providers,omitempty"`
+	Ollama          OllamaConfig `json:"ollama"`
+	TimeoutSecs     uint64       `json:"timeout_secs"`
+	MaxContextChars uint64       `json:"max_context_chars"`
+	MaxSteps        uint64       `json:"max_steps"`
+	Agentic         bool         `json:"agentic"`
+	MaxToolChars    uint64       `json:"max_tool_chars"`
+	OutputLanguage  string       `json:"output_language"`
+	AutoApply       bool         `json:"auto_apply"`
+	// Permission is what an answer may do to a note besides being
+	// copied. "read" keeps the AI read-only; "append" allows the reply
+	// actions to add words to a note. A revision of a note still goes
+	// through the diff review at either level.
+	Permission           string        `json:"permission"`
 	SkillsEnabled        bool          `json:"skills_enabled"`
 	DisabledSkills       []string      `json:"disabled_skills"`
 	MemoryEnabled        bool          `json:"memory_enabled"`
@@ -62,6 +143,22 @@ type AiConfig struct {
 	FallbackModel        string        `json:"fallback_model"`
 	Retry                AiRetryConfig `json:"retry"`
 	FirstByteTimeoutSecs uint64        `json:"first_byte_timeout_secs"`
+}
+
+// AiProvider is one model service: the address and key shared by the
+// models fetched from it. It holds no models of its own; those stay in
+// AiConfig.Models and name this provider by ID.
+type AiProvider struct {
+	ID           string `json:"id"`
+	Name         string `json:"name"`
+	BaseURL      string `json:"base_url"`
+	ApiKeySource string `json:"api_key_source"`
+	PlainKey     string `json:"plain_key,omitempty"`
+	KeyRef       string `json:"key_ref,omitempty"`
+	// ShowInPicker is whether this source appears in the model picker.
+	// Its models may still be enabled when it is off.
+	ShowInPicker bool   `json:"show_in_picker"`
+	FetchedAt    uint64 `json:"fetched_at,omitempty"`
 }
 
 // OllamaConfig is the local Ollama server.
@@ -88,6 +185,10 @@ type AiRouteConfig struct {
 // ModelEntry is one model the user can pick.
 type ModelEntry struct {
 	ID string `json:"id"`
+	// ProviderID names the service this model came from, empty for the
+	// local Ollama models and for entries written in by hand before
+	// providers existed.
+	ProviderID string `json:"provider_id,omitempty"`
 	// Source is where it came from: ModelSourceOllama for one found on
 	// the machine by asking the local Ollama what it holds, and
 	// ModelSourceCustom for one the user wrote in by hand. The two are
@@ -189,6 +290,11 @@ type AiAction struct {
 	Apply   string  `json:"apply"`
 	Enable  bool    `json:"enabled"`
 	Model   *string `json:"model,omitempty"`
+	// Pinned keeps a prompt at the front of the quick strip; Category
+	// and Scene group prompts in the library and on the first screen.
+	Pinned   bool   `json:"pinned,omitempty"`
+	Category string `json:"category,omitempty"`
+	Scene    string `json:"scene,omitempty"`
 }
 
 // Word is what the user types to run it: the trigger they gave it, and
@@ -217,6 +323,7 @@ func DefaultAi() AiConfig {
 		MaxToolChars:         4_000,
 		OutputLanguage:       OutputAuto,
 		AutoApply:            false,
+		Permission:           PermissionRead,
 		SkillsEnabled:        true,
 		DisabledSkills:       []string{},
 		MemoryEnabled:        false,
@@ -299,6 +406,9 @@ func (a *AiConfig) fillMissing(d AiConfig) {
 	if a.OutputLanguage == "" {
 		a.OutputLanguage = d.OutputLanguage
 	}
+	if a.Permission == "" {
+		a.Permission = d.Permission
+	}
 	if a.DisabledSkills == nil {
 		a.DisabledSkills = []string{}
 	}
@@ -314,11 +424,13 @@ func (a *AiConfig) fillMissing(d AiConfig) {
 	if a.Models == nil {
 		a.Models = []ModelEntry{}
 	}
+	a.migrateProviders()
 }
 
 // Sanitize clamps the AI settings, drops the models and actions that cannot
 // be used, and clears the routes that point at nothing.
 func (a *AiConfig) Sanitize() {
+	a.migrateProviders()
 	a.TimeoutSecs = clampU64(a.TimeoutSecs, 5, 600)
 	a.MaxContextChars = clampU64(a.MaxContextChars, 1_000, 200_000)
 	a.MaxSteps = clampU64(a.MaxSteps, 1, 64)
@@ -328,6 +440,9 @@ func (a *AiConfig) Sanitize() {
 	a.Retry.BackoffMs = clampU64(a.Retry.BackoffMs, 100, 10_000)
 	if !oneOf(a.OutputLanguage, OutputAuto, OutputZh, OutputEn) {
 		a.OutputLanguage = OutputAuto
+	}
+	if !oneOf(a.Permission, PermissionRead, PermissionAppend) {
+		a.Permission = PermissionRead
 	}
 	// Auto-applying an AI's edit without showing it is never on.
 	a.AutoApply = false
@@ -371,6 +486,7 @@ func (a *AiConfig) Sanitize() {
 	a.Models = models
 
 	a.sanitizeActions()
+	a.sanitizeProviders()
 
 	// A model that is gone, or turned off, is not a default or a route.
 	usable := func(id string) bool {
@@ -403,6 +519,31 @@ func (a *AiConfig) Sanitize() {
 	if r.Agent != nil && !usable(*r.Agent) {
 		r.Agent = nil
 	}
+}
+
+// sanitizeProviders keeps the services tidy: stable, unique IDs, a name
+// to show and a key source the app knows how to read.
+func (a *AiConfig) sanitizeProviders() {
+	seen := map[string]bool{}
+	kept := a.Providers[:0:0]
+	for i := range a.Providers {
+		p := &a.Providers[i]
+		p.ID = strings.TrimSpace(p.ID)
+		p.Name = strings.TrimSpace(p.Name)
+		p.BaseURL = strings.TrimSpace(p.BaseURL)
+		if p.ID == "" || seen[p.ID] {
+			continue
+		}
+		if p.Name == "" {
+			p.Name = providerNameOf(p.BaseURL)
+		}
+		if !oneOf(p.ApiKeySource, KeyEnv, KeyKeychain, KeyPlain) {
+			p.ApiKeySource = KeyPlain
+		}
+		seen[p.ID] = true
+		kept = append(kept, *p)
+	}
+	a.Providers = kept
 }
 
 func (m *ModelEntry) sanitizeParams(ollamaCtx uint32) {
@@ -449,6 +590,8 @@ func (a *AiConfig) sanitizeActions() {
 			act.Name = act.ID
 		}
 		act.Prompt = truncate(strings.TrimSpace(act.Prompt), maxActionPromptLen)
+		act.Category = truncate(strings.TrimSpace(act.Category), 32)
+		act.Scene = truncate(strings.TrimSpace(act.Scene), 32)
 		act.Trigger = triggerOf(act, seenTriggers)
 		if !oneOf(act.Scope, ActionScopeSelection, ActionScopeWhole) {
 			act.Scope = ActionScopeSelection

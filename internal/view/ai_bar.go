@@ -7,7 +7,6 @@ import (
 
 	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/ai"
-	"github.com/helightxu/xinkgo/internal/config"
 	"github.com/helightxu/xinkgo/internal/locale"
 	"github.com/helightxu/xinkgo/internal/skill"
 )
@@ -36,10 +35,19 @@ type aiBlock struct {
 	Cut bool
 	// Failed is what went wrong, when something did.
 	Failed string
+	// Secret is an answer the user gave to a private question: it is
+	// sent to the model this turn but not written down.
+	Secret bool
 	// Tool is what the tools came back with on the way to this answer:
 	// the same words the model was given, so that what it read before
 	// answering can be seen.
 	Tool []ai.Result
+	// Activities are the steps of this answer, folded into one line
+	// until the user asks to see them.
+	Activities []aiActivity
+	// Usage is what the answer cost, when the model said so. It is not
+	// written down: a cost read last run is not a cost of this run.
+	Usage *ai.Usage
 }
 
 // aiSession is one note's conversation with a model. It belongs to the
@@ -73,6 +81,40 @@ type aiSession struct {
 	// goroutine that hears the answer, for a revision is made out of
 	// the note's own editor.
 	waiting *waitReview
+	// Contexts are what goes with each question: the note and the
+	// selection, each removable. They are rebuilt when the note or the
+	// selection changes, and a removal lasts until then.
+	Contexts   []aiContext
+	contextKey string
+	// selectionFrom/To remember where a free-form question's selection
+	// stood, so a <replacement> answer can be reviewed against only the
+	// lines it was taken from.
+	selectionFrom, selectionTo int
+	// PendingQuestion is a decision the model asked for. It stands
+	// until the user answers or skips, and the answer starts a new
+	// turn rather than continuing this one.
+	PendingQuestion *ai.Question
+	QuestionAnswer  string
+	secretNext      bool
+	// TimelineOpen is whether the work a model did on the way to its
+	// answer is unfolded.
+	TimelineOpen bool
+	// Refs are the notes the user attached with @. Their text is read
+	// once when attached, not once a frame.
+	Refs     []string
+	RefTexts map[string]string
+}
+
+// aiContext is one removable piece of context shown above the composer.
+type aiContext struct {
+	ID, Kind, Label, Text string
+	Removed               bool
+}
+
+// aiActivity is one thing a model did on the way to an answer: a read,
+// a search or a listing. Consecutive read-only ones fold into one line.
+type aiActivity struct {
+	Verb, Target string
 }
 
 // waitReview is what an action is waiting for: whether what it asked
@@ -142,9 +184,15 @@ func (w *Workspace) aiBar(c *ui.Context) {
 	}
 	ui.Column(c).Gap(6).Padding(8).Children(func() {
 		w.aiHead(c, s)
+		w.syncContexts(s, n)
+		w.sessionList(c, n.Path)
+		w.starterStrip(c, s, n)
+		w.contextStrip(c, s)
 		w.aiTalk(c, s, n)
+		w.questionCard(c, s, n)
 		w.aiCompose(c, s, n)
 	})
+	w.blankForm(c, s, n)
 	w.aiSave(n.Path, s)
 }
 
@@ -164,6 +212,12 @@ func (w *Workspace) aiHead(c *ui.Context, s *aiSession) {
 		if s.isBusy() {
 			ui.Text(c, locale.AiAnswering()).FontSize(12).
 				TextColor(c.Theme().TextMuted)
+		}
+		if w.LastChange != nil {
+			if ui.Button(c.Key("ai-undo-round"),
+				locale.AiUndoRound()).Clicked() {
+				w.undoRound()
+			}
 		}
 		if ui.Button(c.Key("ai-forget"), locale.AiForget()).
 			Label(locale.AiForgetLabel()).Clicked() {
@@ -201,6 +255,7 @@ func (w *Workspace) aiCompose(c *ui.Context, s *aiSession, n *OpenNote) {
 				field.Focus()
 				s.focus = false
 			}
+			w.atCompletions(c, s, field)
 			// A word being typed is a word, and not a question:
 			// Enter asks what that word asks, and not the letters.
 			if w.quickKeys(c, s, n, field, items, extra, typing) {
@@ -223,34 +278,6 @@ func (w *Workspace) aiCompose(c *ui.Context, s *aiSession, n *OpenNote) {
 			}
 		})
 	})
-}
-
-// aiModelPick is which model is asked: the ones the settings hold and are
-// turned on, of which one is picked here.
-//
-// What is offered is only what can be asked. A model turned off is not on
-// the list, and neither is one the settings no longer hold; a picked one
-// that has gone since is let go of, and the one the settings name is
-// asked again.
-func (w *Workspace) aiModelPick(c *ui.Context, s *aiSession) {
-	// A model is offered where it may be asked: with the asking turned
-	// off, or with no model to ask, there is nothing to choose from.
-	if !w.Config.Ai.Enabled {
-		return
-	}
-	names := w.aiModelNames()
-	if len(names) == 0 {
-		return
-	}
-	w.AiModel = w.aiModelNamed(names)
-	was := w.AiModel
-	ui.Select(c, &w.AiModel, names).Width(aiModelWidth).
-		Label("Which model is asked").Disabled(s.isBusy())
-	if w.AiModel != was {
-		// The hand has been laid on it: what is picked here is asked
-		// from now on, and not what the settings name.
-		w.aiPicked = true
-	}
 }
 
 // aiModelNamed is the model the bar asks as things stand: the one picked
@@ -285,15 +312,6 @@ func namedOf(names []string, want string) string {
 		return want
 	}
 	return names[0]
-}
-
-// modelOf is the model an action is asked of: the one the action names of
-// its own, when it names one, and otherwise the one the bar asks.
-func modelOf(a config.AiAction, fallback string) string {
-	if a.Model != nil && strings.TrimSpace(*a.Model) != "" {
-		return strings.TrimSpace(*a.Model)
-	}
-	return fallback
 }
 
 // hasName is whether the list holds that name.

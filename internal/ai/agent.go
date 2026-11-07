@@ -83,6 +83,16 @@ func Loop(
 				out <- Done()
 				return
 			}
+			// A question ends the turn instead of being executed:
+			// the host shows a card, and the user's answer starts a
+			// new turn with that answer as the next thing said.
+			for _, call := range calls {
+				if call.Name == ToolAskUser {
+					out <- Asked(questionFromCall(call))
+					out <- Done()
+					return
+				}
+			}
 			if text := said.String(); strings.TrimSpace(text) != "" {
 				messages = append(messages, Message{
 					Role:    Assistant,

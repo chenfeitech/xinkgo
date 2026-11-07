@@ -251,6 +251,7 @@ func boot(app *mygo.Application) (*appState, error) {
 
 	ws := view.NewWorkspace(cfg)
 	ws.Layout = layout
+	ws.RecentModels = state.LoadRecentModels(dir)
 	// The index is worked out again from the vault, in the background,
 	// as soon as one is open.
 	idx := index.New()
@@ -350,6 +351,8 @@ func boot(app *mygo.Application) (*appState, error) {
 	ws.OnWebSelectTab = st.webSelectTab
 	ws.OnWebCloseTab = st.webCloseTab
 	ws.OnWebShowPreview = st.webShowPreview
+	ws.OnAiReply = st.aiReply
+	ws.OnAiUndo = st.aiUndo
 	ws.Tabs.OnSave = func(path string) {
 		slog.Debug("saved", "path", path)
 		// What is saved is what is set out: the article is laid out

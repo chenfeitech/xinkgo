@@ -68,6 +68,10 @@ func (s *appState) aiQuickWord(c *ui.Context, at int, first, last bool) {
 			Children(func() {
 				ui.Checkbox(c, &a.Enable, locale.AiQuickEnabled())
 				ui.Text(c, a.Name).Bold()
+				if a.Pinned {
+					ui.Badge(c, locale.AiQuickPinnedBadge()).
+						FontSize(11)
+				}
 				ui.Text(c, quickTyped(*a)).TextColor(th.TextMuted).
 					FontSize(11).Grow(1)
 				if ui.Button(c.Key("quick-up#"+a.ID),
@@ -109,6 +113,12 @@ func (s *appState) aiQuickWord(c *ui.Context, at int, first, last bool) {
 			text(c, locale.AiQuickTyped(), locale.AiQuickTypedNote(),
 				&a.Trigger, a.Word())
 			s.aiQuickPrompt(c, a)
+			toggle(c, locale.AiQuickPinned(),
+				locale.AiQuickPinnedNote(), &a.Pinned)
+			text(c, locale.AiQuickCategory(),
+				locale.AiQuickCategoryNote(), &a.Category, "Writing")
+			text(c, locale.AiQuickScene(),
+				locale.AiQuickSceneNote(), &a.Scene, "Selection")
 			choiceNamed(c, locale.AiQuickScope(),
 				locale.AiQuickScopeNote(), &a.Scope,
 				[]string{

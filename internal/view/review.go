@@ -188,6 +188,9 @@ func (w *Workspace) writeReview() {
 	}
 	n.Editor.Buffer.Set(text)
 	w.Tabs.Edited(n)
+	w.LastChange = &roundChange{
+		Path: w.review.path, Before: whole, After: text,
+	}
 	w.review.open = false
 	w.status = locale.StatusRevisionInNote()
 	// And whether what was written still holds together. What is found

@@ -102,6 +102,22 @@ type Workspace struct {
 	// not written down: a run of the app starts by asking what the
 	// settings say.
 	AiModel string
+	// RecentModels are the last models asked, newest first. The app
+	// keeps them in state, not in config.json: they are a convenience
+	// for the picker, not a choice the user made on purpose.
+	RecentModels []string
+	// OnAiReply is told what an answer should be turned into besides a
+	// revision of the note: copied, or appended to a note.
+	OnAiReply func(kind, text string)
+	// OnAiUndo is asked to put a note back as it was before the last
+	// revision. It gives back what the user should be told.
+	OnAiUndo func(path, before, after string) string
+	// LastChange is the last revision written into a note, kept for a
+	// one-step undo.
+	LastChange *roundChange
+	// aiP1 holds the model picker, the blank form and the first-screen
+	// state that the AI upgrade's P1 added to the composer.
+	aiP1 aiP1State
 	// aiPicked is whether a model was picked in the bar, rather than
 	// followed from the settings.
 	aiPicked bool

@@ -31,12 +31,16 @@ const (
 	ToolListNotes = "list_notes"
 	// ToolReadSkillResource is a file a skill brings with it.
 	ToolReadSkillResource = "read_skill_resource"
+	// ToolAskUser is the model asking the user to decide. It is the one
+	// tool that does not read the vault: the host shows its card and
+	// ends the turn instead of executing it.
+	ToolAskUser = "ask_user"
 )
 
 // Tools are the tools there are, in the order they are offered.
 var Tools = []string{
 	ToolReadNote, ToolSearchNotes, ToolListTags, ToolListBacklinks,
-	ToolOutline, ToolListNotes, ToolReadSkillResource,
+	ToolOutline, ToolListNotes, ToolReadSkillResource, ToolAskUser,
 }
 
 // How many of a thing a tool gives back when it was not told how many.
@@ -136,6 +140,9 @@ func descriptionOf(name string) string {
 	case ToolReadSkillResource:
 		return "读取技能自带的资源文件（如 references/），只能读该技能" +
 			"目录内"
+	case ToolAskUser:
+		return "需要用户做决定时提问：给出问题与选项，等待用户回答后再继续。" +
+			"一次只问一个问题。"
 	}
 	return ""
 }
@@ -197,6 +204,36 @@ func parametersOf(name string) map[string]any {
 				},
 			},
 			"required": []string{"skill", "path"},
+		}
+	case ToolAskUser:
+		return map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"question": map[string]any{
+					"type":        "string",
+					"description": "要问用户的问题",
+				},
+				"header": map[string]any{
+					"type":        "string",
+					"description": "卡片标题",
+				},
+				"options": map[string]any{
+					"type": "array",
+					"items": map[string]any{
+						"type": "string",
+					},
+					"description": "可选项的短标签，最多 8 个",
+				},
+				"allow_other": map[string]any{
+					"type":        "boolean",
+					"description": "是否允许用户自己填写",
+				},
+				"secret": map[string]any{
+					"type":        "boolean",
+					"description": "回答是否应脱敏、不写入会话",
+				},
+			},
+			"required": []string{"question"},
 		}
 	}
 	return map[string]any{"type": "object", "properties": map[string]any{}}
@@ -382,6 +419,10 @@ func run(name string, args map[string]any, host Host) string {
 			return "读不到技能资源：" + rel
 		}
 		return string(data)
+	case ToolAskUser:
+		// The loop intercepts this call before Execute ever runs; the
+		// words here are only a guard for a direct caller.
+		return "已把问题交给用户，等待回答。"
 	}
 	return "没有这个工具：" + name
 }

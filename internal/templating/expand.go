@@ -12,6 +12,11 @@ type Vars struct {
 	Now        time.Time
 	DateFormat string
 	TimeFormat string
+	// Extras are variables a caller supplies itself, such as the tags
+	// of the vault or the text of a selection. They are looked up before
+	// the built-in ones, so a caller may add a name without changing
+	// this package's list.
+	Extras map[string]string
 }
 
 // Expand replaces the variables Xinkgo knows in text. An unknown variable
@@ -59,6 +64,9 @@ func Expand(text string, v Vars) (string, error) {
 }
 
 func expandOne(name string, v Vars) (string, bool, error) {
+	if extra, ok := v.Extras[name]; ok {
+		return extra, true, nil
+	}
 	switch {
 	case name == "title":
 		return v.Title, true, nil

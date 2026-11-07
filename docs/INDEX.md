@@ -12,6 +12,7 @@
 | [requirements/xink-port.md](requirements/xink-port.md) | 复刻 xink 的需求口径（R-1 ~ R-10，附 xink 证据） | 开工、验收 |
 | [design/xink-port.md](design/xink-port.md) | 复刻的技术设计（底座核查、数据模型、流程、风险） | 动手前 |
 | [design/ai-assist.md](design/ai-assist.md) | AI 编辑辅助：菜单/工具条入口 + 编辑区下方对话条（草案，待拍板） | 加 AI 入口前 |
+| [design/ai-upgrade-qiaomu.md](design/ai-upgrade-qiaomu.md) | **AI 能力升级规划（v1 已拍板）**：对照 Qiaomu Agent 分析配置分层、Agent 辨析、选区与上下文；已定不做外部 CLI Agent / 联网搜索，按 P0 → P1 → P2 落地 | 改 AI 能力前 |
 | [design/themes.md](design/themes.md) | 系统多主题：明暗 × 配色方案的分工、五套方案、配置迁移与生效路径 | 加/改配色方案前 |
 | [design/tree-follows-note.md](design/tree-follows-note.md) | 目录树跟随当前笔记：谁触发、展开+选中+滚动怎么落地、边界与取舍 | 动目录树定位前 |
 | [design/wechat.md](design/wechat.md) | 公众号排版：样式菜单、手机宽度预览、行内样式的由来、样式目录与文件格式 | 动公众号排版前 |
@@ -83,6 +84,18 @@
   设计、取舍与实现偏差见
   [design/daily-notes-templates.md](design/daily-notes-templates.md)，验收项
   K1 ~ K17。
+- **AI 升级 P0 / P1**：已实现。P0 清账（四条场景路由、用量显示、快照按库归属、
+  动作提示词变量、AI 设置分组、修过时文档），P1 主体（服务商分层与迁移、模型
+  选择器 popover、最近模型、上下文 chip、自由指令改写选区、回复落地、Prompt 库
+  的固定 / 分类 / 场景 / blanks、首屏引导）。外部 CLI Agent 与联网搜索按拍板
+  不做。设计、取舍与实现偏差见
+  [design/ai-upgrade-qiaomu.md](design/ai-upgrade-qiaomu.md)，验收项 L1 ~ L6、
+  M1 ~ M8。
+- **AI 升级 P2**：已实现。问题卡（`ask_user` 工具 + `EventQuestion`）、工作时间线
+  折叠与用量条、编辑重发与会话列表、`@笔记` 引用、按轮撤销（撤销前检查文件未变）、
+  文件权限两档（只读 / 允许追加）。工具集仍全只读，评审写回仍一律过 diff。验收项
+  N1 ~ N8；偏差与「不做计划清单 / `@文件夹` / 多文件回合追踪」的理由见
+  [design/ai-upgrade-qiaomu.md](design/ai-upgrade-qiaomu.md) §7 P2。
 
 ## 还剩什么
 

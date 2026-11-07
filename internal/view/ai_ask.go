@@ -35,7 +35,13 @@ func (w *Workspace) runAction(a config.AiAction) {
 	}
 	piece, from, to, part := pieceOf(n, a)
 	s.Open = true
-	w.aiSend(n, s, askingOf(a, piece, part), modelOf(a, w.AiModel),
+	// The action's prompt may name variables; fill them from the note,
+	// the selection and the vault before the question is sent.
+	a.Prompt = w.expandActionPrompt(a.Prompt, n, piece)
+	// The blank answers belong to this one run only.
+	w.aiP1.blankAnswers = nil
+	w.aiSend(n, s, askingOf(a, piece, part),
+		config.RouteKindAction, &a,
 		&waitReview{part: part, from: from, to: to})
 	w.status = locale.StatusActionAsked(a.Name)
 }
@@ -96,8 +102,9 @@ func (w *Workspace) aiReviewDone() {
 	}
 	s.mu.Lock()
 	wait := s.waiting
+	selFrom, selTo := s.selectionFrom, s.selectionTo
 	text, failed := "", ""
-	if wait != nil && !s.busy && len(s.Blocks) > 0 {
+	if !s.busy && len(s.Blocks) > 0 {
 		last := s.Blocks[len(s.Blocks)-1]
 		if last.Over {
 			text, failed = last.Text, last.Failed
@@ -106,6 +113,18 @@ func (w *Workspace) aiReviewDone() {
 	}
 	s.mu.Unlock()
 	if text == "" || failed != "" {
+		return
+	}
+	// A free-form "rewrite my selection" answer carries its
+	// replacement in tags. Only that piece goes before the user as a
+	// revision, and only the selected lines are shown on the other
+	// side of the diff.
+	if replacement, ok := ai.Replacement(text); ok &&
+		selFrom >= 0 && selTo > selFrom {
+		w.StartPieceReview(selFrom, selTo, replacement)
+		return
+	}
+	if wait == nil {
 		return
 	}
 	if wait.part {
@@ -117,7 +136,8 @@ func (w *Workspace) aiReviewDone() {
 
 // aiAsk is the question asked: what was typed into the place to ask.
 func (w *Workspace) aiAsk(n *OpenNote, s *aiSession) {
-	w.aiSend(n, s, strings.TrimSpace(s.Input), w.AiModel, nil)
+	w.aiSend(n, s, strings.TrimSpace(s.Input),
+		config.RouteKindChat, nil, nil)
 	s.Input = ""
 	s.focus = true
 }
@@ -126,26 +146,40 @@ func (w *Workspace) aiAsk(n *OpenNote, s *aiSession) {
 // the model is asked, and the answer grows into the block after it as it
 // comes.
 //
-// model is which model is asked of the ones the settings hold, empty for
-// the one the settings name. wait, when there is one, is what the answer
-// is to be put before the user as when it is over, and which piece of the
-// note it is about.
+// kind is what kind of request this is, and action the shortcut that
+// asked it, when there was one: both take part in choosing the model.
+// wait, when there is one, is what the answer is to be put before the
+// user as when it is over, and which piece of the note it is about.
 func (w *Workspace) aiSend(
-	n *OpenNote, s *aiSession, asking, model string, wait *waitReview,
+	n *OpenNote, s *aiSession, asking, kind string,
+	action *config.AiAction, wait *waitReview,
 ) {
 	text := strings.TrimSpace(asking)
 	if text == "" {
 		return
 	}
+	// The contexts must be in place before the question is built, even
+	// when the composer has not been drawn this frame (a command run
+	// from the palette, for instance).
+	w.syncContexts(s, n)
 	s.mu.Lock()
 	s.Blocks = append(s.Blocks,
-		aiBlock{Role: ai.User, Text: text, Over: true},
+		aiBlock{Role: ai.User, Text: text, Over: true,
+			Secret: s.secretNext},
 		aiBlock{Role: ai.Assistant},
 	)
+	s.secretNext = false
 	at := len(s.Blocks) - 1
 	s.busy = true
 	s.dirty = true
 	s.waiting = wait
+	// A free-form question remembers where the selection stood, so a
+	// <replacement> answer can be reviewed against only those lines.
+	s.selectionFrom, s.selectionTo = -1, -1
+	if wait == nil && n != nil && !n.Editor.Selection().Empty() {
+		sel := n.Editor.Selection()
+		s.selectionFrom, s.selectionTo = sel.Start(), sel.End()
+	}
 	s.mu.Unlock()
 
 	if w.OnAsk == nil {
@@ -156,6 +190,7 @@ func (w *Workspace) aiSend(
 	s.mu.Lock()
 	s.cancel = cancel
 	s.mu.Unlock()
+	model := w.askModel(s, kind, action)
 	events, err := w.OnAsk(ctx, w.aiTold(s, n), model)
 	if err != nil {
 		cancel()
@@ -185,6 +220,16 @@ func (w *Workspace) aiHear(
 				b.Cut = true
 			case ai.EventToolResult:
 				b.Tool = append(b.Tool, event.Result)
+			case ai.EventToolCall:
+				b.Activities = append(b.Activities,
+					w.activityOf(event.Call))
+			case ai.EventQuestion:
+				q := event.Asked
+				s.PendingQuestion = &q
+				s.QuestionAnswer = ""
+			case ai.EventUsage:
+				used := event.Used
+				b.Usage = &used
 			case ai.EventFailed:
 				b.Failed = event.Err.Error()
 				b.Over = true

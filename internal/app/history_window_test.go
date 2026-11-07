@@ -54,6 +54,46 @@ func TestPutBack_whatWasKeptComesBack(t *testing.T) {
 	}
 }
 
+// A scoped snapshot knows its vault and its path, so two notes called
+// a.md in different folders are no longer confused.
+func TestWhereBack_scopedSnapshotGoesToItsPath(t *testing.T) {
+	s, _ := appWithOne(t, "# A\n\nnow\n")
+	id := "vtest-1"
+	s.vaults.Active = &id
+	nested := filepath.Join(s.root, "sub", "a.md")
+	if err := os.MkdirAll(filepath.Dir(nested), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(nested, []byte("# A\n\nnested\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	was, err := snapshot.WriteFor(snapshot.Dir(s.dir), id,
+		"sub/a.md", "# A\n\nbefore\n")
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := s.whereBack(was)
+	if err != nil || got != nested {
+		t.Fatalf("whereBack = %q, %v; want %q", got, err, nested)
+	}
+}
+
+// A snapshot taken in another vault is refused, not put into a note of
+// the same name in this one.
+func TestWhereBack_otherVaultIsRefused(t *testing.T) {
+	s, _ := appWithOne(t, "# A\n\nnow\n")
+	id := "vtest-1"
+	s.vaults.Active = &id
+	was, err := snapshot.WriteFor(snapshot.Dir(s.dir),
+		"vother-2", "a.md", "# A\n\nbefore\n")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.whereBack(was); err == nil {
+		t.Fatal("a snapshot of another vault was accepted")
+	}
+}
+
 // TestPutBack_whatStoodThereIsKeptFirst checks that the way back is
 // itself a thing one can come back from: what the note says now is kept
 // before it is written over.

@@ -169,6 +169,52 @@ func TestDir_whereTheyStand(t *testing.T) {
 	}
 }
 
+// A snapshot now remembers both the vault and the note's path inside
+// it, so two notes of the same name are no longer confused.
+func TestNameFor_scopeRoundTrip(t *testing.T) {
+	want := "folder/sub/a_b~c.md"
+	name := NameFor("vabc-1", want)
+	path := filepath.Join(t.TempDir(), name)
+	vault, rel, ok := Scope(path)
+	if !ok {
+		t.Fatal("a scoped snapshot was not recognised")
+	}
+	if vault != "vabc-1" || rel != want {
+		t.Errorf("scope = %q / %q, want vabc-1 / %q", vault, rel, want)
+	}
+	if got := Original(path); got != want {
+		t.Errorf("Original = %q, want %q", got, want)
+	}
+}
+
+// A snapshot written by an older version only kept the file name; it
+// must still be listed and put back by name.
+func TestScope_oldSnapshotIsNotScoped(t *testing.T) {
+	path := filepath.Join(t.TempDir(), Name("a.md"))
+	if _, _, ok := Scope(path); ok {
+		t.Error("a name-only snapshot was taken for a scoped one")
+	}
+	if got := Original(path); got != "a.md" {
+		t.Errorf("Original = %q, want a.md", got)
+	}
+}
+
+func TestWriteFor_scopeSurvivesTheFile(t *testing.T) {
+	dir := t.TempDir()
+	path, err := WriteFor(dir, "vabc-1", "notes/a.md", "old words")
+	if err != nil {
+		t.Fatal(err)
+	}
+	vault, rel, ok := Scope(path)
+	if !ok || vault != "vabc-1" || rel != "notes/a.md" {
+		t.Fatalf("scope = %q / %q / %v", vault, rel, ok)
+	}
+	data, err := os.ReadFile(path)
+	if err != nil || string(data) != "old words" {
+		t.Fatalf("contents = %q, %v", data, err)
+	}
+}
+
 // TestList_theNewestIsFirst checks the order the way back is looked for
 // in: from what was kept last backwards.
 func TestList_theNewestIsFirst(t *testing.T) {

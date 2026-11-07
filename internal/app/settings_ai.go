@@ -60,28 +60,65 @@ func (st *settings) stateOf(id string) *modelState {
 	return st.models[id]
 }
 
-// ai is the settings of the AI: whether it is used at all, the models the
-// machine holds, the models the user wrote in, and how a question is
-// asked.
+// aiSections are the groups of the AI settings, in the order the
+// selector shows them. They are stable IDs: what the user sees is said
+// by aiSectionName, so a change of language keeps the choice.
+var aiSections = []string{"models", "chat", "actions", "tools"}
+
+func aiSectionName(id string) string {
+	switch id {
+	case "chat":
+		return locale.AiSectionChat()
+	case "actions":
+		return locale.AiSectionActions()
+	case "tools":
+		return locale.AiSectionTools()
+	default:
+		return locale.AiSectionModels()
+	}
+}
+
+func permissionName(v string) string {
+	if v == config.PermissionAppend {
+		return locale.AiPermissionWrite()
+	}
+	return locale.AiPermissionRead()
+}
+
+// ai is the settings of the AI: whether it is used at all, and one
+// group of its setup at a time. The models are the first screen, for
+// that is what a first run has to answer; the rest are reached by the
+// selector rather than one long column of controls.
 func (s *appState) ai(c *ui.Context) {
 	toggle(c, locale.AiSettingAskAtAll(),
 		locale.AiSettingAskAtAllNote(), &s.draft.cfg.Ai.Enabled)
 	if !s.draft.cfg.Ai.Enabled {
 		return
 	}
-	s.aiOllama(c)
-	s.aiOther(c)
-	s.aiWhich(c)
-	s.aiAsking(c)
-	s.aiQuickWords(c)
-	s.aiSkills(c)
+	if !holds(aiSections, s.draft.aiSection) {
+		s.draft.aiSection = aiSections[0]
+	}
+	choiceNamed(c, locale.AiSection(), locale.AiSectionNote(),
+		&s.draft.aiSection, aiSections, aiSectionName)
+	switch s.draft.aiSection {
+	case "chat":
+		s.aiAsking(c)
+	case "actions":
+		s.aiQuickWords(c)
+	case "tools":
+		s.aiSkills(c)
+	default:
+		s.aiOllama(c)
+		s.aiOther(c)
+		s.aiWhich(c)
+	}
 }
 
 // aiSkills is the skills found in the vault and in the application's own
 // folder: each may be turned off, and one that was found but cannot be
 // used is said so rather than left out.
 func (s *appState) aiSkills(c *ui.Context) {
-	group(c, "Skills", func() {
+	group(c, locale.AiGroupSkills(), func() {
 		if len(s.skills) == 0 && len(s.skillIssues) == 0 {
 			ui.Text(c, locale.AiSkillsNone()).TextColor(
 				c.Theme().TextMuted).FontSize(11)
@@ -219,45 +256,6 @@ func (s *appState) aiOllamaModel(c *ui.Context, m ai.OllamaModel) {
 		} else {
 			s.draft.forgetModel(m.Name)
 		}
-	}
-}
-
-// aiOther is the models the user wrote in: an address, a key, and the
-// name the address knows the model by.
-func (s *appState) aiOther(c *ui.Context) {
-	// The rows are drawn from the list of the models the user wrote in,
-	// and not from every model: the machine's own are above, and are
-	// not moved in among these.
-	rows := []int{}
-	for i := range s.draft.cfg.Ai.Models {
-		if !s.draft.cfg.Ai.Models[i].FromOllama() {
-			rows = append(rows, i)
-		}
-	}
-	ui.Column(c).Gap(6).Children(func() {
-		for n, i := range rows {
-			s.aiOtherModel(c, i, n == 0, n == len(rows)-1)
-		}
-		if ui.Button(c.Key("add-model"), locale.AiModelsAdd()).Clicked() {
-			s.draft.cfg.Ai.Models = append(s.draft.cfg.Ai.Models,
-				s.newModel())
-		}
-	})
-	// Forgetting, copying and moving are done after the rows are
-	// drawn: a row is not taken out, nor made into two, nor moved, from
-	// under the one that follows it.
-	if s.draft.drop != "" {
-		s.draft.forgetModel(s.draft.drop)
-		s.draft.drop = ""
-	}
-	if s.draft.clone != "" {
-		s.cloneModel(s.draft.clone)
-		s.draft.clone = ""
-	}
-	if s.draft.moveID != "" {
-		s.moveModel(s.draft.moveID, s.draft.moveBy)
-		s.draft.moveID = ""
-		s.draft.moveBy = 0
 	}
 }
 
@@ -457,6 +455,12 @@ func (s *appState) aiWhich(c *ui.Context) {
 // the settings then refuse is a window that lies.
 func (s *appState) aiAsking(c *ui.Context) {
 	group(c, locale.AiGroupAsking(), func() {
+		choiceNamed(c, locale.AiPermission(),
+			locale.AiPermissionNote(),
+			&s.draft.cfg.Ai.Permission,
+			[]string{
+				config.PermissionRead, config.PermissionAppend,
+			}, permissionName)
 		choice(c, locale.AiSettingOutputLanguage(),
 			locale.AiSettingOutputLanguageNote(),
 			&s.draft.cfg.Ai.OutputLanguage, outputLanguages)

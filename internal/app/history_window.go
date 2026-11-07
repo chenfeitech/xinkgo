@@ -1,6 +1,7 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -116,7 +117,7 @@ func (s *appState) loadKept() {
 // thing that throws away what stood there.
 func (s *appState) putBack(path string) {
 	name := snapshot.Original(path)
-	where, err := s.whereBack(name)
+	where, err := s.whereBack(path)
 	if err != nil {
 		s.histStatus = err.Error()
 		return
@@ -156,14 +157,31 @@ func (s *appState) putBack(path string) {
 	slog.Info("snapshot put back", "from", path, "into", where)
 }
 
-// whereBack is which note of the vault a snapshot of that name goes back
-// into: the note of that name that is open, and otherwise the one the
-// vault has.
+// whereBack is which note of the vault a snapshot goes back into.
+//
+// A snapshot written with the vault and path goes straight to that path,
+// and one from another vault is refused rather than guessed at. An older
+// snapshot, which kept only the file's name, still goes through the
+// by-name lookup below.
 //
 // When the vault has more than one of the name, or none at all, that is
 // said rather than guessed at: words put back into the wrong note are
 // worse than words not put back at all.
-func (s *appState) whereBack(name string) (string, error) {
+func (s *appState) whereBack(snapshotPath string) (string, error) {
+	if vault, rel, ok := snapshot.Scope(snapshotPath); ok {
+		if vault != s.vaultID() {
+			return "", errors.New(locale.AiSnapshotOtherVault())
+		}
+		target, inside := resolveVaultPath(s.root, rel)
+		if !inside {
+			return "", errors.New(locale.AiSnapshotOtherVault())
+		}
+		if _, err := os.Stat(target); err != nil {
+			return "", errors.New(locale.AiSnapshotNotFound())
+		}
+		return target, nil
+	}
+	name := snapshot.Original(snapshotPath)
 	if s.ws != nil && s.ws.Tabs != nil {
 		for _, path := range s.ws.Tabs.Paths() {
 			if filepath.Base(path) == name {
