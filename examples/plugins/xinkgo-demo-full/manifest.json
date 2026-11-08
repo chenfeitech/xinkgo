@@ -1,0 +1,28 @@
+{
+  "id": "xinkgo-demo-full",
+  "name": "Xinkgo Demo: Full",
+  "version": "1.0.0",
+  "minAppVersion": "1.0.0",
+  "description": "A tour of every capability Xinkgo's plugin host exposes: commands, data, notices, Vault and Editor adapters, metadata, network, events, ribbon and status items, plugin-owned DOM views, settings-like tabs, modals, menus, CodeMirror-style registrations and compatibility stubs. Deliberately C4/degraded: the DOM and CM6 surfaces run in the plugin's own WebView page, not in Xinkgo's native UI.",
+  "author": "Xinkgo",
+  "authorUrl": "https://github.com/helightxu/xinkgo",
+  "isDesktopOnly": true,
+  "xinkgo": {
+    "capabilities": [
+      "data",
+      "commands",
+      "notice",
+      "vault.read",
+      "vault.write",
+      "editor.read",
+      "editor.write",
+      "metadata",
+      "network",
+      "events.app",
+      "ui",
+      "dom",
+      "editor.extension",
+      "compat.stub"
+    ]
+  }
+}

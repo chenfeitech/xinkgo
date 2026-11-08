@@ -1,0 +1,10 @@
+{
+  "id": "xinkgo-demo-basic",
+  "name": "Xinkgo Demo: Basic",
+  "version": "1.0.0",
+  "minAppVersion": "1.0.0",
+  "description": "A minimal Xinkgo plugin: commands, notices, saved data, a ribbon icon, a status bar item and read/write access to the active note. Stays on C1/C2 (core API and native adapters), with no DOM surfaces or external modules.",
+  "author": "Xinkgo",
+  "authorUrl": "https://github.com/helightxu/xinkgo",
+  "isDesktopOnly": true
+}

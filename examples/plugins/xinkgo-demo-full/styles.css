@@ -1,0 +1,55 @@
+/* styles.css is served at /plugin/styles.css, scoped to this plugin's page
+   by the host. It cannot restyle Xinkgo's native UI or the editor. */
+.xinkgo-demo-full-view {
+  padding: 12px 14px;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--text-normal, #20242b);
+}
+.xinkgo-demo-full-view h2 {
+  font-size: 16px;
+  margin: 0 0 8px;
+  color: var(--text-accent, #2d6a4f);
+}
+.xinkgo-demo-full-view p {
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 0 0 10px;
+  color: var(--text-muted, #5b6472);
+}
+.xinkgo-demo-full-badge {
+  display: block;
+  width: 120px;
+  height: 40px;
+  margin: 0 0 12px;
+}
+.xinkgo-demo-full-button {
+  border: 1px solid var(--background-modifier-border, #c9d1d9);
+  background: var(--background-secondary, #f5f7f9);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  color: inherit;
+}
+.xinkgo-demo-full-button:hover {
+  background: var(--background-secondary-alt, #e8edf2);
+}
+.xinkgo-demo-full-row {
+  border-left: 3px solid var(--text-accent, #2d6a4f);
+  padding: 4px 8px;
+  margin: 6px 0;
+  font-size: 13px;
+  background: var(--background-secondary, #f5f7f9);
+}
+.xinkgo-demo-full-settings {
+  padding: 8px 0;
+  font-size: 13px;
+}
+.xinkgo-demo-full-modal .modal {
+  max-width: 320px;
+  margin: 40px auto;
+  padding: 12px;
+  border: 1px solid var(--background-modifier-border, #c9d1d9);
+  border-radius: 8px;
+  background: var(--background-primary, #ffffff);
+}

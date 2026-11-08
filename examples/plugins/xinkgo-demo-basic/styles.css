@@ -1,0 +1,5 @@
+/* A plugin may ship styles.css; the host serves it scoped to its page.
+   This demo has no DOM surface, so there is nothing to style yet. */
+.xinkgo-demo-basic {
+  color: var(--text-normal, inherit);
+}
