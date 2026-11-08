@@ -2,10 +2,13 @@
 
 日期：2026-11-08。适用：`examples/plugins/xinkgo-demo-basic` 与
 `examples/plugins/xinkgo-demo-full`。本文面向**使用者**：从拷目录到看到第一条
-提示。插件机制、能力对照与开发约束见
+提示。插件机制、能力对照与准入原则见
 [../examples/plugins/README.md](../examples/plugins/README.md)，设计边界见
 [design/obsidian-plugins.md](design/obsidian-plugins.md)；想自己写插件见
 [plugin-development.md](plugin-development.md)。
+
+两个示例只使用 Xinkgo **全力支持**的能力。宿主为了兼容 Obsidian 而提供的空壳、
+惰性代理和 no-op 注册没有写进插件，所以你在这里看到的每条命令都有真实效果。
 
 ## 先说结论：要不要编译
 
@@ -21,10 +24,9 @@
 
 - 必须有 `module.exports`（或 `exports.default`），不能有 ESM 的
   `import` / `export` 语句；否则静态扫描判为 C0 不支持，安装会被拒绝。
-- 不能有相对导入或动态模块名。宿主不解析 `./foo`；运行时 `require("./foo")`
-  要么抛 `unsupported module`，要么在 `compat.stub` 授权下返回一个惰性 Proxy。
-- 不能依赖真实的 Node / Electron / CodeMirror 模块，宿主只提供 Obsidian API 的
-  兼容子集。
+- 不能有相对导入或动态模块名：宿主不解析 `./foo`，也不提供真实的 Node /
+  Electron / CodeMirror 模块，这类依赖不应出现在插件里。
+- 所有代码都要打进 `main.js`，只把 `obsidian` 留在 external。
 
 也就是说：TypeScript、ESM 或拆成多个文件的插件源码，**必须由插件作者在发布前
 打包成 `main.js`**，只是这一步发生在作者侧，不在你的机器上。我们这两个示例是
@@ -39,10 +41,11 @@ JS 插件，是编译进应用的 Go 原生 UI，只能在设置里开关，不�
 | 目录 | 定位 | 兼容等级 | 降级 |
 | --- | --- | --- | --- |
 | `xinkgo-demo-basic` | 最小可用插件，只走原生适配器 | C2 / `LevelNative` | 否 |
-| `xinkgo-demo-full` | 覆盖宿主全部 14 项能力 | C4 / `LevelEditor` | 是 |
+| `xinkgo-demo-full` | 覆盖宿主全力支持的全部 11 项能力 | C3 / `LevelDOM` | 是（见下） |
 
-两者都 `Supported=true`。Full 的「降级」是刻意的：它的 DOM、CM6、Node 模块
-只在插件自己的 WebView 页面里以 shim / stub 形式存在，不是真 Obsidian。
+两者都 `Supported=true`。Full 的 `Degraded=true` 是宿主的分级规则：用到
+`registerView` 这类 DOM 级能力就会标降级，含义是「视图在插件自己的 WebView 页，
+不是原生 UI 面板」。这个视图由宿主真实实现、能点能交互，不是占位。
 
 ## 安装
 
@@ -90,8 +93,7 @@ cp -R examples/plugins/xinkgo-demo-full "$PLUGINS/"
 
 - `xinkgo-demo-basic`：`ui`、`vault.read`、`editor.read`、`editor.write`。
 - `xinkgo-demo-full`：`vault.read`、`vault.write`、`editor.read`、
-  `editor.write`、`metadata`、`network`、`events.app`、`ui`、`dom`、
-  `editor.extension`、`compat.stub`，共 11 项。
+  `editor.write`、`network`、`events.app`、`ui`、`dom`，共 8 项。
 
 **顺序很重要**：ribbon 图标、状态栏和插件视图都是在 `onload()` 里注册的，
 当时能力没授权，那次注册就被宿主拒绝，事后勾选不会补回来。所以要么先勾授权再
@@ -106,7 +108,7 @@ cp -R examples/plugins/xinkgo-demo-full "$PLUGINS/"
    `Xinkgo Demo: Full:` 前缀的命令。
 2. 主窗口左侧插件 ribbon 出现图标（需要 `ui`）。
 3. 状态栏出现 `Demo Basic: N runs` / `Demo Full: N runs`。
-4. **Installed** 页里插件状态是 enabled，等级显示 C2 / C4。
+4. **Installed** 页里插件状态是 enabled，等级显示 C2 / C3。
 5. 日志里出现 `msg="plugin console"` 且带 `id=<插件 id>` 的行。
 
 启用瞬间还会弹一条 `Xinkgo Demo: ... loaded` 的 Notice。
@@ -128,39 +130,34 @@ cp -R examples/plugins/xinkgo-demo-full "$PLUGINS/"
 
 ## Full：逐条试
 
-先勾完 11 项授权并 Reload。以下命令都在命令面板里，带
+先勾完 8 项授权并 Reload。以下命令都在命令面板里，带
 `Xinkgo Demo: Full:` 前缀。
 
 | 命令 | 预期 |
 | --- | --- |
-| Print the capability tour | 日志打印 14 项能力 |
+| Print the capability tour | 日志打印 11 项受支持能力 |
 | Say hello and persist a counter | Notice + 状态栏计数 |
 | Read the active note | 日志给出 `vault.read` / `cachedRead` / `adapter.read` 的字符数与 Editor 读取结果 |
 | Insert a line at the caret | 光标处插入一行带时间戳的文本 |
 | Replace the whole buffer | **整篇替换当前笔记内容** |
 | Show selection stats | 显示选区字符数；无选区时命令隐藏 |
 | Run a Vault lifecycle | 在库里 `demo-full/` 下创建 → 修改 → 追加 → 改名 → 删除一个笔记；需已打开笔记 |
-| Inspect metadata and open the note | 日志给出元数据、双链与 `openLinkText` 结果 |
+| Open the active note by link | 通过 `workspace.openLinkText` 打开当前笔记，Notice 给出路径 |
 | Fetch example.com | `requestUrl` 返回状态 200；**只在你手动点这条命令时联网** |
-| Build DOM samples | 插件页里构建 Modal / Menu / SuggestModal / MarkdownRenderer，日志逐项记录 |
-| Inspect registered editor extensions | 日志给出登记数量，说明没有 CM6 编辑器可挂载 |
-| Exercise compatibility stubs | 日志给出 `require("path")` 的惰性 Proxy 或 `not granted` |
 | Toggle a temporary command | 命令面板里多 / 少一条 `Temporary command` |
 | Where is the demo view? | Notice 提示视图入口 |
 
 `Replace the whole buffer`、`Insert a line at the caret` 会改当前笔记，
 `Run a Vault lifecycle` 会在库里创建并删除文件，建议在测试库或测试笔记上试。
 
-### 插件视图与设置 tab
+### 插件视图
 
 `registerView` 注册了 `demo-full-view`：在主窗口右侧的**插件视图抽屉**里选中它，
 宿主才会创建 `WorkspaceLeaf` stub、构造 `ItemView` 并把 `containerEl` 挂到插件
 自己的 WebView 页面。页面里有一个「Add a row」按钮、逐行文本和一张从
 `/plugin/assets/badge.svg` 取出的图片，用来证明插件 DOM 和静态资源确实工作。
 
-`addSettingTab` 画出的两个控件同样只在这个 WebView 页面里，是惰性 stub，
-**不会**出现在 Xinkgo 的原生设置窗口。Modal、Menu、SuggestModal 也只在插件页
-可见：不打开视图抽屉时，你只会看到 Notice 和日志，主窗口原生 UI 不会有任何变化。
+插件 DOM 只在这一页里有效，不会改 Xinkgo 原生 UI，也不会出现在原生设置窗口。
 插件真正的配置请用 `loadData/saveData`，`data.json` 写在用户数据目录的
 `plugins/<id>/data.json`（即插件包所在目录）。若把插件放进库内的
 `.obsidian/plugins/` 或 `.xink/plugins/`，`data.json` 也会写进库里，注意别把
@@ -199,6 +196,7 @@ level=INFO msg="plugin console" id=xinkgo-demo-full level=INFO text="Xinkgo Demo
 ## 边界
 
 宿主没有真实 CodeMirror 6 编辑器、DOM workspace、原生设置窗口或 Node/Electron
-模块；`styles.css` 只作用于插件自己的页面。`editor.extension` 即使授权也只是
-被记录。完整的能力对照表、「明确不做」清单和写插件的硬约束见
+模块；`styles.css` 只作用于插件自己的页面。`metadata`、`editor.extension`、
+`compat.stub` 这三项虽能被扫描出来，但只是兼容占位，两个 demo 都不使用；完整的
+准入原则与黑名单见
 [../examples/plugins/README.md](../examples/plugins/README.md)。

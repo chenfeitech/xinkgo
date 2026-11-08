@@ -41,15 +41,3 @@
   font-size: 13px;
   background: var(--background-secondary, #f5f7f9);
 }
-.xinkgo-demo-full-settings {
-  padding: 8px 0;
-  font-size: 13px;
-}
-.xinkgo-demo-full-modal .modal {
-  max-width: 320px;
-  margin: 40px auto;
-  padding: 12px;
-  border: 1px solid var(--background-modifier-border, #c9d1d9);
-  border-radius: 8px;
-  background: var(--background-primary, #ffffff);
-}

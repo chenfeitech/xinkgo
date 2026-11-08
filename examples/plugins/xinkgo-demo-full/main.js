@@ -1,21 +1,20 @@
 "use strict";
 
-// Xinkgo plugin demo: a tour of every capability the host exposes.
+// Xinkgo plugin demo: every capability the host fully supports.
 //
 // Shape the host expects: a CommonJS bundle, one class extending
 // obsidian.Plugin, and module.exports = that class. No ESM syntax, no
 // relative modules, no dynamic module names.
 //
-// This demo deliberately asks for the whole API surface, so the host
-// reports it as C4 / degraded. The honest boundary:
-//   - commands, notices, data, Vault, Editor, metadata, network, events,
-//     ribbon and status items go through real host adapters;
-//   - ItemView, Modal, Menu, Setting and MarkdownRenderer draw into this
-//     plugin's own WebView page, never into Xinkgo's native UI;
-//   - CodeMirror 6 extensions, protocol handlers and Node built-ins are
-//     recorded or replaced by inert stubs.
-// Every permission the demo needs is listed in manifest.json under
-// "xinkgo". The user still grants each one in the plugin manager.
+// This bundle only calls APIs with a real Xinkgo implementation: native
+// commands / notices / saved data / ribbon / status bar, the Vault and
+// Editor bridges, workspace.openLinkText, requestUrl, app events, and the
+// plugin-owned ItemView surface. APIs that the host merely records or fakes
+// are deliberately absent; the reasons are in examples/plugins/README.md.
+//
+// The host reports C3 for this bundle because registerView is a DOM-level
+// feature. That surface is real: the host lists the view in the plugin view
+// drawer, builds the ItemView and mounts containerEl in this page.
 
 var obsidian = require("obsidian");
 
@@ -43,6 +42,7 @@ function activeEditor(app) {
 // ---------------------------------------------------------------------------
 // A plugin-owned ItemView. The host creates a WorkspaceLeaf stub, calls the
 // creator and appends view.containerEl to the plugin page's root element.
+// This is a real Xinkgo surface, not a stand-in.
 // ---------------------------------------------------------------------------
 function DemoView(leaf, plugin) {
   obsidian.ItemView.call(this, leaf);
@@ -66,8 +66,8 @@ DemoView.prototype.onOpen = function () {
   root.empty();
   root.createEl("h2", { text: "Xinkgo Demo: Full" });
   root.createEl("p", {
-    text: "This is the plugin's own DOM surface. Picking the view in the " +
-      "plugin view drawer made the host append this ItemView container."
+    text: "A real plugin-owned view. Picking demo-full-view in the plugin " +
+      "view drawer made the host append this ItemView container."
   });
   var badge = root.createEl("img", { cls: "xinkgo-demo-full-badge" });
   badge.setAttr("src", "/plugin/assets/badge.svg");
@@ -89,39 +89,6 @@ DemoView.prototype.onResize = function () {
 };
 
 // ---------------------------------------------------------------------------
-// A settings-like tab. addSettingTab calls display() right away, but the
-// page is this plugin's WebView, not Xinkgo's native settings window.
-// ---------------------------------------------------------------------------
-function DemoSettingTab(app, plugin) {
-  obsidian.PluginSettingTab.call(this, app, plugin);
-}
-DemoSettingTab.prototype = Object.create(obsidian.PluginSettingTab.prototype);
-DemoSettingTab.prototype.constructor = DemoSettingTab;
-DemoSettingTab.prototype.display = function () {
-  this.containerEl.empty();
-  this.containerEl.addClass("xinkgo-demo-full-settings");
-  this.containerEl.createEl("h2", { text: "Demo Full settings (stub)" });
-  this.containerEl.createEl("p", {
-    text: "addSettingTab draws into the plugin WebView page. Real settings " +
-      "belong in loadData / saveData."
-  });
-  new obsidian.Setting(this.containerEl)
-    .setName("Example toggle")
-    .setDesc("Controls are inert stubs on this page.")
-    .addToggle(function (toggle) {
-      toggle.setValue(false).onChange(function (value) {
-        log("Setting.addToggle", "stub value " + String(value));
-      });
-    });
-  new obsidian.Setting(this.containerEl)
-    .setName("Example button")
-    .addButton(function (button) {
-      button.setIcon("layers").setCta();
-      log("Setting.addButton", "constructed an inert button stub");
-    });
-};
-
-// ---------------------------------------------------------------------------
 // The plugin itself.
 // ---------------------------------------------------------------------------
 function DemoFull(app, manifest) {
@@ -129,7 +96,6 @@ function DemoFull(app, manifest) {
   this.state = { runs: 0, lastPath: "" };
   this.status = null;
   this.temporaryCommand = false;
-  this.counts = { extensions: 0, suggests: 0, processors: 0, protocol: 0 };
 }
 DemoFull.prototype = Object.create(obsidian.Plugin.prototype);
 DemoFull.prototype.constructor = DemoFull;
@@ -151,12 +117,12 @@ DemoFull.prototype.onload = function () {
     });
 
     self.registerCommands();
-    self.registerSurfaces();
-    self.registerExtensionsAndStubs();
+    self.registerViewSurface();
     self.registerAppEvents();
 
-    new obsidian.Notice("Xinkgo Demo: Full loaded (C4, degraded)", 5000);
-    log("level", "C4 / degraded: DOM, CM6 and Node modules are shims");
+    new obsidian.Notice(
+      "Xinkgo Demo: Full loaded (real capabilities only)", 5000);
+    log("level", "C3: native adapters plus a real plugin-owned view");
   }).catch(function (err) {
     fail("onload", err);
   });
@@ -181,13 +147,13 @@ DemoFull.prototype.record = function () {
 DemoFull.prototype.tour = function () {
   var caps = [
     "data", "commands", "notice", "vault.read", "vault.write",
-    "editor.read", "editor.write", "metadata", "network",
-    "events.app", "ui", "dom", "editor.extension", "compat.stub"
+    "editor.read", "editor.write", "network", "events.app", "ui", "dom"
   ];
   log("capabilities", caps.join(", "));
-  log("level", "C4 / degraded: DOM, CM6 and Node modules are shims");
+  log("level", "every capability here has a real Xinkgo implementation");
   this.record();
-  say("Full demo covers all 14 capabilities; details are in the plugin log");
+  say("Full demo covers " + caps.length +
+    " supported capabilities; details are in the plugin log");
 };
 
 DemoFull.prototype.hello = function () {
@@ -248,24 +214,12 @@ DemoFull.prototype.registerCommands = function () {
     }
   });
   self.addCommand({
-    id: "metadata-and-links", name: "Inspect metadata and open the note",
-    callback: function () { self.showMetadata(); }
+    id: "open-note-by-link", name: "Open the active note by link",
+    callback: function () { self.openNoteByLink(); }
   });
   self.addCommand({
     id: "network-request", name: "Fetch example.com (network)",
     callback: function () { self.requestSample(); }
-  });
-  self.addCommand({
-    id: "dom-samples", name: "Build DOM samples in the plugin page",
-    callback: function () { self.showDomSamples(); }
-  });
-  self.addCommand({
-    id: "editor-extensions", name: "Inspect registered editor extensions",
-    callback: function () { self.showEditorExtensions(); }
-  });
-  self.addCommand({
-    id: "compat-stubs", name: "Exercise compatibility stubs",
-    callback: function () { self.exerciseStubs(); }
   });
   self.addCommand({
     id: "toggle-command", name: "Toggle a temporary command",
@@ -356,23 +310,17 @@ DemoFull.prototype.vaultLifecycle = function () {
     .catch(function (err) { fail("Vault lifecycle", err); });
 };
 
-DemoFull.prototype.showMetadata = function () {
+DemoFull.prototype.openNoteByLink = function () {
   var self = this;
   var file = this.app.workspace.getActiveFile();
   if (!file) {
     say("Open a note first");
     return;
   }
-  var cache = this.app.metadataCache.getFileCache(file);
-  log("MetadataCache.getFileCache", JSON.stringify(cache || {}));
-  var dest = this.app.metadataCache.getFirstLinkpathDest(file.path);
-  log("getFirstLinkpathDest", dest ? dest.path : "no match");
-  var link = this.app.fileManager.generateMarkdownLink(
-    file, "", "", "Demo link");
-  log("FileManager.generateMarkdownLink", link);
+  log("workspace.openLinkText", file.path);
   this.app.workspace.openLinkText(file.path).then(function () {
     self.record();
-    say("openLinkText returned (needs vault.read)");
+    say("Opened " + file.path + " through workspace.openLinkText");
   }).catch(function (err) {
     fail("workspace.openLinkText", err);
   });
@@ -394,128 +342,32 @@ DemoFull.prototype.requestSample = function () {
     .catch(function (err) { fail("requestUrl", err); });
 };
 
-DemoFull.prototype.showDomSamples = function () {
+DemoFull.prototype.registerViewSurface = function () {
   var self = this;
-  var modal = new obsidian.Modal(this.app);
-  modal.containerEl.addClass("xinkgo-demo-full-modal");
-  modal.titleEl.setText("Demo Full modal (plugin page only)");
-  modal.contentEl.createEl("p", {
-    text: "This modal lives in the plugin WebView, not in Xinkgo's window."
-  });
-  modal.open();
-  window.setTimeout(function () { modal.close(); }, 3000);
-
-  var menu = new obsidian.Menu(this.app);
-  menu.addItem(function (item) {
-    item.setTitle("Demo MenuItem").setIcon("layers").onClick(function () {
-      say("Menu item chosen (stub)");
-    });
-  });
-  menu.addSeparator();
-  var standalone = new obsidian.MenuItem(menu);
-  standalone.setTitle("Standalone MenuItem");
-  log("new Menu", menu.items.length + " items; native menus are untouched");
-
-  var suggest = new obsidian.SuggestModal(this.app);
-  suggest.setPlaceholder("Type something");
-  var fuzzy = new obsidian.FuzzySuggestModal(this.app);
-  fuzzy.setPlaceholder("Type something");
-  log("SuggestModal / FuzzySuggestModal", "constructed; no native picker");
-
-  var host = window.activeDocument.createElement("div");
-  obsidian.MarkdownRenderer.renderMarkdown("**stub**", host, "", this)
-    .then(function () {
-      log("MarkdownRenderer", "resolved without touching the native preview");
-    })
-    .catch(function (err) { fail("MarkdownRenderer", err); });
-  var popover = new obsidian.HoverPopover(this, host);
-  popover.hoverEl.setText("Hover text (stub)");
-  log("HoverPopover", "constructed in the plugin page");
-
-  log("activeWindow", String(window.activeWindow === window));
-  self.record();
-  say("DOM samples built; see the plugin log");
-};
-
-DemoFull.prototype.showEditorExtensions = function () {
-  log("editor.extension", this.counts.extensions + " extensions and " +
-    this.counts.suggests + " suggests recorded (no CM6 editor)");
-  this.record();
-  say("Editor extensions are recorded but not applied");
-};
-
-DemoFull.prototype.registerSurfaces = function () {
-  var self = this;
-
+  // registerView is a real Xinkgo surface: the host lists one visible view
+  // in the drawer on the right of the main window, then builds the ItemView.
   this.registerView("demo-full-view", function (leaf) {
     return new DemoView(leaf, self);
   });
-  this.addSettingTab(new DemoSettingTab(this.app, this));
-
-  // Markdown processors are recorded; the native preview is not DOM.
-  this.registerMarkdownPostProcessor(function (el, ctx) {
-    log("registerMarkdownPostProcessor", "recorded only");
-  });
-  this.counts.processors += 1;
-  this.registerMarkdownCodeBlockProcessor("demo", function (source, el) {
-    el.setText("[demo] " + String(source || ""));
-  });
-  this.counts.processors += 1;
-
-  obsidian.addIcon("demo-full-badge",
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">' +
-    '<circle cx="12" cy="12" r="9" fill="#2d6a4f"/></svg>');
-  var iconHost = window.activeDocument.createElement("div");
-  obsidian.setIcon(iconHost, "demo-full-badge");
-  log("addIcon / setIcon", "custom icon registered in the plugin page");
-  log("activeDocument", String(window.activeDocument === window.activeWindow.document));
-};
-
-DemoFull.prototype.registerExtensionsAndStubs = function () {
-  var self = this;
-
-  // CodeMirror 6 extensions have no editor to attach to; the shim records
-  // them so a plugin can still inspect its own registrations.
-  this.registerEditorExtension({ name: "demo-full-extension" });
-  this.counts.extensions += 1;
-  var suggest = new obsidian.EditorSuggest(this.app);
-  this.registerEditorSuggest(suggest);
-  this.counts.suggests += 1;
-  log("registerEditorExtension", "recorded; Xinkgo's editor is not CM6");
-
-  this.registerObsidianProtocolHandler("demo-full", function (params) {
-    say("Protocol action: " + JSON.stringify(params || {}));
-  });
-  this.counts.protocol += 1;
-  this.registerExtensions(["demo"], "markdown");
-  this.registerHoverLinkSource("demo-full",
-    { display: "Demo Full", defaultMod: true });
-  this.registerBasesView("demo-full", {});
-  this.registerCliHandler();
-  log("stubs", "protocol / extensions / hover / bases / cli are recorded only");
-
-  // secretStorage is an in-page stub: it never reaches the OS keychain.
-  this.app.secretStorage.setSecret("demo-full", "not-a-real-secret")
-    .then(function () { return self.app.secretStorage.getSecret("demo-full"); })
-    .then(function (value) {
-      log("secretStorage", "returned " + String(value));
-    })
-    .catch(function (err) { fail("secretStorage", err); });
+  log("registerView", "demo-full-view registered with the host");
 };
 
 DemoFull.prototype.registerAppEvents = function () {
   var self = this;
-  this.registerEvent(this.app.workspace.on("file-open", function (file) {
-    var path = file && file.path ? file.path : String(file || "");
+  // Host events are signals: they carry no file object, so read the active
+  // note yourself when you need its path.
+  this.registerEvent(this.app.workspace.on("file-open", function () {
+    var active = self.app.workspace.getActiveFile();
+    var path = active ? active.path : "";
     self.state.lastPath = path;
     self.saveData(self.state).catch(function (err) { fail("saveData", err); });
-    log("file-open", path);
+    log("file-open", path || "(no active note)");
   }));
-  this.registerEvent(this.app.vault.on("modify", function (file) {
-    log("vault modify", file && file.path ? file.path : "");
+  this.registerEvent(this.app.vault.on("modify", function () {
+    log("vault modify", "a vault file changed");
   }));
-  this.registerEvent(this.app.metadataCache.on("changed", function (file) {
-    log("metadata changed", file && file.path ? file.path : "");
+  this.registerEvent(this.app.workspace.on("editor-change", function () {
+    log("editor-change", "the editor buffer changed");
   }));
   this.registerDomEvent(window.activeDocument, "click", function () {
     log("registerDomEvent", "click on the plugin page");
@@ -525,27 +377,7 @@ DemoFull.prototype.registerAppEvents = function () {
     ticks += 1;
     if (ticks <= 3) log("registerInterval", "tick " + ticks);
   }, 60000));
-  log("events.app", "file-open / vault / metadata / dom / interval registered");
-};
-
-DemoFull.prototype.exerciseStubs = function () {
-  // compat.stub: a Node built-in resolves to an inert Proxy only while the
-  // capability is granted. Without it the shim throws XinkgoCapabilityError.
-  try {
-    var pathModule = require("path");
-    var joined = pathModule.join("a", "b");
-    log("compat.stub", "path.join returned an inert " +
-      typeof joined + " stub");
-  } catch (err) {
-    log("compat.stub", "not granted: " +
-      String((err && err.message) || err));
-  }
-  log("registerEditorExtension", this.counts.extensions + " recorded");
-  log("registerEditorSuggest", this.counts.suggests + " recorded");
-  log("registerMarkdownPostProcessor", this.counts.processors + " recorded");
-  log("registerObsidianProtocolHandler", this.counts.protocol + " recorded");
-  this.record();
-  say("Compatibility stubs exercised; see the plugin log");
+  log("events.app", "file-open / vault.modify / editor-change / dom / interval");
 };
 
 module.exports = DemoFull;

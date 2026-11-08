@@ -817,7 +817,7 @@
   },
   "pluginViewPick": "从上方选择一个插件视图，在此显示。",
   "pluginShowDegraded": "显示降级插件",
-  "pluginDegradedNote": "这些插件可以加载，但自身的视图与编辑器功能不可用。",
+  "pluginDegradedNote": "这些插件通过兼容宿主加载。自身视图在独立的 WebView 页中运行；CodeMirror 等 Obsidian 专有功能不可用。",
   "coreDailyNotesName": "每日笔记",
   "coreDailyNotesNote": "按日期打开或新建一篇笔记。",
   "coreTemplatesName": "模板",

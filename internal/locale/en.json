@@ -1093,7 +1093,7 @@
   },
   "pluginViewPick": "Pick a plugin view above to show it here.",
   "pluginShowDegraded": "Show degraded plugins",
-  "pluginDegradedNote": "These plugins load but their own views and editor features are not available.",
+  "pluginDegradedNote": "These plugins load through a compatibility host. Their own views run in a separate WebView page; CodeMirror and other Obsidian-only features are not available.",
   "coreDailyNotesName": "Daily notes",
   "coreDailyNotesNote": "Open or make a note named after a date.",
   "coreTemplatesName": "Templates",

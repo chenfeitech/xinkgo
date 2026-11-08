@@ -7454,11 +7454,11 @@ func (msgs Messages) PluginShowDegraded() string {
 	return Catalog.Format(msgs.locale, "pluginShowDegraded", nil)
 }
 
-// PluginDegradedNote says "These plugins load but their own views and editor features are not available."
+// PluginDegradedNote says "These plugins load through a compatibility host. Their own views run in a separate WebView page; CodeMirror and other…"
 // in the language the app shows.
 func PluginDegradedNote() string { return In(i18n.Locale()).PluginDegradedNote() }
 
-// PluginDegradedNote says "These plugins load but their own views and editor features are not available."
+// PluginDegradedNote says "These plugins load through a compatibility host. Their own views run in a separate WebView page; CodeMirror and other…"
 // in the language of msgs.
 func (msgs Messages) PluginDegradedNote() string {
 	return Catalog.Format(msgs.locale, "pluginDegradedNote", nil)
