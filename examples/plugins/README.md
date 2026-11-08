@@ -11,6 +11,10 @@
 
 两者都 `Supported=true`；`xinkgo-demo-full` 的 `Degraded=true` 是刻意的，用来演示
 「能加载，但 DOM / CM6 / Node 模块不是真 Obsidian」这一类插件在管理器里的呈现。
+面向使用者的逐步安装与试用手册见
+[docs/plugin-demos.md](../../docs/plugin-demos.md)，两个插件目录内也各有一份简短
+README，拷目录时会一起带过去。想自己写插件看
+[插件开发指南](../../docs/plugin-development.md)，它以这两个 demo 为案例逐段讲解。
 
 ## 安装
 
@@ -41,6 +45,12 @@ cp -R examples/plugins/xinkgo-demo-full "$PLUGINS/"
 设置窗口 → **Community plugins** → **Installed**，先启用插件，再展开卡片里的
 **Grants** 逐项勾选。`data`、`commands`、`notice` 是启用插件即有的生命周期能力，
 其余默认全关。
+
+注意两种安装路径不同：手动拷目录时宿主不写任何授权，需要逐项勾；从 **Browse**
+一键安装时，宿主会把静态扫描出的能力**全部写入授权并自动启用**，与
+[设计文档 §5.1](../../docs/design/obsidian-plugins.md) 的「默认全关」口径不一致。
+ribbon、状态栏、视图都在 `onload()` 里注册，当时没授权就不会补回来，所以要么
+先勾授权再启用，要么勾完点一次 **Reload**。
 
 `xinkgo-demo-full` 要跑完所有命令，需要勾选这 11 项：`vault.read`、`vault.write`、
 `editor.read`、`editor.write`、`metadata`、`network`、`events.app`、`ui`、`dom`、
@@ -97,11 +107,15 @@ cp -R examples/plugins/xinkgo-demo-full "$PLUGINS/"
 `addSettingTab(new PluginSettingTab(...))` 会在 `onload` 里立刻调用 `display()`，用
 `new Setting(...)` 画出两个控件。这些控件是惰性 stub，页面也只是插件自己的 WebView，
 **不会**出现在 Xinkgo 的原生设置窗口。插件自己的配置请用 `loadData/saveData`，宿主把
-`data.json` 写到用户数据目录，不写回库内插件目录。
+`data.json` 写到插件包所在目录：用户级安装时是 `<appdata>/plugins/<id>/data.json`，
+库内安装时则会落进库目录（与设计文档 §5.2 的口径不同，注意私密配置不要随库同步）。
 
 ### 日志
 
-插件的 `console.log` / `console.error` 通过桥转成宿主日志。所有降级点都写进日志：
+插件的 `console.log` / `console.error` 通过桥转成宿主日志，行里有
+`msg="plugin console"` 与 `id=<插件 id>`；开发版输出到终端，安装版写到
+`~/Library/Logs/Xinkgo/xinkgo.log`（Windows：`%AppData%\Xinkgo\logs\xinkgo.log`）。
+所有降级点都写进日志：
 CM6 扩展只登记不生效、Markdown 后处理器只登记不改原生预览、协议 handler / hover /
 bases / CLI 注册是 no-op、`secretStorage` 是页内 stub、`require("path")` 在授权后返回
 一个惰性 Proxy。

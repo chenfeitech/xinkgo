@@ -20,6 +20,8 @@
 | [design/obsidian-core-plugins.md](design/obsidian-core-plugins.md) | **Obsidian 核心插件对照**：内置能力映射、下载榜前 20、Core 兼容插件与后续路线 | 规划核心插件前 |
 | [design/daily-notes-templates.md](design/daily-notes-templates.md) | **Daily notes / Templates / Web viewer 内置核心插件（v1 已实现）**：三者功能与设置页、插件机制改造、WebView 安全边界、数据模型与实现偏差 | 改这三个核心插件前 |
 | [../examples/plugins/README.md](../examples/plugins/README.md) | **两个插件示例**：基础能力（C2）与能力全集（C4 降级）的安装、授权、命令清单、视图入口与明确不做的部分 | 写插件、验证插件机制前 |
+| [plugin-demos.md](plugin-demos.md) | **插件示例使用手册**：要不要编译、两种安装路径的授权差异、逐条命令预期、日志位置与排错清单 | 安装或试用两个 demo 前 |
+| [plugin-development.md](plugin-development.md) | **插件开发指南**：包结构与 manifest、CommonJS 加载链路、能力/授权/兼容等级、完整 API 映射、CSS 与资源、调试发布；以两个 demo 逐段作案例 | 写插件前 |
 | [design/modularity.md](design/modularity.md) | 模块化梳理：现状量出来的问题、`view`/`app` 的目标文件划分、分阶段计划与新约定 | 加功能前、觉得文件太大时 |
 | [design/wechat-style-guide.md](design/wechat-style-guide.md) | **写公众号样式的指引**：键位表、CSS 能做与不能做、改 → 看 → 试、排错清单 | 写/改一套公众号样式时 |
 | [exec-plans/xinkgo-port.md](exec-plans/xinkgo-port.md) | 研发计划与状态（T-1 ~ T-46） | 接着做、看进度 |
