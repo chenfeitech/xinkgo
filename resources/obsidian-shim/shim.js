@@ -895,9 +895,19 @@
       response.text = Promise.resolve(response.text);
       return response;
     });
-    promise.arrayBuffer = promise.then(function (r) { return r.arrayBuffer; });
-    promise.json = promise.then(function (r) { return r.json; });
-    promise.text = promise.then(function (r) { return r.text; });
+    // The convenience branches are separate promises. A rejected request
+    // would otherwise leave three unhandled rejections behind, which the
+    // host reports as a plugin failure even when the caller caught the
+    // main promise. Mark each branch handled without swallowing the
+    // rejection for callers that do use .text/.json/.arrayBuffer.
+    function branch(pick) {
+      var one = promise.then(function (r) { return r[pick]; });
+      one.catch(function () {});
+      return one;
+    }
+    promise.arrayBuffer = branch("arrayBuffer");
+    promise.json = branch("json");
+    promise.text = branch("text");
     return promise;
   }
 
