@@ -10,6 +10,7 @@ import (
 	"github.com/helightxu/xinkgo/internal/datafile"
 	"github.com/helightxu/xinkgo/internal/locale"
 	xmd "github.com/helightxu/xinkgo/internal/markdown"
+	"github.com/helightxu/xinkgo/internal/media"
 	"github.com/helightxu/xinkgo/internal/view/geom"
 )
 
@@ -216,6 +217,12 @@ func (w *Workspace) toolbar(c *ui.Context) {
 	}
 	if n.Preview {
 		w.fileBar(c, n)
+		return
+	}
+	// A text file that is not a note has no use for the marks that
+	// write Markdown: it says what kind of file it is instead.
+	if !media.IsMarkdown(n.Path) {
+		w.textBar(c, n)
 		return
 	}
 	// The buttons are as close together as an editor's are, so that

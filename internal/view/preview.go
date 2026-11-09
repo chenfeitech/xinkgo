@@ -15,6 +15,7 @@ import (
 	"github.com/helightxu/xinkgo/internal/locale"
 	xmd "github.com/helightxu/xinkgo/internal/markdown"
 	"github.com/helightxu/xinkgo/internal/media"
+	"github.com/helightxu/xinkgo/internal/textfile"
 	"github.com/helightxu/xinkgo/internal/view/geom"
 )
 
@@ -59,6 +60,9 @@ func (w *Workspace) previewPanel(c *ui.Context, width float32) {
 			return
 		}
 		opts := w.markdownOptions(c, n.Path)
+		if w.sourcePreview(n) {
+			opts.WrapCode = w.Config.Editor.SoftWrap
+		}
 		ui.Scroll(c).TrackScroll(&w.scroll.Preview).Fill().Children(func() {
 			room, _ := c.Size()
 			// Given the whole window, what is read is given the width
@@ -252,28 +256,37 @@ func (w *Workspace) markdownOptions(
 }
 
 // previewText is what the preview is given: a note as it is, its links
-// in double brackets made into ones that can be clicked, and a file of
-// data as a block of code, written out evenly when it can be.
+// in double brackets made into ones that can be clicked, and any other
+// text file as a block of source, with the language its name names.
 func (w *Workspace) previewText(n *OpenNote) string {
 	// A file the app only shows is not read as Markdown: a picture is
 	// shown as the picture it is, and the rest are said in a line.
 	if n.Preview {
 		return w.previewTextOfFile(n)
 	}
-	kind := datafile.KindOf(n.Path)
-	if kind == datafile.None {
+	if media.IsMarkdown(n.Path) {
 		return xmd.Links(n.Note.Text, w.resolveLink)
 	}
+	kind := datafile.KindOf(n.Path)
 	text := n.Note.Text
 	// A file of megabytes is shown as it stands.
-	if !datafile.TooLarge(uint64(len(text)),
-		w.Config.Editor.DataFile.MaxFormatBytes) {
-		if even, ok := datafile.Format(kind, text,
-			int(w.Config.Editor.DataFile.Indent)); ok {
-			text = even
+	if kind != datafile.None {
+		if !datafile.TooLarge(uint64(len(text)),
+			w.Config.Editor.DataFile.MaxFormatBytes) {
+			if even, ok := datafile.Format(kind, text,
+				int(w.Config.Editor.DataFile.Indent)); ok {
+				text = even
+			}
 		}
+		return textfile.Fence(text, strings.ToLower(kind.Name()))
 	}
-	return "```" + strings.ToLower(kind.Name()) + "\n" + text + "\n```"
+	return textfile.Fence(text, textfile.Language(n.Path))
+}
+
+// sourcePreview is whether the pane shows source in a code block rather
+// than a note rendered as Markdown.
+func (w *Workspace) sourcePreview(n *OpenNote) bool {
+	return !n.Preview && !media.IsMarkdown(n.Path)
 }
 
 // openLink is what a click in the preview does: a link in double brackets

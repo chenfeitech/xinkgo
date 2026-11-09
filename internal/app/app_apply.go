@@ -40,6 +40,7 @@ func (s *appState) applyConfig() {
 	s.ws.Tabs.AutoSave = s.config.Editor.AutoSave
 	s.ws.Tabs.AutoSaveDelay = time.Duration(
 		s.config.Editor.AutoSaveDelayMs) * time.Millisecond
+	s.ws.Tabs.MaxTextFileBytes = s.config.Editor.MaxTextFileBytes
 	s.ws.Tree.FontSize = s.config.Basic.TreeFont.Size
 	// Which skills may be used is a choice, and so are the app's own
 	// actions over a note.
@@ -125,7 +126,8 @@ func (s *appState) rescan() {
 	if s.root == "" {
 		return
 	}
-	root, err := vault.Scan(s.root, s.config.Basic.ShowAllFiles)
+	root, err := vault.Scan(s.root, s.config.Basic.ShowAllFiles,
+		s.config.Editor.MaxTextFileBytes)
 	if err != nil {
 		slog.Warn("the vault could not be read again", "err", err)
 		return

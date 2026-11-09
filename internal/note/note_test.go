@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/helightxu/xinkgo/internal/textfile"
 )
 
 // write puts text on disk as another program would, and moves the file's
@@ -40,6 +42,53 @@ func TestOpen_readsTheDisk(t *testing.T) {
 func TestOpen_missingFileIsAnError(t *testing.T) {
 	if _, err := Open(filepath.Join(t.TempDir(), "gone.md")); err == nil {
 		t.Error("Open of a file that is not there gave no error")
+	}
+}
+
+// TestOpenEncoded_keepsTheMarkAndLineEndsOnSave checks a file whose bytes
+// are not plain UTF-8: what is read, typed, and written again keeps the
+// mark and the line ends of the file the user opened.
+func TestOpenEncoded_keepsTheMarkAndLineEndsOnSave(t *testing.T) {
+	text := "one\r\n\u4e16\u754c\n"
+	for _, enc := range []textfile.Encoding{
+		textfile.UTF8, textfile.UTF8BOM, textfile.UTF16LE,
+		textfile.UTF16BE,
+	} {
+		path := filepath.Join(t.TempDir(), "a.txt")
+		data, err := textfile.Encode(text, enc)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, data, 0o644); err != nil {
+			t.Fatal(err)
+		}
+		n, err := OpenEncoded(path, enc)
+		if err != nil {
+			t.Fatalf("OpenEncoded(%v): %v", enc, err)
+		}
+		if n.Text != text || n.Encoding != enc {
+			t.Errorf("opened %q as %v, want %q as %v", n.Text,
+				n.Encoding, text, enc)
+		}
+		n.SetText("two\r\n" + text)
+		if err := n.Save(); err != nil {
+			t.Fatalf("Save(%v): %v", enc, err)
+		}
+		again, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got := textfile.Detect(again); got != enc {
+			t.Errorf("saved mark = %v, want %v", got, enc)
+		}
+		reread, err := Open(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if reread.Text != n.Text || reread.Encoding != enc {
+			t.Errorf("reread %q as %v, want %q as %v", reread.Text,
+				reread.Encoding, n.Text, enc)
+		}
 	}
 }
 

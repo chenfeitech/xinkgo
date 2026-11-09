@@ -137,11 +137,14 @@ cmd/xinkgo  →  internal/app  →  internal/{view,config,logging,sysinfo,export
                                     └── internal/view → internal/sysinfo
                                     └── internal/logging → internal/config
                                     └── internal/export → internal/theme
+                                    └── internal/{media,vault,note,view} → internal/textfile
 ```
 
 - `internal/view`、`internal/config`、`internal/sysinfo`、`internal/export`
   **不得** import `internal/app`：它们必须能在没有运行中的应用时被测试。
 - `internal/app` 是唯一知道应用生命周期（启动、退出、窗口、菜单）的包。
+- `internal/textfile` 是叶子包：只依赖标准库与 `mygo/ui/editor`，`media`、
+  `vault`、`note`、`view` 可以依赖它，它不反向依赖这些包。
 - 新增 `internal/xxx` 包时同步更新本表与 [PROJECT.md](PROJECT.md) 的目录树。
 
 ## 3 测试约定

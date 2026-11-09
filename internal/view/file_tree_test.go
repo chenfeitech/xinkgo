@@ -440,7 +440,7 @@ func followedWorkspace(t *testing.T) (*Workspace, string, string) {
 			t.Fatal(err)
 		}
 	}
-	scanned, err := vault.Scan(root, false)
+	scanned, err := vault.Scan(root, false, 0)
 	if err != nil {
 		t.Fatalf("Scan: %v", err)
 	}

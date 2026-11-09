@@ -36,6 +36,10 @@ func TestLoad_missingFileGivesDefaults(t *testing.T) {
 	if cfg.Editor.AutoSaveDelayMs != 300 || !cfg.Editor.SoftWrap {
 		t.Errorf("editor %+v, want the defaults", cfg.Editor)
 	}
+	if cfg.Editor.MaxTextFileBytes != DefaultMaxTextFileBytes {
+		t.Errorf("max text file = %v, want %v",
+			cfg.Editor.MaxTextFileBytes, DefaultMaxTextFileBytes)
+	}
 	if cfg.Preview.SyncMode != SyncRatio || cfg.Preview.ImageDisplay != ImageFitWidth {
 		t.Errorf("preview %+v, want the defaults", cfg.Preview)
 	}
@@ -447,6 +451,21 @@ func TestSanitize_anExportTheAppCannotMakeFallsBack(t *testing.T) {
 	if cfg.Export.Images != ExportImagesEmbed {
 		t.Errorf("images %q, want %q", cfg.Export.Images,
 			ExportImagesEmbed)
+	}
+}
+
+// TestSanitize_theLargestTextFileIsBounded checks a size written by hand
+// is kept between the smallest useful file and one the editor can hold.
+func TestSanitize_theLargestTextFileIsBounded(t *testing.T) {
+	small := load(t, `{"editor":{"max_text_file_bytes":1}}`)
+	if small.Editor.MaxTextFileBytes != MinMaxTextFileBytes {
+		t.Errorf("small = %v, want %v", small.Editor.MaxTextFileBytes,
+			MinMaxTextFileBytes)
+	}
+	large := load(t, `{"editor":{"max_text_file_bytes":999999999}}`)
+	if large.Editor.MaxTextFileBytes != MaxMaxTextFileBytes {
+		t.Errorf("large = %v, want %v", large.Editor.MaxTextFileBytes,
+			MaxMaxTextFileBytes)
 	}
 }
 

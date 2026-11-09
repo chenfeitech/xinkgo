@@ -299,6 +299,7 @@ func NewWorkspace(cfg config.AppConfig) *Workspace {
 	w.Tabs.AutoSave = cfg.Editor.AutoSave
 	w.Tabs.AutoSaveDelay = milliseconds(cfg.Editor.AutoSaveDelayMs)
 	w.Tabs.SoftWrap = cfg.Editor.SoftWrap
+	w.Tabs.MaxTextFileBytes = cfg.Editor.MaxTextFileBytes
 	w.Tree.OnOpen = w.openNote
 	return w
 }
