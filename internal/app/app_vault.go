@@ -29,8 +29,8 @@ func (s *appState) vaultID() string {
 }
 
 // syncVaults is the list of vaults told to the window, as when one is
-// added, named again or forgotten: the tree carries the way from one to
-// another.
+// added, named again, forgotten, or another one is opened: the tree
+// carries the way from one to another, and is to know which is open.
 func (s *appState) syncVaults() {
 	s.ws.Tree.Vaults = s.vaults
 	// The menu is the platform's, and only there once the app is up:
@@ -115,24 +115,22 @@ func (s *appState) switchToVault(id string) {
 // rememberVault makes the folder the one that is open, adding it to the
 // list when it is not there yet.
 func (s *appState) rememberVault(path string) {
-	known := false
+	id := ""
 	if v := s.vaults.At(path); v != nil {
-		id := v.ID
-		s.vaults.Active = &id
-		known = true
-	}
-	if !known {
+		id = v.ID
+	} else {
 		e := s.vaults.Add(path)
-		s.vaults.Active = &e.ID
+		id = e.ID
 	}
+	s.vaults.Active = &id
 	if err := state.SaveVaults(s.dir, s.vaults); err != nil {
 		slog.Warn("the vaults could not be written", "err", err)
 	}
-	// A vault that is not in the list yet is in the menu from now on,
-	// and in the tree's way from one vault to another.
-	if !known {
-		s.syncVaults()
-	}
+	// The active identifier is new even when the folder was already
+	// known: the tree keeps a copy of the registry, and one that still
+	// names the vault left behind takes choosing it again for a press
+	// on the vault already open.
+	s.syncVaults()
 }
 
 // reindexAll is the whole vault read again for what its notes say, as
