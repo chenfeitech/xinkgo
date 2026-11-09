@@ -99,3 +99,28 @@ func TestStatusBar_isVisibleInTheFullWindow(t *testing.T) {
 		t.Errorf("the status bar fell outside the window: %+v", r)
 	}
 }
+
+// The panels row must not claim 100% of the column: with a busy editor the
+// column then overflows and pushes the status bar below the window. This
+// mirrors View()'s contract (panels Grow(1), status bar Shrink(0)); if
+// either is undone the bar disappears again under tall content.
+func TestStatusBar_staysVisibleWhenPanelsOverflow(t *testing.T) {
+	w := NewWorkspace(config.Default())
+	w.SetPluginStatus("demo", "STATUS-BAR-MARKER")
+	tt := ui.NewTester(func(c *ui.Context) {
+		ui.Column(c).Fill().Children(func() {
+			panels := ui.Row(c).Key("panels").FillWidth().Grow(1)
+			panels.Children(func() {
+				ui.Box(c).FillWidth().Height(2000)
+			})
+			w.statusBar(c)
+		})
+	}, 820, 680)
+	r, ok := tt.Find("STATUS-BAR-MARKER")
+	if !ok {
+		t.Fatal("the status bar was not drawn")
+	}
+	if r.Y < 0 || r.Y+r.H > 680 || r.H == 0 {
+		t.Errorf("the status bar fell outside the window: %+v", r)
+	}
+}

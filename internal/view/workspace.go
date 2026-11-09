@@ -1,9 +1,6 @@
 package view
 
 import (
-	"log/slog"
-	"sync"
-
 	"context"
 	"path/filepath"
 	"strings"
@@ -23,10 +20,6 @@ import (
 	"github.com/helightxu/xinkgo/internal/view/geom"
 	"github.com/helightxu/xinkgo/internal/wechat"
 )
-
-// statusFrameOnce logs the first frame's status-bar state once per process.
-// It is a diagnostic for a bar that is drawn but not seen on screen.
-var statusFrameOnce sync.Once
 
 // Workspace is the window: the vault's tree on the left, the notes in the
 // middle, and what a note looks like on the right.
@@ -353,19 +346,15 @@ func (w *Workspace) View(c *ui.Context) {
 	// note's own editor, and only this thread may touch that.
 	w.aiReviewDone()
 	ui.Column(c).Fill().Children(func() {
-		statusFrameOnce.Do(func() {
-			slog.Info("status bar frame",
-				"coreOn", w.coreOn(CoreStatusBar),
-				"features", w.CoreFeatures,
-				"items", len(w.PluginStatuses),
-				"status", w.status,
-				"hasNote", w.Tabs.ActiveNote() != nil)
-		})
 		// How far the note has gone over the preview's room, read from
 		// the animation before the panels are laid out from it: the
 		// value is the row's own, and frames keep coming while it
 		// moves.
-		panels := ui.Row(c).Key("panels").Fill()
+		// Grow(1) takes only the room left by the status bar. Fill()
+		// claimed 100% of the column, so once the editor/tree wanted
+		// more height the column overflowed and pushed the status bar
+		// below the window.
+		panels := ui.Row(c).Key("panels").FillWidth().Grow(1)
 		target := float32(0)
 		if w.mode.Stretched {
 			target = 1

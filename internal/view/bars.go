@@ -4,9 +4,7 @@
 package view
 
 import (
-	"log/slog"
 	"strconv"
-	"sync"
 
 	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/datafile"
@@ -14,8 +12,6 @@ import (
 	xmd "github.com/helightxu/xinkgo/internal/markdown"
 	"github.com/helightxu/xinkgo/internal/view/geom"
 )
-
-var statusDrawOnce sync.Once
 
 // iconClose is the × a tab is closed by: two strokes of a 24 by 24 box,
 // drawn in the color of the text beside it.
@@ -326,10 +322,6 @@ const statusBarHeight float32 = 26
 // window's own message, each plugin's independent status item, and the
 // word count of the note on show when that core plugin stands.
 func (w *Workspace) statusBar(c *ui.Context) {
-	statusDrawOnce.Do(func() {
-		slog.Info("status bar drawn", "items",
-			len(w.PluginStatuses), "status", w.status)
-	})
 	text := w.status
 	if text == "" {
 		n := w.Tabs.ActiveNote()
@@ -346,8 +338,10 @@ func (w *Workspace) statusBar(c *ui.Context) {
 			count = locale.StatusWordCount(strconv.Itoa(wordsIn(n.Note.Text)))
 		}
 	}
-	ui.Row(c).FillWidth().Height(statusBarHeight).Padding(0, 8).
-		Gap(8).AlignItems(ui.Center).Children(func() {
+	// Shrink(0) keeps the fixed height when the panels above want more
+	// room than the window has; otherwise flex squeezes this row to zero.
+	ui.Row(c).FillWidth().Height(statusBarHeight).Shrink(0).
+		Padding(0, 8).Gap(8).AlignItems(ui.Center).Children(func() {
 		drawn := false
 		if text != "" {
 			ui.Text(c, text).FontSize(12).TextColor(c.Theme().TextMuted)
