@@ -2,6 +2,7 @@ package view
 
 import (
 	"testing"
+	"time"
 
 	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/config"
@@ -122,5 +123,43 @@ func TestStatusBar_staysVisibleWhenPanelsOverflow(t *testing.T) {
 	}
 	if r.Y < 0 || r.Y+r.H > 680 || r.H == 0 {
 		t.Errorf("the status bar fell outside the window: %+v", r)
+	}
+}
+
+// A plugin Notice reaches the window through Say. It is a one-off message,
+// not a permanent owner of the status bar: after its turn the bar shows
+// the note (or the idle label) again.
+func TestStatusBar_oneOffMessageExpires(t *testing.T) {
+	w := NewWorkspace(config.Default())
+	w.Say("The http://localhost:5000 is unreachable or not healthy")
+	w.saidAt = time.Now().Add(-2 * statusMessageTTL)
+	tt := ui.NewTester(w.statusBar, 900, 40)
+	if tt.HasText("unreachable") {
+		t.Error("an expired one-off message still owns the status bar")
+	}
+	if !tt.HasText(locale.StatusBarIdle()) {
+		t.Error("the bar did not fall back to its idle text")
+	}
+}
+
+func TestStatusBar_freshOneOffMessageIsShown(t *testing.T) {
+	w := NewWorkspace(config.Default())
+	w.Say("a fresh notice")
+	tt := ui.NewTester(w.statusBar, 900, 40)
+	if !tt.HasText("a fresh notice") {
+		t.Error("a fresh one-off message was hidden")
+	}
+}
+
+// A message set straight on w.status (a revision, a palette choice) is not
+// a one-off: it must stay even if an older Say has expired.
+func TestStatusBar_directStatusIsNotExpired(t *testing.T) {
+	w := NewWorkspace(config.Default())
+	w.Say("an old notice")
+	w.saidAt = time.Now().Add(-2 * statusMessageTTL)
+	w.status = "a lasting message"
+	tt := ui.NewTester(w.statusBar, 900, 40)
+	if !tt.HasText("a lasting message") {
+		t.Error("a lasting message was dropped with the expired notice")
 	}
 }

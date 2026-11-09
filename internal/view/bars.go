@@ -5,6 +5,7 @@ package view
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/datafile"
@@ -325,11 +326,19 @@ func (w *Workspace) toolbarDivider(c *ui.Context) {
 // status bar vanish and shift the panes above it.
 const statusBarHeight float32 = 26
 
+// statusMessageTTL is how long a one-off message, as a plugin Notice is,
+// holds the line at the foot of the window before the note takes it back.
+const statusMessageTTL = 8 * time.Second
+
 // statusBar is what the window says about what happened. It shows the
 // window's own message, each plugin's independent status item, and the
 // word count of the note on show when that core plugin stands.
 func (w *Workspace) statusBar(c *ui.Context) {
 	text := w.status
+	if text != "" && text == w.lastSaid && !w.saidAt.IsZero() &&
+		time.Since(w.saidAt) > statusMessageTTL {
+		text = ""
+	}
 	if text == "" {
 		n := w.Tabs.ActiveNote()
 		if n != nil {

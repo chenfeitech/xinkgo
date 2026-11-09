@@ -188,7 +188,12 @@ type Workspace struct {
 	// own, as the settings say.
 	OnOpenOutside func(url string)
 
-	status      string
+	status string
+	// lastSaid and saidAt belong to the one-off message Say put at the
+	// foot of the window. A plugin Notice is such a message: it has its
+	// turn, then the status bar goes back to the note and the word count.
+	lastSaid    string
+	saidAt      time.Time
 	layoutTimer *time.Timer
 	// codeTheme is the colors code is painted in, made again when the
 	// preset or the appearance changes.
@@ -549,9 +554,13 @@ func (w *Workspace) dragPanel(width *float32, v float32) {
 	})
 }
 
-// Say puts a line at the bottom of the window.
+// Say puts a line at the bottom of the window for a while. A message set
+// straight onto w.status (a revision, a palette choice) is not a one-off
+// and stays until something replaces it.
 func (w *Workspace) Say(text string) {
 	w.status = text
+	w.lastSaid = text
+	w.saidAt = time.Now()
 }
 
 // InsertInActive puts text at the caret of the note on show, as typing
