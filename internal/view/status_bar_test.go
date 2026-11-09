@@ -5,6 +5,8 @@ import (
 
 	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/config"
+	"github.com/helightxu/xinkgo/internal/index"
+	"github.com/helightxu/xinkgo/internal/locale"
 )
 
 // Plugin status items are keyed by plugin ID: one plugin's text must not
@@ -70,4 +72,30 @@ func TestStatusBar_noContentDoesNotPanic(t *testing.T) {
 	w := NewWorkspace(config.Default())
 	tt := ui.NewTester(w.statusBar, 600, 40)
 	tt.Frame()
+}
+
+// An empty status bar must be visible, not just a blank row: it shows the
+// vault name, or an idle label when no vault has been scanned yet.
+func TestStatusBar_idleTextIsVisible(t *testing.T) {
+	w := NewWorkspace(config.Default())
+	tt := ui.NewTester(w.statusBar, 600, 40)
+	if !tt.HasText(locale.StatusBarIdle()) {
+		t.Error("an empty status bar shows nothing")
+	}
+}
+
+// The decisive geometry check: in the full window the status bar must sit
+// inside the viewport, not be pushed below it by the panels row.
+func TestStatusBar_isVisibleInTheFullWindow(t *testing.T) {
+	w := NewWorkspace(config.Default())
+	w.Index = index.New()
+	w.SetPluginStatus("demo", "STATUS-BAR-MARKER")
+	tt := ui.NewTester(w.View, 820, 680)
+	r, ok := tt.Find("STATUS-BAR-MARKER")
+	if !ok {
+		t.Fatal("the status bar was not drawn in the full window")
+	}
+	if r.Y < 0 || r.Y+r.H > 680 {
+		t.Errorf("the status bar fell outside the window: %+v", r)
+	}
 }

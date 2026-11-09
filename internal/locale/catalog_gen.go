@@ -7526,6 +7526,16 @@ func (msgs Messages) StatusWordCount(count string) string {
 	return Catalog.Format(msgs.locale, "statusWordCount", map[string]any{"count": count})
 }
 
+// StatusBarIdle says "Ready"
+// in the language the app shows.
+func StatusBarIdle() string { return In(i18n.Locale()).StatusBarIdle() }
+
+// StatusBarIdle says "Ready"
+// in the language of msgs.
+func (msgs Messages) StatusBarIdle() string {
+	return Catalog.Format(msgs.locale, "statusBarIdle", nil)
+}
+
 // PluginViewPick says "Pick a plugin view above to show it here."
 // in the language the app shows.
 func PluginViewPick() string { return In(i18n.Locale()).PluginViewPick() }

@@ -358,10 +358,16 @@ func (w *Workspace) statusBar(c *ui.Context) {
 			ui.Text(c, count).FontSize(12).TextColor(c.Theme().TextMuted)
 			drawn = true
 		}
-		// An empty window still has a status bar: a space keeps the row's
-		// text height even when there is nothing to report.
+		// An empty window still has a status bar, and it must be visible:
+		// show the vault name when there is one, otherwise an idle label.
 		if !drawn {
-			ui.Text(c, " ").FontSize(12)
+			idle := locale.StatusBarIdle()
+			if w.Tree != nil && w.Tree.Root != nil &&
+				w.Tree.Root.Name != "" {
+				idle = w.Tree.Root.Name
+			}
+			ui.Text(c, idle).FontSize(12).
+				TextColor(c.Theme().TextMuted)
 		}
 	})
 }

@@ -112,6 +112,19 @@ func writePluginRPC(w http.ResponseWriter, reply pluginRPCReply) {
 	_ = json.NewEncoder(w).Encode(reply)
 }
 
+// logPluginStatus traces whether a plugin's status item reached the host.
+// It also reports the status-bar core switch, which is what decides
+// whether the row is drawn at all: a missing row is a different fault
+// from a missing item.
+func (h *pluginHost) logPluginStatus(inst *pluginInstance, method,
+	text string) {
+	h.mu.RLock()
+	on := h.saved.CoreOf(view.CoreStatusBar)
+	h.mu.RUnlock()
+	slog.Info("plugin status", "id", inst.id, "method", method,
+		"statusBar", on, "text", text)
+}
+
 func decodePluginParams(raw json.RawMessage, out any) error {
 	if len(raw) == 0 {
 		return nil
@@ -166,6 +179,7 @@ func (h *pluginHost) handleRPC(inst *pluginInstance, method string,
 		if err := decodePluginParams(raw, &p); err != nil {
 			return nil, err
 		}
+		h.logPluginStatus(inst, method, p.Text)
 		// A plugin's status text lives in its own item, so a Notice or
 		// another plugin can no longer overwrite it.
 		h.setWorkspace(func(ws *view.Workspace) {
@@ -176,6 +190,7 @@ func (h *pluginHost) handleRPC(inst *pluginInstance, method string,
 		if !h.granted(inst, string(plugin.CapabilityUI)) {
 			return nil, errors.New("ui is not granted")
 		}
+		h.logPluginStatus(inst, method, "")
 		h.setWorkspace(func(ws *view.Workspace) {
 			ws.AddPluginStatus(inst.id)
 		})
