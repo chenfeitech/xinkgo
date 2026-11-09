@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "profile": "1.0.0",
+  "plugins": [
+    {
+      "id": "xinkgo-demo-basic",
+      "name": "Xinkgo Demo: Basic",
+      "version": "1.0.0",
+      "kind": "reference",
+      "path": "examples/plugins/xinkgo-demo-basic",
+      "capabilities": [
+        "data",
+        "commands",
+        "notice",
+        "vault.read",
+        "editor.read",
+        "editor.write",
+        "ui"
+      ],
+      "verification": {
+        "static": "pass",
+        "runtime": "pass",
+        "checkedAt": "2026-11-09"
+      }
+    },
+    {
+      "id": "xinkgo-demo-full",
+      "name": "Xinkgo Demo: Full",
+      "version": "1.0.0",
+      "kind": "reference",
+      "path": "examples/plugins/xinkgo-demo-full",
+      "capabilities": [
+        "data",
+        "commands",
+        "notice",
+        "vault.read",
+        "vault.write",
+        "editor.read",
+        "editor.write",
+        "network",
+        "events.app",
+        "ui",
+        "dom"
+      ],
+      "verification": {
+        "static": "pass",
+        "runtime": "pass",
+        "checkedAt": "2026-11-09"
+      }
+    }
+  ]
+}

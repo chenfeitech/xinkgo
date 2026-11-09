@@ -4,6 +4,10 @@
 降级降权与打包资源门禁已实现；完整 P1/P2/P3 仍未实现**。
 本文先定边界、架构与路线，再记录 P0 的实际落点；完全兼容 Obsidian 仍不是本期目标。
 
+> 2026-11-09：目标已调整为以 Xinkgo 自身架构为准，见
+> [xinkgo-plugin-library.md](xinkgo-plugin-library.md)。本文保留为 L2
+> 外部兼容层的调研与 P0 落点记录；官方插件的准入以能力契约为准。
+
 > 2026-11-05 补做（见本文件 §9.1 与
 > [obsidian-core-plugins.md](obsidian-core-plugins.md)）：把「核心插件」校正为
 > 三层——内置核心能力（原生 UI、统一开关、落 `plugins.json`）、核心兼容插件
@@ -566,7 +570,7 @@ Windows/Linux 的 WebView 差异、无 WebView 时的回落。提交前跑
 |---|---|---|
 | 100% Obsidian 插件兼容 | 需要 DOM workspace、CM6、Node/Electron 与整套应用壳 | 兼容等级 + 报告 + 插件作者按 C1/C2 约束写 |
 | 用 Go 内嵌 JS 引擎跑 `main.js` | 没有 DOM/Electron 仍要写全套 shim；容易引入 cgo 依赖 | 用 MyGo 系统 WebView，非信任页隔离 |
-| 把插件源码转译成 Go 原生扩展 | 不是“直接兼容”，且每个插件都要维护 | 原生插件 API 另行设计，独立路线 |
+| 把插件源码转译成 Go 原生扩展 | 不是“直接兼容”，且每个插件都要维护 | [原生插件 API 与官方插件库](xinkgo-plugin-library.md) 另行设计，独立路线 |
 | `mygo.BindAs` 暴露通用插件服务 | 非信任页不能调 Go；可信页又会把所有绑定服务暴露给插件 | 自定义 scheme + `CallerPage` + 显式方法表 |
 | `styles.css` 注入原生 UI | 原生 UI 没有 DOM/CSS | 插件自己的 WebView 表面 |
 | 把降级 API 伪装成完整支持 | 插件会以为功能生效，排障困难 | 标 C3/C4 降级、显示所需能力，stub 只保证尽量加载 |

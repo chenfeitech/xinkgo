@@ -7,6 +7,10 @@
 [../examples/plugins/README.md](../examples/plugins/README.md)，宿主设计见
 [design/obsidian-plugins.md](design/obsidian-plugins.md)。
 
+官方插件库的准入契约、三层模型与迁移路线见
+[design/xinkgo-plugin-library.md](design/xinkgo-plugin-library.md)；本文是
+L1 插件的作者视角，契约的代码定义在其 §3 与 `internal/plugin/contract.go`。
+
 ## 1 边界与准入原则
 
 Xinkgo 的第三方插件是 **Obsidian 兼容插件**，不是原生 Go 扩展：

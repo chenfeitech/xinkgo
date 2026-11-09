@@ -76,22 +76,9 @@ var supportedCapabilities = []Capability{
 	CapabilityNetwork, CapabilityEvents, CapabilityUI, CapabilityDOM,
 }
 
-// unsupportedAPIs are Obsidian APIs whose Xinkgo implementation is a no-op,
-// an empty object or an inert proxy. They must not appear in either demo.
-var unsupportedAPIs = []string{
-	"addSettingTab", "PluginSettingTab", "new Setting(",
-	"new obsidian.Setting(", "SettingTab",
-	"new obsidian.Modal", "SuggestModal", "FuzzySuggestModal",
-	"new obsidian.Menu(", "MenuItem",
-	"MarkdownRenderer", "HoverPopover",
-	"registerMarkdownPostProcessor", "registerMarkdownCodeBlockProcessor",
-	"registerEditorExtension", "EditorSuggest", "registerEditorSuggest",
-	"registerObsidianProtocolHandler", "registerExtensions",
-	"registerHoverLinkSource", "registerBasesView", "registerCliHandler",
-	"secretStorage", "addIcon", "setIcon",
-	"getFileCache", "getFirstLinkpathDest", "MetadataCache", "metadataCache",
-	"require(\"path\")",
-}
+// The demos are checked against the same stub list the official library
+// contract uses, so the two cannot drift apart.
+var unsupportedAPIs = ContractStubAPIs
 
 func demoHasIssueArg(r Report, code, arg string) bool {
 	for _, one := range r.Issues {

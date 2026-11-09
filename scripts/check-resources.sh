@@ -18,6 +18,7 @@ cd "$(dirname "$0")/.."
 # step with newPluginHost in internal/app/plugin_host.go.
 required=(
   "obsidian-plugins/compatible.json"
+  "xinkgo-plugins/library.json"
   "obsidian-shim/host.html"
   "obsidian-shim/shim.js"
   "obsidian-shim/runtime.js"
