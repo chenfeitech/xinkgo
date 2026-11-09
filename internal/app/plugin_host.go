@@ -424,15 +424,25 @@ func (h *pluginHost) runCommand(id string) {
 // main window exists, so NewWebView can attach to native UI.
 func (h *pluginHost) startEnabled() {
 	h.mu.RLock()
-	ids := make([]string, 0, len(h.saved.Enabled))
-	for id := range h.saved.Enabled {
-		ids = append(ids, id)
-	}
+	ids := enabledIDs(h.saved.Enabled)
 	h.mu.RUnlock()
-	sort.Strings(ids)
 	for _, id := range ids {
 		h.enable(id, false)
 	}
+}
+
+// enabledIDs are the plugins left on, in a stable order. A false written
+// into plugins.json is not an enabled plugin: WithEnabled(id, false) drops
+// the key, but a hand-edited or synced file may keep it.
+func enabledIDs(enabled map[string]bool) []string {
+	ids := make([]string, 0, len(enabled))
+	for id, on := range enabled {
+		if on {
+			ids = append(ids, id)
+		}
+	}
+	sort.Strings(ids)
+	return ids
 }
 
 // enable creates one isolated WebView for a plugin. The page is untrusted;
