@@ -60,7 +60,7 @@ make check            # 提交前门禁：格式 + vet + 测试 + 全平台编�
 
 | 项 | 值 |
 |---|---|
-| 框架 | MyGo v0.7.4（`go.mod` 的 `tool` 固定，`go tool mygo` 运行 CLI） |
+| 框架 | MyGo v0.8.3（`go.mod` 的 `tool` 固定，`go tool mygo` 运行 CLI） |
 | Go | 1.27.3（go.mod 声明） |
 | 界面 | 原生 UI：`mygo/ui`（MyGo 用 GPU 绘制），主窗口走 `ui.View` |
 | 目标平台 | P0 macOS（arm64、amd64）→ P1 Windows/amd64 → P2 Windows/arm64、Linux/amd64 |

@@ -21,6 +21,7 @@
 | [design/obsidian-core-plugins.md](design/obsidian-core-plugins.md) | **Obsidian 核心插件对照**：内置能力映射、下载榜前 20、Core 兼容插件与后续路线 | 规划核心插件前 |
 | [design/daily-notes-templates.md](design/daily-notes-templates.md) | **Daily notes / Templates / Web viewer 内置核心插件（v1 已实现）**：三者功能与设置页、插件机制改造、WebView 安全边界、数据模型与实现偏差 | 改这三个核心插件前 |
 | [design/text-files.md](design/text-files.md) | **全文本文件编辑与源码预览（v1 已实现）**：`internal/textfile` 判类、内容嗅探、BOM/编码、源码围栏、工具栏/预览/导出边界 | 加文本类型或改源码预览前 |
+| [design/mygo-0.8.3-upgrade.md](design/mygo-0.8.3-upgrade.md) | **MyGo 0.7.4 → 0.8.3 升级评估**：可升级且零业务代码改动、门禁与打包验证、Markdown 新增扩展的行为变化、真机验收清单 | 升级框架、评估升级影响前 |
 | [../examples/plugins/README.md](../examples/plugins/README.md) | **两个插件示例**：基础能力（C2）与全力支持能力全集（C3）的安装、授权、命令清单、视图入口，以及「不写进插件的能力」准入清单 | 写插件、验证插件机制前 |
 | [plugin-demos.md](plugin-demos.md) | **插件示例使用手册**：要不要编译、两种安装路径的授权差异、逐条命令预期、日志位置与排错清单 | 安装或试用两个 demo 前 |
 | [plugin-development.md](plugin-development.md) | **插件开发指南**：能力准入与黑名单、包结构与 manifest、CommonJS 加载链路、真实能力的 API 映射、CSS 与资源、调试发布；以两个 demo 逐段作案例 | 写插件前 |

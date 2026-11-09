@@ -9,7 +9,7 @@
 | 依赖 | 版本 | 用途 | 检查 |
 |---|---|---|---|
 | Go | 1.27 或更高 | 编译（`go.mod` 声明 1.27.3，低版本由 Go 自动下载 toolchain） | `go version` |
-| MyGo CLI | v0.7.4 | 由 `go.mod` 的 `tool` 指令固定，`go tool mygo` 直接跑，不需要全局安装 | `go tool mygo version` |
+| MyGo CLI | v0.8.3 | 由 `go.mod` 的 `tool` 指令固定，`go tool mygo` 直接跑，不需要全局安装 | `go tool mygo version` |
 | macOS | 12 或更高，**首要目标** | 开发、构建、打包（`.app` + `.dmg`）与日常冒烟都在这台机器上 | `sw_vers` |
 | Windows 目标机 | Windows 10/11（次要） | 交叉编译即可产出 `.exe`；实机冒烟与安装器在这台机器上做；**仅当使用 Web 窗口时**需要 WebView2 Runtime（Win11 自带，Win10 需安装） | — |
 | NSIS | 可选 | 生成 Windows 安装器；在 Windows 上 `mygo build` 会自行下载，其它系统需自行安装 `makensis` | `makensis -VERSION` |

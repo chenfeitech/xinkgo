@@ -5,7 +5,7 @@
 
 ## 项目
 
-桌面软件：Go + [MyGo](https://github.com/egoist/mygo) v0.7.4。
+桌面软件：Go + [MyGo](https://github.com/egoist/mygo) v0.8.3。
 主窗口是**原生 UI**（`mygo/ui`，Go 绘制，无 webview），并预留 Web 窗口。
 
 **目标平台优先级**：P0 macOS（`darwin/arm64`、`darwin/amd64`，首要，构建/依赖/
