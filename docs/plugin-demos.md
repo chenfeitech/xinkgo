@@ -14,7 +14,8 @@
 
 **用户机器上不需要编译，Xinkgo 也不编译插件代码。** 宿主用
 `os.ReadFile` 原样读出 `main.js`，通过 `<script src="/plugin/main.js">` 在插件
-自己的隔离 WebView 页里执行；`shim.js` 提供 `require("obsidian")`，
+自己的隔离 WebView 页里执行；`shim.js` 提供 `require("xinkgo")` /
+`require("obsidian")`（同一个模块对象），
 `runtime.js` 取 `module.exports` 作为插件类并调用 `onload()`。`styles.css` 只是
 读取后去掉 `@import` 和远程 `url()`，`assets/*` 原样提供，都不做构建。
 从社区浏览器一键安装时，下载的是 release 里**已经构建好的**

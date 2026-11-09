@@ -1287,17 +1287,23 @@
     AbstractInputSuggest: AbstractInputSuggest
   };
 
+  var hostModule = new Proxy(exports, {
+    get: function (target, property) {
+      if (property in target) return target[property];
+      if (typeof property === "symbol") return undefined;
+      return stubValue("obsidian." + String(property));
+    }
+  });
   window.module = { exports: {} };
   window.exports = window.module.exports;
   window.require = function require(name) {
-    if (name === "obsidian") {
-      return new Proxy(exports, {
-        get: function (target, property) {
-          if (property in target) return target[property];
-          if (typeof property === "symbol") return undefined;
-          return stubValue("obsidian." + String(property));
-        }
-      });
+    // "obsidian" is the compatibility entry for external plugins;
+    // "xinkgo" is the native entry for our own plugins. Both names
+    // resolve to the very same module object for now, so no capability
+    // changes with the name. A narrower Xinkgo-only object belongs to a
+    // later step.
+    if (name === "obsidian" || name === "xinkgo") {
+      return hostModule;
     }
     if (granted("compat.stub")) {
       return stubValue(String(name));
@@ -1305,6 +1311,7 @@
     throw new CapabilityError("unsupported module: " + String(name));
   };
   window.obsidian = window.require("obsidian");
+  window.xinkgo = window.require("xinkgo");
 
   var shim = {
     cfg: cfg, app: app, state: state, rpc: rpc, fire: fire,

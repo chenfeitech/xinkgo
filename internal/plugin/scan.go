@@ -17,6 +17,15 @@ var deniedImports = map[string]bool{
 	"module": true, "timers": true, "vm": true, "worker_threads": true,
 }
 
+// HostModules are the module names the shim resolves to its own exports.
+// "obsidian" stays as the compatibility entry for external (L2) plugins;
+// "xinkgo" is the native entry official plugins should use. Both return
+// the same object today; a later step may give "xinkgo" a narrower API.
+var HostModules = map[string]bool{
+	"obsidian": true,
+	"xinkgo":   true,
+}
+
 var (
 	requirePattern = regexp.MustCompile(`require\(\s*["']([^"']+)["']\s*\)`)
 	dynamicRequire = regexp.MustCompile(`require\(\s*[^"')]`)
@@ -123,7 +132,7 @@ func ScanSource(mainJS []byte) ScanResult {
 	for _, match := range requirePattern.FindAllStringSubmatch(src, -1) {
 		name := match[1]
 		out.Imports = append(out.Imports, name)
-		if name == "obsidian" {
+		if HostModules[name] {
 			continue
 		}
 		if strings.HasPrefix(name, "./") || strings.HasPrefix(name, "../") {

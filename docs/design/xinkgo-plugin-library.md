@@ -20,7 +20,7 @@
 | 内置核心注册表 | `internal/plugin/core.go` | 13 项 Go 原生能力，开关写进 `plugins.json` | 是 |
 | 包发现 | `internal/app/plugin_discovery.go` | 三个目录（用户级 / `.obsidian` / `.xink`）扫 `manifest.json` + `main.js` | 兼容导向 |
 | 静态扫描 | `internal/plugin/scan.go`、`plugin.go` | 文本匹配 14 项能力、C0~C4 等级、Imports/Issues | 兼容导向 |
-| 兼容运行时 | `resources/obsidian-shim/` | `require("obsidian")`、DOM helpers、RPC 桥 | 兼容导向 |
+| 兼容运行时 | `resources/obsidian-shim/` | `require("obsidian")` / `require("xinkgo")` 双入口别名、DOM helpers、RPC 桥 | 兼容导向 |
 | 运行时桥 | `internal/app/plugin_rpc.go`、`plugin_host.go` | `/rpc` 方法表、能力授权、隔离 WebView 页 | 混合 |
 | 插件管理器 | `internal/app/plugin_settings.go` | Installed / Core / Browse 三页、Grants 勾选 | 兼容导向 |
 | 社区目录 | `internal/app/plugin_catalog.go` | 拉取 Obsidian 社区 catalog + stats | 兼容导向 |
@@ -56,8 +56,9 @@ Xinkgo 的真实功能来划。
    `Degraded` 回答的是「用了哪类 Obsidian API」，不是「能不能在 Xinkgo 完好运行」。
 2. **C3 里混了真实能力和空壳。** 同一个等级里既有 `registerView` / `ItemView`
    （真实），也有 `Modal` / `Menu` / `Setting` / `MarkdownRenderer`（no-op）。
-3. **shim 为兼容保留了大量 stub 导出。** `require("obsidian")` 的 Proxy 对未知
-   属性也返回惰性对象，作者很容易把「能调用」误当成「能力可用」。
+3. **shim 为兼容保留了大量 stub 导出。** `require("obsidian")` /
+   `require("xinkgo")` 是同一个模块对象，其 Proxy 对未知属性也返回惰性对象，
+   作者很容易把「能调用」误当成「能力可用」。换个名字并不会改变 API 面。
 4. **兼容清单把降级插件当作可推荐项，排查时的一键安装还会自动全授权。**
    128 项里 120 项降级；安装后 `vault.write` / `network` / `dom` 曾被一次性
    写入 `plugins.json`，与设计文档 §5.1 的「默认全关」口径不一致。P1 已改为
@@ -97,8 +98,10 @@ Xinkgo 的真实功能来划。
 Obsidian 的插件体系建立在 Electron + DOM workspace + CodeMirror 6 之上；
 Xinkgo 是 Go 原生 UI + 每插件一个隔离 WebView 页。参考它的包形态
 （`manifest.json` / `main.js` / `styles.css`、CommonJS、命令与生命周期）是合理的，
-但**不能以它的 API 面为目标**。`require("obsidian")` 在本体系里降级为 L2 的兼容层；
-L1 的准入以 Xinkgo 的能力契约为准，与「Obsidian 有没有这个 API」无关。
+但**不能以它的 API 面为目标**。`require("obsidian")` 保留为 L2 兼容入口，
+`require("xinkgo")` 是官方插件的原生入口；两者目前指向同一个模块对象，
+是入口别名而非原生 API。L1 的准入以 Xinkgo 的能力契约为准，与「Obsidian
+有没有这个 API」无关。
 
 ## 3 能力契约
 
@@ -244,6 +247,7 @@ L0 的 13 项内置核心由 `core.go` 管理，不重复入库。
 | 已安装页的「已验证 / 契约未通过」徽标 | `installedRow` |
 | 一键安装不再自动授权 | `installGrants` 返回空、`install` 状态提示 |
 | 新文案进 catalog | `internal/locale/{en,zh-Hans}.json` |
+| 模块入口别名（`xinkgo` / `obsidian` 同一对象） | `shim.js` 的 `require`、`internal/plugin/scan.go` 的 `HostModules`、契约的 Imports 校验 |
 
 运行时契约**只对 L1 生效**：外部 L2 插件的发现、授权、启用与 WebView 生命周期
 完全不变，用户已安装的插件不受影响。库清单缺失或不可解析只记一条 warn，不
@@ -255,13 +259,16 @@ L0 的 13 项内置核心由 `core.go` 管理，不重复入库。
 | --- | --- |
 | P0（已落地） | 设计 + 契约 + 库清单 + 离线门禁；两个 demo 收编为参考实现 |
 | P1（已落地） | app 启动时读取库清单、刷新时算契约、库内插件未过契约拒绝启用；管理器新增「官方插件库」页并在已安装页标 Verified；一键安装改为不写任何授权 |
-| P2 | 设计 Xinkgo 原生插件 SDK（`require("xinkgo")`）：以命令、ribbon、状态栏、Vault/Editor 桥、事件、插件视图、网络、数据为一等 API；`require("obsidian")` 退为 L2 兼容层 |
+| P1.5（已落地） | shim 同时接受 `require("xinkgo")`，与 `require("obsidian")` 指向同一个模块对象；扫描器与能力契约放行两个名字；两个官方 demo 迁到原生入口，L2 插件零回归 |
+| P2 | 把 `xinkgo` 收窄成 Xinkgo 原生 SDK：只导出 11 项真实能力对应的方法，不再模拟 `WorkspaceLeaf` / `Modal` / CM6；收窄后 `xinkgo` 与 `obsidian` **不再是同一个对象** |
 | P3 | 官方库扩充实际功能插件；L2 兼容插件默认折叠、显式标注「不保证完好运行」；每个新能力先有真实实现，再进白名单，最后才允许被插件使用 |
 
 P2 的 SDK 形状（暂定，不本期实现）：`xinkgo` 模块只导出白名单能力对应的
 方法，不再模拟 `WorkspaceLeaf` / `Modal` / CM6；生命周期沿用 `Plugin` /
 `onload` / `onunload`，包形态仍是单文件 CommonJS。这样「能调用的 API」与
-「Xinkgo 真实支持的能力」最终合为一套，从根上消除 stub 误用。
+「Xinkgo 真实支持的能力」最终合为一套，从根上消除 stub 误用。P1.5 已先把
+入口别名落地（零回归），但两个名字仍指向同一个兼容对象；收窄 SDK 才是决定性
+的一步，仍未实现。
 
 ## 7 明确不做
 

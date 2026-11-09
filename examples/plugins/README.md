@@ -171,8 +171,9 @@ RPC 会拒绝，插件用 `Notice` 和日志报出原因，不会让插件加载
 
 ## 写插件时的硬约束
 
-`main.js` 必须是 CommonJS：`require("obsidian")`、`module.exports = 一个继承
-obsidian.Plugin 的类`。不能有 ESM 语法、相对导入、动态模块名；`manifest.json` 的 `id`
+`main.js` 必须是 CommonJS：`require("xinkgo")`（官方插件；外部兼容插件用
+`require("obsidian")`，两者指向同一个模块对象）、`module.exports = 一个继承
+xinkgo.Plugin 的类`。不能有 ESM 语法、相对导入、动态模块名；`manifest.json` 的 `id`
 必须匹配 `^[a-z][a-z0-9-]*$` 且等于目录名，`version` / `minAppVersion` 必须是语义版本，
 `minAppVersion` 不能超过宿主的 `APIProfile`（当前 `1.0.0`）。
 

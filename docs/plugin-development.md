@@ -115,11 +115,12 @@ Xinkgo 模拟的 API profile。
 
 | 写法 | 结果 |
 | --- | --- |
-| `require("obsidian")` | 返回 shim 导出；未知名属性走惰性 Proxy |
+| `require("obsidian")` / `require("xinkgo")` | 两个名字返回**同一个** shim 模块对象（`window.obsidian === window.xinkgo`）；`obsidian` 是 L2 兼容入口，`xinkgo` 是官方插件的原生入口。未知名属性走惰性 Proxy |
 | 相对导入 / 动态模块名 | 宿主**不解析**，扫描记 `relativeImport` / `dynamicRequire` |
 | 其他模块名（含 `fs`、`path`、`electron`、`@codemirror/*`） | 扫描记 `stubImport` / `unknownImport`；运行时要么抛 `XinkgoCapabilityError`，要么返回惰性 Proxy。**不要写进插件** |
 
-结论：**所有代码都要打进 `main.js`，只把 `obsidian` 留在 external**。这与
+结论：**所有代码都要打进 `main.js`，只把 `xinkgo`（官方插件）或 `obsidian`
+（L2 兼容插件）留在 external**。这与
 Obsidian 官方样例不同（它还会把 `electron`、`@codemirror/*` 和 Node
 builtinModules 标为 external，因为 Electron 能解析）。一个合适的 esbuild 配置：
 
@@ -134,9 +135,15 @@ await esbuild.build({
   platform: "browser",
   target: "es2021",
   outfile: "main.js",
-  external: ["obsidian"], // 只留这一个
+  external: ["xinkgo"], // 官方插件；L2 兼容插件换成 "obsidian"
 });
 ```
+
+两个名字目前是**别名**：能力面完全相同（包括那些 no-op 导出），运行时不
+区分 L1/L2。`internal/plugin/scan.go` 的 `HostModules` 同时放行两个名字，
+静态扫描与能力契约都不会把 `require("xinkgo")` 当成外部模块；
+`TestDemoPlugins_useTheNativeModule` 保证官方 demo 不用回退到兼容入口。
+P2 会把 `xinkgo` 收窄成只含真实能力的原生对象，那时两者不再是同一个对象。
 
 静态扫描的硬停止只有两类（见
 [internal/plugin/scan.go](../internal/plugin/scan.go)）：ESM 语法
@@ -154,13 +161,13 @@ manifest 非法会判 C0 不支持，`minAppVersion` 过新则是 `Supported=fal
 [basic/main.js](../examples/plugins/xinkgo-demo-basic/main.js) 全部只有三件套：
 
 ```js
-var obsidian = require("obsidian");
+var xinkgo = require("xinkgo");
 
 var DemoBasic = (function () {
   function DemoBasic(app, manifest) {
-    obsidian.Plugin.call(this, app, manifest);
+    xinkgo.Plugin.call(this, app, manifest);
   }
-  DemoBasic.prototype = Object.create(obsidian.Plugin.prototype);
+  DemoBasic.prototype = Object.create(xinkgo.Plugin.prototype);
   DemoBasic.prototype.constructor = DemoBasic;
   // ...
   return DemoBasic;
@@ -252,9 +259,9 @@ module.exports = DemoBasic;
 [demo_plugins_test.go](../internal/plugin/demo_plugins_test.go) 固定：
 
 - basic 命中 7 项能力、全是 C1/C2 规则 → `C2` / `Supported=true` /
-  `Degraded=false`，`Imports` 只有 `obsidian`。
+  `Degraded=false`，`Imports` 只有 `xinkgo`。
 - full 命中 11 项受支持能力，其中 `registerView` 把等级抬到 `LevelDOM` →
-  `C3` / `Supported=true` / `Degraded=true`，`Imports` 仍只有 `obsidian`，
+  `C3` / `Supported=true` / `Degraded=true`，`Imports` 仍只有 `xinkgo`，
   没有 `stubImport` issue。
 
 **授权时机是最常见的坑**。ribbon、状态栏和视图都在 `onload()` 里通过

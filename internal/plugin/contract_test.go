@@ -36,6 +36,44 @@ func TestValidateContract_acceptsBothDemos(t *testing.T) {
 	}
 }
 
+func TestValidateContract_acceptsBothHostModules(t *testing.T) {
+	for _, name := range []string{"obsidian", "xinkgo"} {
+		r := Report{
+			ID: "native", Supported: true, Level: LevelCore,
+			Capabilities: []Capability{CapabilityCommands},
+			Imports:      []string{name},
+			Issues:       []Issue{{Code: "shimAPI", Arg: "addCommand"}},
+		}
+		src := []byte(`var x=require("` + name +
+			`");module.exports=class extends x.Plugin{}`)
+		got := ValidateContract(r, src)
+		if !got.OK {
+			t.Errorf("%s failed: %+v", name, got.Violations)
+		}
+		if got.HasViolation("externalImport") {
+			t.Errorf("%s was treated as an external import", name)
+		}
+	}
+	// A package may use both names; neither is an external import.
+	r := Report{ID: "both", Supported: true, Level: LevelCore,
+		Imports: []string{"obsidian", "xinkgo"}}
+	if got := ValidateContract(r, []byte("module.exports=function(){}")); !got.OK {
+		t.Errorf("both host modules together failed: %+v", got.Violations)
+	}
+}
+
+func TestValidateContract_stillRejectsUnknownModules(t *testing.T) {
+	r := Report{ID: "other", Supported: true, Level: LevelCore,
+		Imports: []string{"obsidian", "left-pad"},
+		Issues:  []Issue{{Code: "unknownImport", Arg: "left-pad"}}}
+	got := ValidateContract(r,
+		[]byte("module.exports=function(){}"))
+	if !got.HasViolation("externalImport") ||
+		!got.HasViolation("scanIssue:unknownImport") {
+		t.Errorf("an unknown module slipped through: %+v", got.Violations)
+	}
+}
+
 // A C2, non-degraded report can still be broken: this mirrors the locally
 // installed obsidian-sort-and-permute-lines, whose metadata cache is {}.
 func TestValidateContract_rejectsEmptyMetadataAtC2(t *testing.T) {

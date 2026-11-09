@@ -45,3 +45,27 @@ func TestShim_requestUrlBranchesAreHandled(t *testing.T) {
 		t.Error("requestUrl branches have no rejection handler")
 	}
 }
+
+// TestShim_exposesBothModuleNames guards the alias: official plugins use
+// require("xinkgo") while external ones keep require("obsidian"), and both
+// resolve to the same exports object.
+func TestShim_exposesBothModuleNames(t *testing.T) {
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("runtime.Caller could not locate this test file")
+	}
+	data, err := os.ReadFile(filepath.Join(filepath.Dir(file), "..", "..",
+		"resources", "obsidian-shim", "shim.js"))
+	if err != nil {
+		t.Fatalf("shim.js: %v", err)
+	}
+	src := string(data)
+	if !strings.Contains(src,
+		`name === "obsidian" || name === "xinkgo"`) {
+		t.Error("require does not accept both host module names")
+	}
+	if !strings.Contains(src,
+		`window.xinkgo = window.require("xinkgo")`) {
+		t.Error("window.xinkgo is not exposed")
+	}
+}

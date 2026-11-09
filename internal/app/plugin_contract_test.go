@@ -66,7 +66,8 @@ func TestScanContracts_marksAStubPlugin(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	write("good-plugin", `"use strict";var o=require("obsidian");`+
+	// The native module name must pass the runtime scan too.
+	write("good-plugin", `"use strict";var o=require("xinkgo");`+
 		`module.exports=class extends o.Plugin{onload(){`+
 		`this.addCommand({id:"x",name:"X",callback:()=>new o.Notice("hi")})}}`)
 	write("stub-plugin", `"use strict";var o=require("obsidian");`+
