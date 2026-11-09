@@ -5,8 +5,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/config"
 	"github.com/helightxu/xinkgo/internal/index"
+	"github.com/helightxu/xinkgo/internal/locale"
 	"github.com/helightxu/xinkgo/internal/state"
 	"github.com/helightxu/xinkgo/internal/view"
 )
@@ -116,5 +118,53 @@ func TestSwitchVault_whatIsOpenIsWrittenOneListToAVault(t *testing.T) {
 			continue
 		}
 		pathsOf(t, on.Paths, b1)
+	}
+}
+
+// TestSwitchVault_theTreeMenuSwitchesBackAndForth checks the way the tree
+// offers from one vault to another: after a vault is opened, the tree is
+// told it is the open one, so choosing the first vault again is not taken
+// for a press on the one that is already open.
+func TestSwitchVault_theTreeMenuSwitchesBackAndForth(t *testing.T) {
+	s, one, two := appOfTwoVaults(t)
+	first := s.vaults.Vaults[0]
+	second := s.vaults.Add(two)
+	s.syncVaults()
+	s.ws.Tree.OnSwitchVault = s.switchToVault
+	te := ui.NewTester(s.ws.Tree.View, 260, 600)
+	te.Frame()
+	choose := func(name string) {
+		t.Helper()
+		if err := te.Click(locale.TreeSwitchVault()); err != nil {
+			t.Fatalf("Click %q: %v", locale.TreeSwitchVault(), err)
+		}
+		te.Frame()
+		if err := te.ChooseMenuItem(name); err != nil {
+			t.Fatalf("ChooseMenuItem %q: %v", name, err)
+		}
+		te.Frame()
+	}
+	treeActive := func() string {
+		t.Helper()
+		if s.ws.Tree.Vaults.Active == nil {
+			return ""
+		}
+		return *s.ws.Tree.Vaults.Active
+	}
+
+	choose(second.Name)
+	if s.root != two {
+		t.Errorf("the vault open is %q, want %q", s.root, two)
+	}
+	if got := treeActive(); got != second.ID {
+		t.Errorf("the tree says %q is open, want %q", got, second.ID)
+	}
+
+	choose(first.Name)
+	if s.root != one {
+		t.Errorf("the vault open is %q, want the first one, %q", s.root, one)
+	}
+	if got := treeActive(); got != first.ID {
+		t.Errorf("the tree says %q is open, want %q", got, first.ID)
 	}
 }
