@@ -109,7 +109,8 @@ cp -R examples/plugins/xinkgo-demo-full "$PLUGINS/"
 2. 主窗口左侧插件 ribbon 出现图标（需要 `ui`）。
 3. 状态栏出现 `Demo Basic: N runs` / `Demo Full: N runs`。
 4. **Installed** 页里插件状态是 enabled，等级显示 C2 / C3。
-5. 日志里出现 `msg="plugin console"` 且带 `id=<插件 id>` 的行。
+5. 日志里出现 `msg="plugin console"` 且带 `id=<插件 id>` 的行：两个 demo 在
+   加载和执行命令时都会写日志。
 6. 设置 ▸ **Community plugins** ▸ **Official library** 里，两个 demo 都在清单中；
    已安装的库内插件在 **Installed** 页带 `Verified` 徽标。
 
@@ -117,7 +118,8 @@ cp -R examples/plugins/xinkgo-demo-full "$PLUGINS/"
 
 ## Basic：逐条试
 
-每条命令都会弹一条 Notice，并让状态栏计数 +1（计数存进 `data.json`）。
+每条命令都会弹一条 Notice、让状态栏计数 +1（计数存进 `data.json`），并在日志里
+留一行 `Xinkgo Demo: Basic | notice | <内容>`。
 
 | 命令 | 预期 |
 | --- | --- |

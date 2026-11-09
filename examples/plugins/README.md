@@ -83,7 +83,8 @@ RPC 会拒绝，插件用 `Notice` 和日志报出原因，不会让插件加载
 | Describe the selection | `editorCheckCallback`（无选区时命令自动隐藏）、`getSelection` |
 
 左侧 ribbon 有一个 Say hello 图标，状态栏显示运行次数，另外监听 `file-open` 事件。
-它不碰插件 DOM，所以扫描只会命中 C1/C2 的规则，报告为非降级。
+每条命令都会同时弹 `Notice` 和写一行 `console.log`（经桥转成宿主日志），便于从终端
+或 `xinkgo.log` 观察。它不碰插件 DOM，所以扫描只会命中 C1/C2 的规则，报告为非降级。
 
 ## xinkgo-demo-full
 

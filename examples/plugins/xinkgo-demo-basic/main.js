@@ -9,9 +9,18 @@
 //
 // This demo deliberately stays on C1/C2: core API plus the native Vault /
 // Editor / ribbon adapters. It never touches the plugin's own DOM surface,
-// so the compatibility report is not degraded.
+// so the compatibility report is not degraded. Every command writes a line
+// to the host log as well as showing a Notice, so the plugin is observable
+// from the terminal or xinkgo.log without opening a window.
 
 var obsidian = require("obsidian");
+
+var PREFIX = "Xinkgo Demo: Basic";
+
+// console.log is bridged to the host as a "plugin console" log line.
+function log(what, detail) {
+  console.log(PREFIX + " | " + what + " | " + String(detail || ""));
+}
 
 function activeEditor(app) {
   var view = app.workspace.getActiveViewOfType(obsidian.MarkdownView);
@@ -86,24 +95,27 @@ var DemoBasic = (function () {
         }
       });
 
-      // One ribbon icon on the left strip, and a workspace event.
+      // One ribbon icon on the left strip, and a workspace event. Host
+      // events carry no file object, so read the active note when needed.
       self.addRibbonIcon("calendar-days", "Demo Basic: Say hello",
         function () {
           self.say("Hello from the ribbon");
         });
       self.registerEvent(self.app.workspace.on("file-open",
-        function (path) {
-          console.log("Demo Basic saw file-open: " + String(path || ""));
+        function () {
+          var active = self.app.workspace.getActiveFile();
+          log("file-open", active ? active.path : "(no active note)");
         }));
 
       new obsidian.Notice("Xinkgo Demo: Basic loaded", 3000);
+      log("onload", "loaded; " + self.state.runs + " runs so far");
     }).catch(function (err) {
       console.error("Demo Basic onload", err);
     });
   };
 
   DemoBasic.prototype.onunload = function () {
-    console.log("Xinkgo Demo: Basic unloaded");
+    log("onunload", "cleaned up");
   };
 
   DemoBasic.prototype.refreshStatus = function () {
@@ -114,12 +126,15 @@ var DemoBasic = (function () {
 
   DemoBasic.prototype.record = function () {
     this.state.runs += 1;
-    this.saveData(this.state);
+    this.saveData(this.state).catch(function (err) {
+      console.error("Demo Basic saveData", err);
+    });
     this.refreshStatus();
   };
 
   DemoBasic.prototype.say = function (text) {
     this.record();
+    log("notice", text);
     new obsidian.Notice(text + " (run #" + this.state.runs + ")", 4000);
   };
 
@@ -133,6 +148,7 @@ var DemoBasic = (function () {
     this.app.vault.read(file).then(function (text) {
       self.say(file.path + ": " + String(text).length + " characters");
     }).catch(function (err) {
+      log("vault.read", "failed: " + String(err));
       new obsidian.Notice("vault.read failed: " + String(err));
     });
   };

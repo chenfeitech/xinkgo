@@ -178,6 +178,11 @@ module.exports = DemoBasic;
 5. `this.registerEvent(this.app.workspace.on("file-open", cb))`，卸载时自动解绑。
 6. `new obsidian.Notice(...)` 给一条加载提示。
 
+两个 demo 都用一个 `log(what, detail)` helper 把 `console.log` 转成宿主日志：
+加载时写一行、每条命令写一行。shim 会把 `console.log` / `console.error` 桥接成
+`msg="plugin console"` 的日志行（带 `id` 与 `text`），所以插件不必开窗口也能被
+观察。写自己的插件时建议照抄这个小 helper。
+
 命令有四种回调形态，宿主在 `command.add` 和状态刷新时都会用 `checking=true`
 问一次可见性，所以 **checking 分支不能有副作用**：
 
