@@ -277,6 +277,7 @@ func boot(app *mygo.Application) (*appState, error) {
 	ws.Tree.OnRename = st.renameItem
 	ws.Tree.OnDelete = st.deleteItem
 	ws.Tree.OnMove = st.moveItem
+	ws.Tree.OnMoveTo = st.moveItemTo
 	ws.Tree.OnImport = st.importFiles
 	ws.Tree.OnRefresh = st.rescan
 	// The settings are asked for from the foot of the tree as well: it

@@ -139,8 +139,7 @@ func (s *appState) renameChosen() {
 		s.ws.Say(locale.SayNothingChosen())
 		return
 	}
-	s.ws.Tree.Renaming = path
-	s.ws.Tree.Name = view.PathOf(path)
+	s.ws.Tree.BeginRename(path, view.PathOf(path))
 }
 
 // deleteChosen takes the file the user has their eye on away.

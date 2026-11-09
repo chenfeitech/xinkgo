@@ -54,11 +54,35 @@ func (t *Tree) line(c *ui.Context, r row) {
 	th := c.Theme()
 	chosen := t.Selected == e.Path
 	open := t.Open[e.Path]
+	renaming := t.Renaming == e.Path
 	line := ui.ButtonBase(c.Key(e.Path)).Label(e.Name).
 		FillWidth().Height(treeRowHeight).Radius(th.Radius).
 		ContextMenu(func(m *ui.Menu) { t.menu(m, e) })
+
+	// A row is both a file that can be dragged into another folder and a
+	// place such a file can be dropped, when the app can move files.
+	dropHighlight, dragging := false, false
+	if t.OnMoveTo != nil {
+		if d, ok := ui.DragOver[dragged](line); ok {
+			dropHighlight = t.canMoveTo(d.path, dirOfEntry(e))
+		}
+		if d, ok := ui.Drop[dragged](line); ok {
+			t.moveDropped(d.path, dirOfEntry(e))
+		}
+		if !renaming {
+			line = line.Drag(dragged{e.Path})
+			dragging = line.Dragging()
+		}
+	}
+	if dragging {
+		line.Opacity(0.4)
+	}
+
 	line.Draw(func(p *ui.Painter, box ui.Rect) {
 		switch {
+		case dropHighlight:
+			p.Fill(box, th.Accent.Alpha(0.22), th.Radius)
+			p.Stroke(box, th.Accent, th.Radius, 1)
 		case chosen:
 			p.Fill(box, th.Accent.Alpha(0.18), th.Radius)
 		case line.Hovered():
@@ -70,7 +94,7 @@ func (t *Tree) line(c *ui.Context, r row) {
 			AlignItems(ui.Center).
 			PaddingStart(treePad + float32(r.Depth)*treeIndent).
 			PaddingEnd(treePad).Children(func() {
-			if t.Renaming == e.Path {
+			if renaming {
 				t.renameField(c, e)
 				return
 			}
@@ -93,6 +117,13 @@ func (t *Tree) line(c *ui.Context, r row) {
 			}
 		})
 	})
+	if renaming {
+		return // the name field takes the row's input while it is shown
+	}
+	if line.DoubleClicked() {
+		t.startRename(e)
+		return
+	}
 	if line.Clicked() {
 		t.choose(e)
 	}
@@ -123,8 +154,7 @@ func (t *Tree) menu(m *ui.Menu, e *vault.Entry) {
 	}
 	m.Separator()
 	if m.Item(locale.TreeRename()).Chosen() {
-		t.Renaming = e.Path
-		t.Name = e.Name
+		t.startRename(e)
 	}
 	if m.Item(locale.TreeMoveTo()).Chosen() && t.OnMove != nil {
 		t.OnMove(e.Path)
@@ -151,6 +181,17 @@ func (t *Tree) in(e *vault.Entry, fn func(dir string)) {
 // Escape leaves the file as it was.
 func (t *Tree) renameField(c *ui.Context, e *vault.Entry) {
 	field := ui.TextInput(c.Key(e.Path+"#name"), &t.Name).Grow(1)
+	if t.focusRename {
+		field.Focus()
+		// Choose the name before its extension, as a file explorer does,
+		// so that typing a new name keeps the ".md" and the like.
+		end := len([]rune(t.Name))
+		if dot := strings.LastIndexByte(t.Name, '.'); dot > 0 {
+			end = len([]rune(t.Name[:dot]))
+		}
+		field.SetTextSelection(0, end)
+		t.focusRename = false
+	}
 	if field.Submitted() {
 		t.commitRename(e.Path)
 		return
@@ -165,6 +206,7 @@ func (t *Tree) renameField(c *ui.Context, e *vault.Entry) {
 func (t *Tree) commitRename(path string) {
 	name := strings.TrimSpace(t.Name)
 	t.Renaming = ""
+	t.focusRename = false
 	if name == "" {
 		return
 	}
@@ -174,6 +216,25 @@ func (t *Tree) commitRename(path string) {
 	if t.OnRename != nil {
 		t.OnRename(path, name)
 	}
+}
+
+// BeginRename starts asking for a new name for path and gives the field
+// the keyboard focus, so a name can be typed at once. The app's F2
+// shortcut and the tree's own gestures both come here.
+func (t *Tree) BeginRename(path, name string) {
+	// A rename under way on another file is kept, as clicking away is.
+	if t.Renaming != "" && t.Renaming != path {
+		t.commitRename(t.Renaming)
+	}
+	t.Renaming = path
+	t.Name = name
+	t.focusRename = true
+}
+
+// startRename is the tree's own way to rename the row it drew.
+func (t *Tree) startRename(e *vault.Entry) {
+	t.Selected = e.Path
+	t.BeginRename(e.Path, e.Name)
 }
 
 // takeDrop is a file dragged into the tree from another app: it is

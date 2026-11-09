@@ -37,6 +37,9 @@ type Tree struct {
 	OnDelete func(path string)
 	// OnMove asks the app to move the file at path to another folder.
 	OnMove func(path string)
+	// OnMoveTo asks the app to move the file at path into dir at once,
+	// as when it is dragged onto a folder in the tree.
+	OnMoveTo func(path, dir string)
 	// OnImport brings files from outside the vault into dir.
 	OnImport func(dir string, paths []string)
 	// OnRefresh reads the vault's folder again, when the user asks.
@@ -60,6 +63,9 @@ type Tree struct {
 	// name the user has typed so far.
 	Renaming string
 	Name     string
+	// focusRename is whether the rename field is to take the keyboard
+	// focus as it appears, so a new name can be typed at once.
+	focusRename bool
 
 	// revealPath is the file the tree is to bring into view when next it
 	// draws. What was asked for while the tree was not being drawn at
@@ -197,7 +203,10 @@ func (t *Tree) View(c *ui.Context) {
 	rows := t.Rows()
 	t.bringIntoView(rows)
 	tree := ui.Column(c).Fill()
-	defer func() { t.takeDrop(tree) }()
+	defer func() {
+		t.takeDrop(tree)         // files dragged in from another app
+		t.takeInternalDrop(tree) // a file of the vault, onto its own ground
+	}()
 	tree.Children(func() {
 		t.header(c)
 		ui.List(c, &t.list, len(rows), func(i int) {

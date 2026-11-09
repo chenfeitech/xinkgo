@@ -49,6 +49,10 @@ func (t *Tree) find(path string) *vault.Entry {
 // choose is what a click does: a directory opens or closes, a file is
 // chosen and opened.
 func (t *Tree) choose(e *vault.Entry) {
+	// A rename under way on another file is kept, as clicking away is.
+	if t.Renaming != "" && t.Renaming != e.Path {
+		t.commitRename(t.Renaming)
+	}
 	if e.IsDir {
 		t.Toggle(e.Path)
 		return
