@@ -37,8 +37,11 @@ Windows 用 `%AppData%\Xinkgo\plugins\`。也可以放进库内的
 | Insert today's date at the caret | 用 `replaceSelection` 插入日期 |
 | Describe the selection | 显示选区；无选区时命令自动隐藏 |
 
-左侧插件 ribbon 的图标等价于第一条命令。每条命令都会弹 Notice，
-计数写进用户数据目录的 `plugins/xinkgo-demo-basic/data.json`。
+左侧插件 ribbon 的图标等价于第一条命令。每条命令都会弹 Notice，并写一行日志
+（`Xinkgo Demo: Basic | notice | ...`）；计数写进用户数据目录的
+`plugins/xinkgo-demo-basic/data.json`。启用时另有一行 `onload` 日志，切换笔记时
+`file-open` 事件也记一行。`Describe the selection` 需要选区，无选区时命令隐藏，
+自然也不会产生日志。
 
 ## 完整文档
 

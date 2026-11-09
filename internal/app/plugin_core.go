@@ -16,7 +16,13 @@ import (
 // the window opens and in unit tests, which must not wait on the MyGo main
 // loop. Every change to what the window draws goes through here.
 func (h *pluginHost) setWorkspace(fn func(ws *view.Workspace)) {
-	if h.st == nil || h.st.ws == nil || !mygo.App.IsReady() {
+	if h.st == nil || h.st.ws == nil {
+		return
+	}
+	// In a unit test there is no MyGo main loop to wait on. Apply the
+	// change directly so the RPC branches can be exercised without one.
+	if !mygo.App.IsReady() {
+		fn(h.st.ws)
 		return
 	}
 	mygo.RunOnMain(func() {

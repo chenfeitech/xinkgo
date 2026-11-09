@@ -118,7 +118,7 @@ func ValidateContract(r Report, mainJS []byte) ContractResult {
 		}
 	}
 	for _, name := range r.Imports {
-		if name != "obsidian" {
+		if !HostModules[name] {
 			add("externalImport", name)
 		}
 	}

@@ -76,6 +76,35 @@ module.exports=class extends o.Plugin{async onload(){this.addCommand({id:"x",nam
 	}
 }
 
+// Both host module names must stay first-class: an official plugin using
+// require("xinkgo") must not be mistaken for an unknown import, which would
+// raise it to C4 and make the runtime contract refuse to enable it.
+func TestScanSource_acceptsBothHostModules(t *testing.T) {
+	for _, name := range []string{"obsidian", "xinkgo"} {
+		src := []byte(`"use strict";var x=require("` + name +
+			`");module.exports=class extends x.Plugin{onload(){` +
+			`this.addCommand({id:"x",name:"X"})}}`)
+		r := ScanSource(src)
+		if !r.Supported || r.Level != LevelCore {
+			t.Errorf("%s: supported=%v level=%s issues=%+v", name,
+				r.Supported, r.Level.Code(), r.Issues)
+		}
+		if len(r.Imports) != 1 || r.Imports[0] != name {
+			t.Errorf("%s: imports = %v", name, r.Imports)
+		}
+		for _, one := range r.Issues {
+			if one.Code == "unknownImport" ||
+				one.Code == "stubImport" {
+				t.Errorf("%s: unexpected import issue %+v", name, one)
+			}
+		}
+		if containsCapability(r.Capabilities,
+			CapabilityCompatStub) {
+			t.Errorf("%s: compat.stub was added", name)
+		}
+	}
+}
+
 func TestScanSource_degradesNodeCM6AndDOM(t *testing.T) {
 	cases := map[string]string{
 		"node":    `var fs=require("fs");module.exports=class extends require("obsidian").Plugin{}`,

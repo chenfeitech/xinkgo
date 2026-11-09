@@ -82,8 +82,10 @@ RPC 会拒绝，插件用 `Notice` 和日志报出原因，不会让插件加载
 | Insert today's date at the caret | `editorCallback`、`replaceSelection` |
 | Describe the selection | `editorCheckCallback`（无选区时命令自动隐藏）、`getSelection` |
 
-左侧 ribbon 有一个 Say hello 图标，状态栏显示运行次数，另外监听 `file-open` 事件。
-它不碰插件 DOM，所以扫描只会命中 C1/C2 的规则，报告为非降级。
+左侧 ribbon 有一个 Say hello 图标，状态栏里的独立项显示运行次数，另外监听
+`file-open` 事件。
+每条命令都会同时弹 `Notice` 和写一行 `console.log`（经桥转成宿主日志），便于从终端
+或 `xinkgo.log` 观察。它不碰插件 DOM，所以扫描只会命中 C1/C2 的规则，报告为非降级。
 
 ## xinkgo-demo-full
 
@@ -170,8 +172,9 @@ RPC 会拒绝，插件用 `Notice` 和日志报出原因，不会让插件加载
 
 ## 写插件时的硬约束
 
-`main.js` 必须是 CommonJS：`require("obsidian")`、`module.exports = 一个继承
-obsidian.Plugin 的类`。不能有 ESM 语法、相对导入、动态模块名；`manifest.json` 的 `id`
+`main.js` 必须是 CommonJS：`require("xinkgo")`（官方插件；外部兼容插件用
+`require("obsidian")`，两者指向同一个模块对象）、`module.exports = 一个继承
+xinkgo.Plugin 的类`。不能有 ESM 语法、相对导入、动态模块名；`manifest.json` 的 `id`
 必须匹配 `^[a-z][a-z0-9-]*$` 且等于目录名，`version` / `minAppVersion` 必须是语义版本，
 `minAppVersion` 不能超过宿主的 `APIProfile`（当前 `1.0.0`）。
 

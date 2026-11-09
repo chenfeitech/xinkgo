@@ -1105,6 +1105,7 @@
       "count": { "type": "String" }
     }
   },
+  "statusBarIdle": "Ready",
   "pluginViewPick": "Pick a plugin view above to show it here.",
   "pluginShowDegraded": "Show degraded plugins",
   "pluginDegradedNote": "These plugins load through a compatibility host. Their own views run in a separate WebView page; CodeMirror and other Obsidian-only features are not available.",

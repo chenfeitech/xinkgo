@@ -151,21 +151,34 @@ func (h *pluginHost) handleRPC(inst *pluginInstance, method string,
 		slog.Info("plugin console", "id", inst.id, "level", p.Level,
 			"text", p.Text)
 		return nil, nil
-	case "notice", "status.set":
-		if method == "status.set" &&
-			!h.granted(inst, string(plugin.CapabilityUI)) {
-			return nil, errors.New("ui is not granted")
-		}
+	case "notice":
 		var p pluginTextParam
 		if err := decodePluginParams(raw, &p); err != nil {
 			return nil, err
 		}
 		h.st.say(p.Text)
 		return nil, nil
+	case "status.set":
+		if !h.granted(inst, string(plugin.CapabilityUI)) {
+			return nil, errors.New("ui is not granted")
+		}
+		var p pluginTextParam
+		if err := decodePluginParams(raw, &p); err != nil {
+			return nil, err
+		}
+		// A plugin's status text lives in its own item, so a Notice or
+		// another plugin can no longer overwrite it.
+		h.setWorkspace(func(ws *view.Workspace) {
+			ws.SetPluginStatus(inst.id, p.Text)
+		})
+		return nil, nil
 	case "status.add":
 		if !h.granted(inst, string(plugin.CapabilityUI)) {
 			return nil, errors.New("ui is not granted")
 		}
+		h.setWorkspace(func(ws *view.Workspace) {
+			ws.AddPluginStatus(inst.id)
+		})
 		return nil, nil
 	case "data.load":
 		return h.pluginData(inst)

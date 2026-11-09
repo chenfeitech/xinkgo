@@ -144,8 +144,8 @@ func TestDemoPlugins_basicStaysOnNativeAdapters(t *testing.T) {
 		t.Errorf("basic capabilities = %v, want exactly the C1/C2 set",
 			r.Capabilities)
 	}
-	if len(r.Imports) != 1 || r.Imports[0] != "obsidian" {
-		t.Errorf("basic imports = %v, want only obsidian", r.Imports)
+	if len(r.Imports) != 1 || r.Imports[0] != "xinkgo" {
+		t.Errorf("basic imports = %v, want only xinkgo", r.Imports)
 	}
 }
 
@@ -174,8 +174,26 @@ func TestDemoPlugins_fullCoversEverySupportedCapability(t *testing.T) {
 	if demoHasIssue(r, "stubImport") {
 		t.Errorf("full pulls in an external module: %+v", r.Issues)
 	}
-	if len(r.Imports) != 1 || r.Imports[0] != "obsidian" {
-		t.Errorf("full imports = %v, want only obsidian", r.Imports)
+	if len(r.Imports) != 1 || r.Imports[0] != "xinkgo" {
+		t.Errorf("full imports = %v, want only xinkgo", r.Imports)
+	}
+}
+
+// Our own plugins use the native module name; the compatibility entry is
+// reserved for external Obsidian plugins.
+func TestDemoPlugins_useTheNativeModule(t *testing.T) {
+	root := demoPluginsDir(t)
+	for _, id := range []string{
+		"xinkgo-demo-basic", "xinkgo-demo-full",
+	} {
+		pkg := loadDemoPackage(t, root, id)
+		src := string(pkg.mainJS)
+		if !strings.Contains(src, `require("xinkgo")`) {
+			t.Errorf("%s does not use the native module", id)
+		}
+		if strings.Contains(src, `require("obsidian")`) {
+			t.Errorf("%s still uses the compatibility entry", id)
+		}
 	}
 }
 

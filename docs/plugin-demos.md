@@ -14,7 +14,8 @@
 
 **用户机器上不需要编译，Xinkgo 也不编译插件代码。** 宿主用
 `os.ReadFile` 原样读出 `main.js`，通过 `<script src="/plugin/main.js">` 在插件
-自己的隔离 WebView 页里执行；`shim.js` 提供 `require("obsidian")`，
+自己的隔离 WebView 页里执行；`shim.js` 提供 `require("xinkgo")` /
+`require("obsidian")`（同一个模块对象），
 `runtime.js` 取 `module.exports` 作为插件类并调用 `onload()`。`styles.css` 只是
 读取后去掉 `@import` 和远程 `url()`，`assets/*` 原样提供，都不做构建。
 从社区浏览器一键安装时，下载的是 release 里**已经构建好的**
@@ -107,9 +108,11 @@ cp -R examples/plugins/xinkgo-demo-full "$PLUGINS/"
 1. 命令面板（`Cmd/Ctrl+P`）里出现带 `Xinkgo Demo: Basic:` 或
    `Xinkgo Demo: Full:` 前缀的命令。
 2. 主窗口左侧插件 ribbon 出现图标（需要 `ui`）。
-3. 状态栏出现 `Demo Basic: N runs` / `Demo Full: N runs`。
+3. 状态栏出现 `Demo Basic: N runs` / `Demo Full: N runs`：这是各插件自己的
+   独立状态项，常驻显示，不会被 `Notice` 或别的插件覆盖。
 4. **Installed** 页里插件状态是 enabled，等级显示 C2 / C3。
-5. 日志里出现 `msg="plugin console"` 且带 `id=<插件 id>` 的行。
+5. 日志里出现 `msg="plugin console"` 且带 `id=<插件 id>` 的行：两个 demo 在
+   加载和执行命令时都会写日志。
 6. 设置 ▸ **Community plugins** ▸ **Official library** 里，两个 demo 都在清单中；
    已安装的库内插件在 **Installed** 页带 `Verified` 徽标。
 
@@ -117,7 +120,8 @@ cp -R examples/plugins/xinkgo-demo-full "$PLUGINS/"
 
 ## Basic：逐条试
 
-每条命令都会弹一条 Notice，并让状态栏计数 +1（计数存进 `data.json`）。
+每条命令都会弹一条 Notice、让状态栏计数 +1（计数存进 `data.json`），并在日志里
+留一行 `Xinkgo Demo: Basic | notice | <内容>`。
 
 | 命令 | 预期 |
 | --- | --- |
@@ -195,6 +199,7 @@ level=INFO msg="plugin console" id=xinkgo-demo-full level=INFO text="Xinkgo Demo
 | 插件状态 failed | 看日志里的 `error` 行，常见是 `onload()` 抛了未捕获异常 |
 | 状态栏计数一直是 0 | `saveData` 需要 `data`（启用即有）；检查日志里有没有 RPC 拒绝 |
 | 一键安装后 ribbon / 视图没出现 | 安装不再自动授权；勾完 Grants 后点 **Reload** |
+| 底部状态栏整条不见了 | 状态栏现在常驻；若仍不出现，检查设置 ▸ Core integrated plugins 里的 Status bar 开关 |
 
 ## 边界
 

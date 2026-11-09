@@ -3,7 +3,7 @@
 // Xinkgo plugin demo: every capability the host fully supports.
 //
 // Shape the host expects: a CommonJS bundle, one class extending
-// obsidian.Plugin, and module.exports = that class. No ESM syntax, no
+// xinkgo.Plugin, and module.exports = that class. No ESM syntax, no
 // relative modules, no dynamic module names.
 //
 // This bundle only calls APIs with a real Xinkgo implementation: native
@@ -16,7 +16,7 @@
 // feature. That surface is real: the host lists the view in the plugin view
 // drawer, builds the ItemView and mounts containerEl in this page.
 
-var obsidian = require("obsidian");
+var xinkgo = require("xinkgo");
 
 var PREFIX = "Xinkgo Demo: Full";
 
@@ -25,17 +25,17 @@ function log(what, detail) {
 }
 
 function say(text) {
-  new obsidian.Notice(text, 4000);
+  new xinkgo.Notice(text, 4000);
 }
 
 function fail(what, err) {
   var text = String((err && err.message) || err || "unknown error");
   console.error(PREFIX + " " + what + " failed: " + text);
-  new obsidian.Notice(what + " failed: " + text, 6000);
+  new xinkgo.Notice(what + " failed: " + text, 6000);
 }
 
 function activeEditor(app) {
-  var view = app.workspace.getActiveViewOfType(obsidian.MarkdownView);
+  var view = app.workspace.getActiveViewOfType(xinkgo.MarkdownView);
   return view ? view.editor : null;
 }
 
@@ -45,12 +45,12 @@ function activeEditor(app) {
 // This is a real Xinkgo surface, not a stand-in.
 // ---------------------------------------------------------------------------
 function DemoView(leaf, plugin) {
-  obsidian.ItemView.call(this, leaf);
+  xinkgo.ItemView.call(this, leaf);
   this.plugin = plugin;
   this.icon = "layers";
   this.ticks = 0;
 }
-DemoView.prototype = Object.create(obsidian.ItemView.prototype);
+DemoView.prototype = Object.create(xinkgo.ItemView.prototype);
 DemoView.prototype.constructor = DemoView;
 DemoView.prototype.getViewType = function () { return "demo-full-view"; };
 DemoView.prototype.getDisplayText = function () { return "Xinkgo Demo: Full view"; };
@@ -92,12 +92,12 @@ DemoView.prototype.onResize = function () {
 // The plugin itself.
 // ---------------------------------------------------------------------------
 function DemoFull(app, manifest) {
-  obsidian.Plugin.call(this, app, manifest);
+  xinkgo.Plugin.call(this, app, manifest);
   this.state = { runs: 0, lastPath: "" };
   this.status = null;
   this.temporaryCommand = false;
 }
-DemoFull.prototype = Object.create(obsidian.Plugin.prototype);
+DemoFull.prototype = Object.create(xinkgo.Plugin.prototype);
 DemoFull.prototype.constructor = DemoFull;
 
 DemoFull.prototype.onload = function () {
@@ -120,7 +120,7 @@ DemoFull.prototype.onload = function () {
     self.registerViewSurface();
     self.registerAppEvents();
 
-    new obsidian.Notice(
+    new xinkgo.Notice(
       "Xinkgo Demo: Full loaded (real capabilities only)", 5000);
     log("level", "C3: native adapters plus a real plugin-owned view");
   }).catch(function (err) {
@@ -180,7 +180,7 @@ DemoFull.prototype.registerCommands = function () {
     id: "insert-summary", name: "Insert a line at the caret (editor.write)",
     editorCallback: function (editor) {
       editor.replaceSelection("\n\n[Demo Full] " +
-        obsidian.moment().format("YYYY-MM-DD HH:mm:ss") + "\n");
+        xinkgo.moment().format("YYYY-MM-DD HH:mm:ss") + "\n");
       self.record();
       say("Inserted a line at the caret");
     }
@@ -188,8 +188,8 @@ DemoFull.prototype.registerCommands = function () {
   self.addCommand({
     id: "replace-buffer", name: "Replace the whole buffer (editor.write)",
     editorCallback: function (editor) {
-      editor.setValue("# Demo Full\n\nThe buffer was replaced by an " +
-        "Obsidian-compatible plugin.\n");
+      editor.setValue("# Demo Full\n\nThe buffer was replaced by a " +
+        "Xinkgo plugin.\n");
       self.record();
       say("Buffer replaced");
     }
@@ -330,7 +330,7 @@ DemoFull.prototype.requestSample = function () {
   var self = this;
   // Only an explicit command reaches the network; onload never does.
   say("Requesting https://example.com (needs the network grant)");
-  obsidian.requestUrl({ url: "https://example.com", method: "GET" })
+  xinkgo.requestUrl({ url: "https://example.com", method: "GET" })
     .then(function (response) {
       return Promise.resolve(response.text).then(function (body) {
         log("requestUrl", "status " + response.status + ", " +

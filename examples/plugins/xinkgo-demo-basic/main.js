@@ -4,27 +4,36 @@
 //
 // Shape the host expects:
 //   - a CommonJS bundle (no import/export statements)
-//   - module.exports = one class extending obsidian.Plugin
+//   - module.exports = one class extending xinkgo.Plugin
 //   - onload() registers everything; onunload() cleans up
 //
 // This demo deliberately stays on C1/C2: core API plus the native Vault /
 // Editor / ribbon adapters. It never touches the plugin's own DOM surface,
-// so the compatibility report is not degraded.
+// so the compatibility report is not degraded. Every command writes a line
+// to the host log as well as showing a Notice, so the plugin is observable
+// from the terminal or xinkgo.log without opening a window.
 
-var obsidian = require("obsidian");
+var xinkgo = require("xinkgo");
+
+var PREFIX = "Xinkgo Demo: Basic";
+
+// console.log is bridged to the host as a "plugin console" log line.
+function log(what, detail) {
+  console.log(PREFIX + " | " + what + " | " + String(detail || ""));
+}
 
 function activeEditor(app) {
-  var view = app.workspace.getActiveViewOfType(obsidian.MarkdownView);
+  var view = app.workspace.getActiveViewOfType(xinkgo.MarkdownView);
   return view ? view.editor : null;
 }
 
 var DemoBasic = (function () {
   function DemoBasic(app, manifest) {
-    obsidian.Plugin.call(this, app, manifest);
+    xinkgo.Plugin.call(this, app, manifest);
     this.state = { runs: 0 };
     this.status = null;
   }
-  DemoBasic.prototype = Object.create(obsidian.Plugin.prototype);
+  DemoBasic.prototype = Object.create(xinkgo.Plugin.prototype);
   DemoBasic.prototype.constructor = DemoBasic;
 
   // loadData/saveData persist data.json inside the plugin's own folder.
@@ -68,7 +77,7 @@ var DemoBasic = (function () {
         id: "insert-date",
         name: "Insert today's date at the caret",
         editorCallback: function (editor) {
-          editor.replaceSelection(obsidian.moment().format("YYYY-MM-DD"));
+          editor.replaceSelection(xinkgo.moment().format("YYYY-MM-DD"));
           self.say("Inserted a date");
         }
       });
@@ -86,24 +95,27 @@ var DemoBasic = (function () {
         }
       });
 
-      // One ribbon icon on the left strip, and a workspace event.
+      // One ribbon icon on the left strip, and a workspace event. Host
+      // events carry no file object, so read the active note when needed.
       self.addRibbonIcon("calendar-days", "Demo Basic: Say hello",
         function () {
           self.say("Hello from the ribbon");
         });
       self.registerEvent(self.app.workspace.on("file-open",
-        function (path) {
-          console.log("Demo Basic saw file-open: " + String(path || ""));
+        function () {
+          var active = self.app.workspace.getActiveFile();
+          log("file-open", active ? active.path : "(no active note)");
         }));
 
-      new obsidian.Notice("Xinkgo Demo: Basic loaded", 3000);
+      new xinkgo.Notice("Xinkgo Demo: Basic loaded", 3000);
+      log("onload", "loaded; " + self.state.runs + " runs so far");
     }).catch(function (err) {
       console.error("Demo Basic onload", err);
     });
   };
 
   DemoBasic.prototype.onunload = function () {
-    console.log("Xinkgo Demo: Basic unloaded");
+    log("onunload", "cleaned up");
   };
 
   DemoBasic.prototype.refreshStatus = function () {
@@ -114,33 +126,37 @@ var DemoBasic = (function () {
 
   DemoBasic.prototype.record = function () {
     this.state.runs += 1;
-    this.saveData(this.state);
+    this.saveData(this.state).catch(function (err) {
+      console.error("Demo Basic saveData", err);
+    });
     this.refreshStatus();
   };
 
   DemoBasic.prototype.say = function (text) {
     this.record();
-    new obsidian.Notice(text + " (run #" + this.state.runs + ")", 4000);
+    log("notice", text);
+    new xinkgo.Notice(text + " (run #" + this.state.runs + ")", 4000);
   };
 
   DemoBasic.prototype.readNote = function () {
     var self = this;
     var file = this.app.workspace.getActiveFile();
     if (!file) {
-      new obsidian.Notice("Open a note first");
+      new xinkgo.Notice("Open a note first");
       return;
     }
     this.app.vault.read(file).then(function (text) {
       self.say(file.path + ": " + String(text).length + " characters");
     }).catch(function (err) {
-      new obsidian.Notice("vault.read failed: " + String(err));
+      log("vault.read", "failed: " + String(err));
+      new xinkgo.Notice("vault.read failed: " + String(err));
     });
   };
 
   DemoBasic.prototype.countWords = function () {
     var editor = activeEditor(this.app);
     if (!editor) {
-      new obsidian.Notice("Open a note first");
+      new xinkgo.Notice("Open a note first");
       return;
     }
     var text = editor.getValue().trim();

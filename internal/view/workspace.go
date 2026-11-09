@@ -49,6 +49,10 @@ type Workspace struct {
 	// feature is on, so a workspace drawn without an app (as in tests)
 	// keeps showing everything.
 	CoreFeatures map[string]bool
+	// PluginStatuses are the status items enabled plugins registered. The
+	// app fills them by plugin ID; the view draws them in that order so
+	// the row does not shuffle when a plugin updates its text.
+	PluginStatuses []PluginStatus
 	// PluginViews are the visible surfaces the enabled Obsidian-compatible
 	// plugins registered. The app fills the list; the view draws it as a
 	// drawer and reports which view was chosen. See openPluginView.
@@ -346,7 +350,11 @@ func (w *Workspace) View(c *ui.Context) {
 		// the animation before the panels are laid out from it: the
 		// value is the row's own, and frames keep coming while it
 		// moves.
-		panels := ui.Row(c).Key("panels").Fill()
+		// Grow(1) takes only the room left by the status bar. Fill()
+		// claimed 100% of the column, so once the editor/tree wanted
+		// more height the column overflowed and pushed the status bar
+		// below the window.
+		panels := ui.Row(c).Key("panels").FillWidth().Grow(1)
 		target := float32(0)
 		if w.mode.Stretched {
 			target = 1

@@ -7,6 +7,9 @@
 > 2026-11-09：目标已调整为以 Xinkgo 自身架构为准，见
 > [xinkgo-plugin-library.md](xinkgo-plugin-library.md)。本文保留为 L2
 > 外部兼容层的调研与 P0 落点记录；官方插件的准入以能力契约为准。
+> shim 现在同时接受 `require("xinkgo")` 作为官方插件的原生入口（与
+> `require('obsidian')` 指向同一对象）；本文的 `require('obsidian')` 描述
+> 仍是 L2 兼容层。
 
 > 2026-11-05 补做（见本文件 §9.1 与
 > [obsidian-core-plugins.md](obsidian-core-plugins.md)）：把「核心插件」校正为
