@@ -313,9 +313,14 @@ func (w *Workspace) toolbarDivider(c *ui.Context) {
 		Background(c.Theme().Border)
 }
 
-// statusBar is what the window says about what happened. When the
-// word-count core plugin stands it also says how much the note on show
-// holds, after the message the window has.
+// statusBarHeight keeps the line at the foot of the window standing even
+// when it has nothing to say, so closing the last note does not make the
+// status bar vanish and shift the panes above it.
+const statusBarHeight float32 = 26
+
+// statusBar is what the window says about what happened. It shows the
+// window's own message, each plugin's independent status item, and the
+// word count of the note on show when that core plugin stands.
 func (w *Workspace) statusBar(c *ui.Context) {
 	text := w.status
 	if text == "" {
@@ -333,16 +338,30 @@ func (w *Workspace) statusBar(c *ui.Context) {
 			count = locale.StatusWordCount(strconv.Itoa(wordsIn(n.Note.Text)))
 		}
 	}
-	if text == "" && count == "" {
-		return
-	}
-	ui.Row(c).Padding(8).Children(func() {
+	ui.Row(c).FillWidth().Height(statusBarHeight).Padding(0, 8).
+		Gap(8).AlignItems(ui.Center).Children(func() {
+		drawn := false
 		if text != "" {
 			ui.Text(c, text).FontSize(12).TextColor(c.Theme().TextMuted)
+			drawn = true
 		}
+		for _, item := range w.PluginStatuses {
+			if item.Text == "" {
+				continue
+			}
+			ui.Text(c, item.Text).FontSize(12).
+				TextColor(c.Theme().TextMuted)
+			drawn = true
+		}
+		ui.Box(c).Grow(1)
 		if count != "" {
-			ui.Box(c).Grow(1)
 			ui.Text(c, count).FontSize(12).TextColor(c.Theme().TextMuted)
+			drawn = true
+		}
+		// An empty window still has a status bar: a space keeps the row's
+		// text height even when there is nothing to report.
+		if !drawn {
+			ui.Text(c, " ").FontSize(12)
 		}
 	})
 }

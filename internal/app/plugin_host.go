@@ -600,6 +600,9 @@ func (h *pluginHost) finishUnload(inst *pluginInstance, requestID string) {
 		delete(h.byPage, page.Page())
 	}
 	h.mu.Unlock()
+	h.setWorkspace(func(ws *view.Workspace) {
+		ws.RemovePluginStatus(inst.id)
+	})
 	mygo.RunOnMain(func() {
 		if page != nil {
 			page.Destroy()

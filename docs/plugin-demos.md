@@ -108,7 +108,8 @@ cp -R examples/plugins/xinkgo-demo-full "$PLUGINS/"
 1. 命令面板（`Cmd/Ctrl+P`）里出现带 `Xinkgo Demo: Basic:` 或
    `Xinkgo Demo: Full:` 前缀的命令。
 2. 主窗口左侧插件 ribbon 出现图标（需要 `ui`）。
-3. 状态栏出现 `Demo Basic: N runs` / `Demo Full: N runs`。
+3. 状态栏出现 `Demo Basic: N runs` / `Demo Full: N runs`：这是各插件自己的
+   独立状态项，常驻显示，不会被 `Notice` 或别的插件覆盖。
 4. **Installed** 页里插件状态是 enabled，等级显示 C2 / C3。
 5. 日志里出现 `msg="plugin console"` 且带 `id=<插件 id>` 的行：两个 demo 在
    加载和执行命令时都会写日志。
@@ -198,6 +199,7 @@ level=INFO msg="plugin console" id=xinkgo-demo-full level=INFO text="Xinkgo Demo
 | 插件状态 failed | 看日志里的 `error` 行，常见是 `onload()` 抛了未捕获异常 |
 | 状态栏计数一直是 0 | `saveData` 需要 `data`（启用即有）；检查日志里有没有 RPC 拒绝 |
 | 一键安装后 ribbon / 视图没出现 | 安装不再自动授权；勾完 Grants 后点 **Reload** |
+| 底部状态栏整条不见了 | 状态栏现在常驻；若仍不出现，检查设置 ▸ Core integrated plugins 里的 Status bar 开关 |
 
 ## 边界
 

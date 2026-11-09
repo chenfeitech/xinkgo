@@ -355,7 +355,9 @@ failed。
 ### 6.6 原生 UI 与图标
 
 `addRibbonIcon(icon, title, callback)` 与 `addStatusBarItem()` 是**真实的**原生
-注册（需要 `ui`）：前者进主窗口左侧插件 ribbon，后者进状态栏。
+注册（需要 `ui`）：前者进主窗口左侧插件 ribbon，后者在状态栏里占一个**独立项**
+（按插件 ID 存放，卸载时清除），不会被 `Notice` 或别的插件覆盖。状态栏本身
+常驻，即使没有打开笔记也保留一行。
 原生 ribbon 只认 `calendar-days` / `layout-template` / `globe` 三个图标名，
 其余一律回落到通用插件图标，tooltip 用 `addRibbonIcon` 的 `title`。
 basic 用的 `calendar-days` 有专用图标，full 用的 `layers` / `puzzle` 会回落。

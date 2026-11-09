@@ -1,5 +1,7 @@
 package view
 
+import "sort"
+
 // The IDs of Xinkgo's built-in core plugins, as the workspace gates them.
 // They are written to plugins.json, so they must stay in step with
 // plugin.CorePlugins.
@@ -57,4 +59,56 @@ type PluginAction struct {
 	ID   string
 	Name string
 	Icon string
+}
+
+// PluginStatus is one item an Obsidian-compatible plugin put on the status
+// bar. Items are keyed by plugin ID so one plugin's text never overwrites
+// another's, nor the window's own message.
+type PluginStatus struct {
+	ID   string
+	Text string
+}
+
+// AddPluginStatus reserves an empty item for a plugin. It never clears a
+// text that already arrived: fire("status.add") and fire("status.set") are
+// asynchronous and may reach the host in either order.
+func (w *Workspace) AddPluginStatus(id string) {
+	for _, one := range w.PluginStatuses {
+		if one.ID == id {
+			return
+		}
+	}
+	w.PluginStatuses = append(w.PluginStatuses, PluginStatus{ID: id})
+	w.sortPluginStatuses()
+}
+
+// SetPluginStatus gives one plugin's item its text, adding it if needed.
+func (w *Workspace) SetPluginStatus(id, text string) {
+	for i := range w.PluginStatuses {
+		if w.PluginStatuses[i].ID == id {
+			w.PluginStatuses[i].Text = text
+			return
+		}
+	}
+	w.PluginStatuses = append(w.PluginStatuses,
+		PluginStatus{ID: id, Text: text})
+	w.sortPluginStatuses()
+}
+
+// RemovePluginStatus takes a plugin's item away when it is unloaded.
+func (w *Workspace) RemovePluginStatus(id string) {
+	kept := w.PluginStatuses[:0]
+	for _, one := range w.PluginStatuses {
+		if one.ID != id {
+			kept = append(kept, one)
+		}
+	}
+	w.PluginStatuses = kept
+}
+
+// sortPluginStatuses keeps the row in a stable order between frames.
+func (w *Workspace) sortPluginStatuses() {
+	sort.Slice(w.PluginStatuses, func(i, j int) bool {
+		return w.PluginStatuses[i].ID < w.PluginStatuses[j].ID
+	})
 }
