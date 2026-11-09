@@ -18,6 +18,7 @@ import (
 
 	"github.com/helightxu/xinkgo/internal/locale"
 	"github.com/helightxu/xinkgo/internal/media"
+	"github.com/helightxu/xinkgo/internal/textfile"
 )
 
 // ignored are the names that are never shown, whatever they hold.
@@ -36,12 +37,18 @@ type Entry struct {
 	Path     string
 	IsDir    bool
 	Children []*Entry
+	// Kind is what the tree calls the file, and Text whether the editor
+	// can take it. They are filled by the scan, so a name that says
+	// nothing is not read again for every icon or search.
+	Kind media.Kind
+	Text bool
 }
 
 // Scan reads the tree under root. With showAll it shows every file;
-// without it, only what the app can open: text and pictures, and every
-// directory, so that the way into them is never hidden.
-func Scan(root string, showAll bool) (*Entry, error) {
+// without it, only what the app can open: text, pictures, and every
+// directory, so that the way into them is never hidden. maxTextBytes is
+// the largest text file the editor will hold; zero leaves it unchecked.
+func Scan(root string, showAll bool, maxTextBytes uint64) (*Entry, error) {
 	info, err := os.Stat(root)
 	if err != nil {
 		return nil, fmt.Errorf("scan %s: %w", root, err)
@@ -49,10 +56,10 @@ func Scan(root string, showAll bool) (*Entry, error) {
 	if !info.IsDir() {
 		return nil, fmt.Errorf("%s is not a directory", root)
 	}
-	return scanDir(root, showAll)
+	return scanDir(root, showAll, maxTextBytes)
 }
 
-func scanDir(dir string, showAll bool) (*Entry, error) {
+func scanDir(dir string, showAll bool, maxTextBytes uint64) (*Entry, error) {
 	names, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, fmt.Errorf("read %s: %w", dir, err)
@@ -61,6 +68,7 @@ func scanDir(dir string, showAll bool) (*Entry, error) {
 		Name:  filepath.Base(dir),
 		Path:  dir,
 		IsDir: true,
+		Kind:  media.KindDir,
 	}
 	for _, name := range names {
 		base := name.Name()
@@ -72,7 +80,7 @@ func scanDir(dir string, showAll bool) (*Entry, error) {
 			if media.IsAIDir(path) {
 				continue
 			}
-			child, err := scanDir(path, showAll)
+			child, err := scanDir(path, showAll, maxTextBytes)
 			if err != nil {
 				// One directory that cannot be read must not hide the
 				// rest of the tree.
@@ -81,13 +89,37 @@ func scanDir(dir string, showAll bool) (*Entry, error) {
 			e.Children = append(e.Children, child)
 			continue
 		}
-		if !showAll && !(media.IsEditableText(path) || media.IsImage(path)) {
-			continue
+		kind := media.KindOf(path)
+		text := false
+		info, known := textfile.ByName(path)
+		if showAll {
+			text = known && info.Text
+		} else {
+			image := media.IsImage(path)
+			if !image {
+				if known && !info.Text {
+					continue
+				}
+				got, err := textfile.Classify(path, maxTextBytes)
+				if err != nil || !got.Text {
+					continue
+				}
+				text = true
+				if kind == media.KindOther || kind == media.KindText {
+					if got.Language != "" {
+						kind = media.KindCode
+					} else {
+						kind = media.KindText
+					}
+				}
+			}
 		}
 		e.Children = append(e.Children, &Entry{
 			Name:  base,
 			Path:  path,
 			IsDir: false,
+			Kind:  kind,
+			Text:  text,
 		})
 	}
 	sortEntries(e.Children)

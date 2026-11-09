@@ -9,6 +9,7 @@ import (
 	"github.com/helightxu/xinkgo/internal/datafile"
 	"github.com/helightxu/xinkgo/internal/locale"
 	xmd "github.com/helightxu/xinkgo/internal/markdown"
+	"github.com/helightxu/xinkgo/internal/media"
 	"github.com/helightxu/xinkgo/internal/view/geom"
 )
 
@@ -187,6 +188,17 @@ func (w *Workspace) dataBar(
 		}
 		ui.Text(c, locale.ProblemsWellFormed()).
 			TextColor(c.Theme().TextMuted)
+	})
+}
+
+// textBar is what the toolbar says of a text file that is not a note:
+// which kind of file it is, and that the preview shows its source rather
+// than rendering it.
+func (w *Workspace) textBar(c *ui.Context, n *OpenNote) {
+	ui.Row(c).Gap(8).Padding(4).AlignItems(ui.Center).Children(func() {
+		ui.Text(c, media.KindOf(n.Path).String()).Bold()
+		ui.Text(c, locale.TextFileShownAsSource()).TextColor(
+			c.Theme().TextMuted).Grow(1)
 	})
 }
 

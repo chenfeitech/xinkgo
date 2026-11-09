@@ -7,10 +7,12 @@ import (
 	"time"
 
 	"github.com/egoist/mygo/ui/editor"
+	"github.com/helightxu/xinkgo/internal/config"
 	"github.com/helightxu/xinkgo/internal/fs"
 	"github.com/helightxu/xinkgo/internal/media"
 	"github.com/helightxu/xinkgo/internal/note"
 	"github.com/helightxu/xinkgo/internal/session"
+	"github.com/helightxu/xinkgo/internal/textfile"
 )
 
 // OpenNote is a note the app has open: the file, what the editor shows,
@@ -30,6 +32,9 @@ type OpenNote struct {
 	// edits: a picture or a PDF has no text in its editor, and is
 	// never written back.
 	Preview bool
+	// Info is why the file is shown rather than edited, and how its
+	// bytes are read when it is edited.
+	Info textfile.Info
 
 	// saveAt is when the note is to be written, after the user has
 	// stopped typing. The writing itself is done by the frame, and not
@@ -59,6 +64,8 @@ type Tabs struct {
 	AutoSaveDelay time.Duration
 	// SoftWrap is whether the editor wraps long lines.
 	SoftWrap bool
+	// MaxTextFileBytes is the largest text file read into the editor.
+	MaxTextFileBytes uint64
 
 	// OnChange is called whenever a note is opened, closed or made
 	// active, so that the app can write down what is open at once.
@@ -75,10 +82,11 @@ type Tabs struct {
 // NewTabs returns a tab bar with nothing open.
 func NewTabs() *Tabs {
 	return &Tabs{
-		Notes:         map[string]*OpenNote{},
-		AutoSave:      true,
-		AutoSaveDelay: 300 * time.Millisecond,
-		SoftWrap:      true,
+		Notes:            map[string]*OpenNote{},
+		AutoSave:         true,
+		AutoSaveDelay:    300 * time.Millisecond,
+		SoftWrap:         true,
+		MaxTextFileBytes: config.DefaultMaxTextFileBytes,
 	}
 }
 
@@ -105,8 +113,12 @@ func (t *Tabs) Open(path string) (*OpenNote, error) {
 	}
 	// A file the app cannot edit is not read into the editor: it is
 	// shown as it is, and its text, which is not text, is not held.
-	shown := !media.IsEditableText(path)
-	n, err := openFor(path, shown)
+	info, err := textfile.Classify(path, t.MaxTextFileBytes)
+	if err != nil {
+		return nil, err
+	}
+	shown := !info.Text
+	n, err := openFor(path, shown, info)
 	if err != nil {
 		return nil, err
 	}
@@ -116,6 +128,7 @@ func (t *Tabs) Open(path string) (*OpenNote, error) {
 		Editor:  t.newEditor(path, n.Text),
 		Version: 0,
 		Preview: shown,
+		Info:    info,
 	}
 	t.Notes[key] = open
 	t.Order = append(t.Order, path)
@@ -127,11 +140,11 @@ func (t *Tabs) Open(path string) (*OpenNote, error) {
 // openFor is the file at path taken in as the app opens it: read whole
 // when it is one the app edits, and only looked at on the disk when it is
 // one the app shows.
-func openFor(path string, shown bool) (*note.Note, error) {
+func openFor(path string, shown bool, info textfile.Info) (*note.Note, error) {
 	if shown {
 		return note.OpenPreview(path)
 	}
-	return note.Open(path)
+	return note.OpenEncoded(path, info.Encoding)
 }
 
 // newEditor is the editor of a note: the language follows the file's

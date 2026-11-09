@@ -20,7 +20,8 @@
 | 库状态徽标（6 态） | ✅ | `internal/vault/vault.go` `StatusOf` | 菜单与库窗口都显示不可用原因 |
 | 目录树扫描（全量、非懒加载） | ✅ | `internal/vault/vault.go` `Scan` | 目录在前，同层按名排序 |
 | 忽略规则 | ✅ | `internal/vault/vault.go` `ignored` | 另恒跳 `*.md.tmp` 与 `.xink`（`internal/media/media.go`） |
-| 文件类型图标（10 类） | ✅ | `internal/media/media.go` `KindOf`、`internal/view/tree_icons.go` | |
+| 文件类型图标（11 类） | ✅ | `internal/media/media.go` `KindOf`、`internal/textfile`、`internal/view/tree_icons.go` | 新增 `KindText`；`.csv/.tsv` 归文本，`.svg` 仍归图片 |
+| 文本文件识别（扩展名 / 无后缀 / 内容嗅探 / BOM） | ✅ | `internal/textfile/textfile.go` | 以 MyGo `editor.LanguageFor` 为唯一语言表；`show_all_files=false` 时未知名字读前 4 KiB 判定 |
 | 新建笔记 / 目录 | ✅ | `internal/app/files.go` / `:49` | 自动补 `.md`，重名递增（`internal/fs/fs.go`） |
 | 重命名 | ✅ | `internal/app/files.go`、`internal/fs/fs.go` | |
 | 删除（含非空目录） | ✅ | `internal/app/files.go` / `:157` | 拒绝库根与库外路径（`fs.RemoveAll:168`） |
@@ -54,7 +55,7 @@
 | 编辑区滚动条 | ✅ | `internal/view/panes.go` `editorTheme` | 常态不画：笔记用一份自己的主题，把滚动条设为透明；指针移上去才显形，不再遮住正文 |
 | 格式工具栏 | ✅ | `internal/view/bars.go:203` `toolbar` | 14 个按钮（xink 13 个 + 行内代码） |
 | 格式快捷键 | ✅ | `internal/app/menu.go` `Format`、`internal/view/panes.go:217` | |
-| 编辑区语法高亮 | ✅ | `internal/view/tabs.go` | md / json / yaml / toml 按文件名 |
+| 编辑区语法高亮 | ✅ | `internal/view/tabs.go`、`internal/textfile` | md / html / js / css / scss / vue / mjs / json / yaml / toml / Makefile / Dockerfile 等，按 MyGo 语言表 |
 | **编辑区 Markdown 装饰**（行首标记淡化、链接文字着色） | ❌ | — | xink 有，xinkgo 未做 |
 | 数据文件校验标记 | ✅ | `internal/view/panes.go:187` `dataDiagnostics` | 波浪线；JSON 有行列 |
 
@@ -63,6 +64,7 @@
 | 功能点 | 状态 | 实现位置 | 说明 |
 |---|---|---|---|
 | Markdown 渲染 | ✅ | `internal/view/preview.go:22` `previewPanel` | 用 MyGo `ui/markdown`，能力由框架决定 |
+| 非 Markdown 文本源码预览 | ✅ | `internal/view/preview.go` `previewText`、`internal/textfile` `Fence` | HTML/JS/CSS/Makefile/.env/LICENSE 等按 fenced code block 显示，按语言着色，不执行 HTML/JS |
 | 本地图片内联 | ✅ | `internal/view/preview.go:231` `markdownOptions` | `FileImages` 按目录解析，非 data URL |
 | 图片缓存 | ➖ | 框架内 | 无自研指纹缓存，无 5MB 上限 |
 | 图片显示方式（适应宽度 / 隐藏） | ✅ | 同上（`ImageDisplay`） | |
@@ -91,6 +93,18 @@
 | 校验（行/列 + 原因） | ⚠️ | `internal/datafile/datafile.go` `Check` | 仅 JSON 报行列；YAML/TOML 不报 |
 | 大文件保护 | ✅ | `internal/datafile/datafile.go` `TooLarge` | 默认 1MB |
 | **设置里的数据文件旋钮**（缩进 / 上限） | ❌ | `config.go` `Editor.DataFile` 有字段 | 无 UI |
+
+### 4.1 文本文件（v1 已实现）
+
+| 功能点 | 状态 | 实现位置 | 说明 |
+|---|---|---|---|
+| 所有非二进制文本可编辑 | ✅ | `internal/textfile`、`internal/view/tabs.go` | 名字能定的按名字，名字不定的按前 4 KiB 内容嗅探 |
+| 无后缀已知名语言高亮 | ✅ | `internal/textfile`、`mygo/ui/editor` | `Makefile`/`Dockerfile`/`Gemfile`/`Rakefile` 等由 MyGo 语言表识别 |
+| BOM 与 UTF-16 保存往返 | ✅ | `internal/textfile/encoding.go`、`internal/note/note.go` | UTF-8 BOM、UTF-16LE/BE BOM 保留；CRLF 不变 |
+| 大文本文件保护 | ✅ | `config.editor.max_text_file_bytes`、`internal/textfile.Classify` | 默认 4 MiB，范围 1–64 MiB；超限显示原因卡片 |
+| 无 BOM 非 UTF 编码 | ⚠️ | `internal/textfile.Sniff` | 显示「编码不支持」并交给外部程序，不静默猜测 |
+| HTML/JS 渲染预览 | ❌ | — | v1 只显示源码，不执行脚本、不加载外部资源 |
+| SVG 源码编辑 / 源码原文导出 / 非 Markdown 全文搜索 | ❌ | — | 均留作后续；索引、命令面板、大纲、反链仍只认 Markdown |
 
 ## 5. 导航、索引与结构
 
@@ -240,6 +254,9 @@
 16. 设置：搜索、单项重置、「暂未生效」标注。
 17. 目录树滚动位置的显式保存/恢复。
 18. YAML / TOML 校验与格式化（卡在 `gopkg.in/yaml.v3` 取不到，需联网或换方案）。
+19. HTML/JS 渲染预览与脚本执行（v1 只显示源码）。
+20. 无 BOM 的非 UTF 编码编辑（GBK/Big5 等只读并交给外部程序）。
+21. SVG 源码编辑、源码原文导出、非 Markdown 全文搜索/索引。
 
 **C. 与 xink 一致、有意不做**
 

@@ -13,6 +13,8 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/helightxu/xinkgo/internal/textfile"
 )
 
 // Note is a file the app has open.
@@ -26,13 +28,27 @@ type Note struct {
 	// Version counts the changes to Text, so that work done for an older
 	// text, such as a preview, is not applied to a newer one.
 	Version uint64
+	// Encoding is how the text became the bytes on disk, and becomes
+	// those bytes again when it is saved.
+	Encoding textfile.Encoding
 
 	mtime time.Time
 	size  int64
 }
 
-// Open reads the file at path into a note that has no changes yet.
+// Open reads the file at path into a note that has no changes yet. The
+// byte order mark, when there is one, says how the bytes are read.
 func Open(path string) (*Note, error) {
+	return open(path, textfile.EncodingAuto)
+}
+
+// OpenEncoded reads the file with the encoding the caller classified,
+// rather than asking the bytes again.
+func OpenEncoded(path string, enc textfile.Encoding) (*Note, error) {
+	return open(path, enc)
+}
+
+func open(path string, enc textfile.Encoding) (*Note, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("read %s: %w", path, err)
@@ -41,7 +57,14 @@ func Open(path string) (*Note, error) {
 	if err != nil {
 		return nil, fmt.Errorf("stat %s: %w", path, err)
 	}
-	n := &Note{Path: path, Text: string(data)}
+	if enc == textfile.EncodingAuto {
+		enc = textfile.Detect(data)
+	}
+	text, err := textfile.Decode(data, enc)
+	if err != nil {
+		return nil, fmt.Errorf("decode %s: %w", path, err)
+	}
+	n := &Note{Path: path, Text: text, Encoding: enc}
 	n.remember(info)
 	return n, nil
 }
@@ -88,7 +111,11 @@ func (n *Note) Save() error {
 			os.Remove(name)
 		}
 	}()
-	if _, err = tmp.WriteString(n.Text); err != nil {
+	data, err := textfile.Encode(n.Text, n.Encoding)
+	if err != nil {
+		return fmt.Errorf("encode %s: %w", n.Path, err)
+	}
+	if _, err = tmp.Write(data); err != nil {
 		return fmt.Errorf("save %s: %w", n.Path, err)
 	}
 	if err = tmp.Sync(); err != nil {
@@ -142,14 +169,20 @@ func (n *Note) TakeExternalText() (string, bool) {
 	if err != nil {
 		return "", false
 	}
-	text := string(data)
+	enc := textfile.Detect(data)
+	text, err := textfile.Decode(data, enc)
+	if err != nil {
+		return "", false
+	}
 	if text == n.Text {
 		n.remember(info)
+		n.Encoding = enc
 		return "", false
 	}
 	n.Text = text
 	n.Dirty = false
 	n.Version++
+	n.Encoding = enc
 	n.remember(info)
 	return text, true
 }
