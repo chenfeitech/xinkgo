@@ -400,20 +400,16 @@ func (h *pluginHost) install(item plugin.BrowserItem) {
 	if hasCSS {
 		_ = os.WriteFile(filepath.Join(dir, "styles.css"), css, 0o644)
 	}
-	grants := make([]string, 0, len(report.Capabilities))
-	for _, one := range report.Capabilities {
-		grants = append(grants, string(one))
-	}
 	h.mu.Lock()
 	h.saved = h.saved.WithEnabled(item.ID, true).
-		WithGrants(item.ID, grants)
+		WithGrants(item.ID, installGrants(report))
 	saved := h.saved
 	h.mu.Unlock()
 	if err := state.SavePlugins(h.dir, saved); err != nil {
 		slog.Warn("plugin install state not written", "err", err)
 	}
 	h.refresh()
-	h.setStatus(locale.PluginInstalledOK(item.Name))
+	h.setStatus(locale.PluginInstalledNeedsGrants(item.Name))
 	h.enable(item.ID, false)
 }
 

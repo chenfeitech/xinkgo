@@ -6972,6 +6972,98 @@ func (msgs Messages) PluginTabCurated() string {
 	return Catalog.Format(msgs.locale, "pluginTabCurated", nil)
 }
 
+// PluginTabLibrary says "Official library"
+// in the language the app shows.
+func PluginTabLibrary() string { return In(i18n.Locale()).PluginTabLibrary() }
+
+// PluginTabLibrary says "Official library"
+// in the language of msgs.
+func (msgs Messages) PluginTabLibrary() string {
+	return Catalog.Format(msgs.locale, "pluginTabLibrary", nil)
+}
+
+// PluginLibraryNote says "Official library plugins are verified to run fully in Xinkgo. External plugins are not covered by this guarantee."
+// in the language the app shows.
+func PluginLibraryNote() string { return In(i18n.Locale()).PluginLibraryNote() }
+
+// PluginLibraryNote says "Official library plugins are verified to run fully in Xinkgo. External plugins are not covered by this guarantee."
+// in the language of msgs.
+func (msgs Messages) PluginLibraryNote() string {
+	return Catalog.Format(msgs.locale, "pluginLibraryNote", nil)
+}
+
+// PluginLibraryVerified says "Verified"
+// in the language the app shows.
+func PluginLibraryVerified() string { return In(i18n.Locale()).PluginLibraryVerified() }
+
+// PluginLibraryVerified says "Verified"
+// in the language of msgs.
+func (msgs Messages) PluginLibraryVerified() string {
+	return Catalog.Format(msgs.locale, "pluginLibraryVerified", nil)
+}
+
+// PluginLibraryFailed says "Contract failed"
+// in the language the app shows.
+func PluginLibraryFailed() string { return In(i18n.Locale()).PluginLibraryFailed() }
+
+// PluginLibraryFailed says "Contract failed"
+// in the language of msgs.
+func (msgs Messages) PluginLibraryFailed() string {
+	return Catalog.Format(msgs.locale, "pluginLibraryFailed", nil)
+}
+
+// PluginLibraryInstalled says "Installed"
+// in the language the app shows.
+func PluginLibraryInstalled() string { return In(i18n.Locale()).PluginLibraryInstalled() }
+
+// PluginLibraryInstalled says "Installed"
+// in the language of msgs.
+func (msgs Messages) PluginLibraryInstalled() string {
+	return Catalog.Format(msgs.locale, "pluginLibraryInstalled", nil)
+}
+
+// PluginLibraryNotInstalled says "Not installed"
+// in the language the app shows.
+func PluginLibraryNotInstalled() string { return In(i18n.Locale()).PluginLibraryNotInstalled() }
+
+// PluginLibraryNotInstalled says "Not installed"
+// in the language of msgs.
+func (msgs Messages) PluginLibraryNotInstalled() string {
+	return Catalog.Format(msgs.locale, "pluginLibraryNotInstalled", nil)
+}
+
+// PluginLibraryEmpty says "The official library is empty."
+// in the language the app shows.
+func PluginLibraryEmpty() string { return In(i18n.Locale()).PluginLibraryEmpty() }
+
+// PluginLibraryEmpty says "The official library is empty."
+// in the language of msgs.
+func (msgs Messages) PluginLibraryEmpty() string {
+	return Catalog.Format(msgs.locale, "pluginLibraryEmpty", nil)
+}
+
+// PluginContractRefused says "Official library plugin failed the capability contract and was not enabled."
+// in the language the app shows.
+func PluginContractRefused() string { return In(i18n.Locale()).PluginContractRefused() }
+
+// PluginContractRefused says "Official library plugin failed the capability contract and was not enabled."
+// in the language of msgs.
+func (msgs Messages) PluginContractRefused() string {
+	return Catalog.Format(msgs.locale, "pluginContractRefused", nil)
+}
+
+// PluginInstalledNeedsGrants says "installed {name}; grant capabilities then reload"
+// in the language the app shows.
+func PluginInstalledNeedsGrants(name string) string {
+	return In(i18n.Locale()).PluginInstalledNeedsGrants(name)
+}
+
+// PluginInstalledNeedsGrants says "installed {name}; grant capabilities then reload"
+// in the language of msgs.
+func (msgs Messages) PluginInstalledNeedsGrants(name string) string {
+	return Catalog.Format(msgs.locale, "pluginInstalledNeedsGrants", map[string]any{"name": name})
+}
+
 // PluginGroupBuiltin says "Xinkgo features"
 // in the language the app shows.
 func PluginGroupBuiltin() string { return In(i18n.Locale()).PluginGroupBuiltin() }

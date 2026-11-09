@@ -15,10 +15,14 @@ import (
 )
 
 type pluginViewState struct {
-	status    string
-	installed []plugin.Report
-	busy      map[string]bool
-	coreIDs   map[string]bool
+	status       string
+	installed    []plugin.Report
+	busy         map[string]bool
+	coreIDs      map[string]bool
+	library      []plugin.LibraryPlugin
+	libraryIDs   map[string]bool
+	installedIDs map[string]bool
+	contracts    map[string]plugin.ContractResult
 }
 
 // openPlugins opens the community plugins group of the settings window.
@@ -31,9 +35,25 @@ func (h *pluginHost) uiSnapshot() pluginViewState {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	state := pluginViewState{
-		status:  h.ui.status,
-		busy:    map[string]bool{},
-		coreIDs: map[string]bool{},
+		status:       h.ui.status,
+		busy:         map[string]bool{},
+		coreIDs:      map[string]bool{},
+		libraryIDs:   map[string]bool{},
+		installedIDs: map[string]bool{},
+		contracts:    map[string]plugin.ContractResult{},
+	}
+	state.library = append([]plugin.LibraryPlugin(nil),
+		h.library.Plugins...)
+	for id, on := range h.libraryIDs {
+		if on {
+			state.libraryIDs[id] = true
+		}
+	}
+	for id, one := range h.contracts {
+		state.contracts[id] = one
+	}
+	for _, one := range h.ui.installed {
+		state.installedIDs[one.ID] = true
 	}
 	for _, one := range h.compatible {
 		if one.Core {
@@ -88,19 +108,23 @@ func (h *pluginHost) communitySettingsView(c *ui.Context) {
 	installedLabel := locale.PluginTabInstalled()
 	curatedLabel := locale.PluginTabCurated()
 	browseLabel := locale.PluginTabBrowse()
+	libraryLabel := locale.PluginTabLibrary()
 	selected := browseLabel
 	switch h.ui.tab {
 	case "installed":
 		selected = installedLabel
 	case "core":
 		selected = curatedLabel
+	case "library":
+		selected = libraryLabel
 	}
 	ui.Column(c).FillWidth().Gap(th.Space(2)).Children(func() {
 		ui.Row(c).FillWidth().Gap(th.Space(1)).
 			AlignItems(ui.Center).
 			Padding(th.Space(1), settingsRowPad).Children(func() {
 			ui.Select(c.Key("plugin-tab"), &selected,
-				[]string{installedLabel, curatedLabel, browseLabel})
+				[]string{installedLabel, curatedLabel, libraryLabel,
+					browseLabel})
 			if ui.Button(c.Key("plugin-refresh"),
 				locale.PluginRefresh()).Clicked() {
 				h.refresh()
@@ -112,16 +136,24 @@ func (h *pluginHost) communitySettingsView(c *ui.Context) {
 			h.ui.tab = "installed"
 		case curatedLabel:
 			h.ui.tab = "core"
+		case libraryLabel:
+			h.ui.tab = "library"
 		default:
 			h.ui.tab = "browse"
 		}
-		ui.Text(c, locale.PluginThirdParty()).
+		note := locale.PluginThirdParty()
+		if h.ui.tab == "library" {
+			note = locale.PluginLibraryNote()
+		}
+		ui.Text(c, note).
 			FontSize(th.FontSize - 1).TextColor(th.TextMuted)
 		switch h.ui.tab {
 		case "installed":
 			h.installedView(c, th, state)
 		case "core":
 			h.coreView(c, th, state)
+		case "library":
+			h.libraryView(c, th, state)
 		default:
 			h.browseView(c, th, state)
 		}
@@ -363,22 +395,31 @@ func (h *pluginHost) installedView(c *ui.Context, th *ui.Theme,
 		for _, one := range state.installed {
 			report := one
 			cardBox(c, func() {
-				h.installedRow(c, th, report, state.busy)
+				h.installedRow(c, th, report, state)
 			})
 		}
 	})
 }
 
 func (h *pluginHost) installedRow(c *ui.Context, th *ui.Theme,
-	one plugin.Report, busy map[string]bool) {
+	one plugin.Report, state pluginViewState) {
 	badges := []string{locale.PluginLevelLabel(one.Level.Code())}
 	if one.Degraded {
 		badges = append(badges, locale.PluginDegraded())
 	}
+	if state.libraryIDs[one.ID] {
+		if contract, ok := state.contracts[one.ID]; ok {
+			if contract.OK {
+				badges = append(badges, locale.PluginLibraryVerified())
+			} else {
+				badges = append(badges, locale.PluginLibraryFailed())
+			}
+		}
+	}
 	if h.running(one.ID) {
 		badges = append(badges, locale.PluginEnabled())
 	}
-	if busy[one.ID] {
+	if state.busy[one.ID] {
 		badges = append(badges, locale.PluginCatalogLoading())
 	}
 	meta := locale.PluginVersionLine(one.Version, one.Author,
@@ -435,6 +476,55 @@ func (h *pluginHost) installedRow(c *ui.Context, th *ui.Theme,
 			}
 		})
 	}
+}
+
+// libraryView draws the official plugin library: a directory of plugins
+// verified to run fully in Xinkgo. Each row shows its contract verdict and
+// whether the package is installed locally. It reads only uiSnapshot data.
+func (h *pluginHost) libraryView(c *ui.Context, th *ui.Theme,
+	state pluginViewState) {
+	if len(state.library) == 0 {
+		ui.Text(c, locale.PluginLibraryEmpty()).TextColor(th.TextMuted)
+		return
+	}
+	cardList(c, func() {
+		for _, one := range state.library {
+			entry := one
+			installed := state.installedIDs[entry.ID]
+			cardBox(c, func() {
+				badges := []string{}
+				if installed {
+					badges = append(badges,
+						locale.PluginLibraryInstalled())
+				} else {
+					badges = append(badges,
+						locale.PluginLibraryNotInstalled())
+				}
+				if contract, ok := state.contracts[entry.ID]; ok {
+					if contract.OK {
+						badges = append(badges,
+							locale.PluginLibraryVerified())
+					} else {
+						badges = append(badges,
+							locale.PluginLibraryFailed())
+					}
+				}
+				pluginHeader(c, th, entry.Name, badges, entry.Version,
+					strings.Join(entry.Capabilities, ", "), func() {
+						if installed && ui.Button(
+							c.Key("plugin-library-reload-"+entry.ID),
+							locale.PluginReload()).Clicked() {
+							h.reload(entry.ID)
+						}
+						if ui.Button(
+							c.Key("plugin-library-folder-"+entry.ID),
+							locale.PluginOpenFolder()).Clicked() {
+							_ = mygo.Shell.OpenPath(h.userDir)
+						}
+					})
+			})
+		}
+	})
 }
 
 func (h *pluginHost) browseView(c *ui.Context, th *ui.Theme,

@@ -255,8 +255,10 @@ module.exports = DemoBasic;
 **授权时机是最常见的坑**。ribbon、状态栏和视图都在 `onload()` 里通过
 `fire()` 注册，当时能力没授权，那次 RPC 就被拒绝且不会重放；事后在 Grants
 里勾上也补不回来。所以要么先勾授权再启用，要么勾完点一次 **Reload**。
-另外从 **Browse** 一键安装时宿主会自动把扫描出的能力**全部写入授权**，
-手动拷目录则完全不写，两种路径的差别见 [plugin-demos.md](plugin-demos.md)。
+从 **Browse** 一键安装与手动拷目录一样**不写任何授权**，状态会提示「授权后
+重载」；流程见 [plugin-demos.md](plugin-demos.md)。官方库插件在 app 启动时
+还会被运行时校验，未通过契约的库内插件会被拒绝启用，外部 L2 插件不受约束，
+见 [design/xinkgo-plugin-library.md](design/xinkgo-plugin-library.md) §5.2。
 
 ## 6 真实能力的 API 映射：以 full 为案例
 
@@ -543,7 +545,8 @@ func TestMyPlugin_scan(t *testing.T) {
 
 发布前自查：`main.js` 里没有 ESM 语法、相对导入、动态 `require` 或黑名单 API；
 报告等级不高于 C3；所有 RPC Promise 都有 `.catch()`；`onload()` 不做联网；
-扫描出的能力清单与 manifest / README 一致。
+扫描出的能力清单与 manifest / README 一致；通过 `ValidateContract` 并登记进
+`resources/xinkgo-plugins/library.json`，否则不会获得「完好运行」的保证。
 
 ## 12 两个 demo 的案例索引
 

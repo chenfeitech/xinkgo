@@ -16,7 +16,7 @@
 | [design/themes.md](design/themes.md) | 系统多主题：明暗 × 配色方案的分工、五套方案、配置迁移与生效路径 | 加/改配色方案前 |
 | [design/tree-follows-note.md](design/tree-follows-note.md) | 目录树跟随当前笔记：谁触发、展开+选中+滚动怎么落地、边界与取舍 | 动目录树定位前 |
 | [design/wechat.md](design/wechat.md) | 公众号排版：样式菜单、手机宽度预览、行内样式的由来、样式目录与文件格式 | 动公众号排版前 |
-| [design/xinkgo-plugin-library.md](design/xinkgo-plugin-library.md) | **以 Xinkgo 架构为目标的插件体系与官方插件库（设计 v1）**：现有体系排查、三层模型、能力契约、库清单与离线门禁、迁移路线 | 规划插件体系、收录插件前 |
+| [design/xinkgo-plugin-library.md](design/xinkgo-plugin-library.md) | **以 Xinkgo 架构为目标的插件体系与官方插件库（P0/P1 已落地）**：体系排查、三层模型、能力契约、库清单、运行时接入与官方库页、迁移路线 | 规划插件体系、收录插件前 |
 | [design/obsidian-plugins.md](design/obsidian-plugins.md) | **Obsidian 插件兼容（P0 spike 已实现）**：机制调研、兼容边界、非信任 WebView 宿主、API 映射与分阶段路线 | 做插件兼容前 |
 | [design/obsidian-core-plugins.md](design/obsidian-core-plugins.md) | **Obsidian 核心插件对照**：内置能力映射、下载榜前 20、Core 兼容插件与后续路线 | 规划核心插件前 |
 | [design/daily-notes-templates.md](design/daily-notes-templates.md) | **Daily notes / Templates / Web viewer 内置核心插件（v1 已实现）**：三者功能与设置页、插件机制改造、WebView 安全边界、数据模型与实现偏差 | 改这三个核心插件前 |

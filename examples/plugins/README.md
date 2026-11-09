@@ -52,11 +52,16 @@ cp -R examples/plugins/xinkgo-demo-full "$PLUGINS/"
 **Grants** 逐项勾选。`data`、`commands`、`notice` 是启用插件即有的生命周期能力，
 其余默认全关。
 
-注意两种安装路径不同：手动拷目录时宿主不写任何授权，需要逐项勾；从 **Browse**
-一键安装时，宿主会把静态扫描出的能力**全部写入授权并自动启用**，与
-[设计文档 §5.1](../../docs/design/obsidian-plugins.md) 的「默认全关」口径不一致。
+注意两种安装路径都**不写任何授权**：手动拷目录和从 **Browse** 一键安装都需要
+逐项勾选，安装状态会提示「授权后重载」。早期版本的一键安装会自动全授权，与
+[设计文档 §5.1](../../docs/design/obsidian-plugins.md) 的「默认全关」不一致，
+2026-11-09 起已修正。
 ribbon、状态栏、视图都在 `onload()` 里注册，当时没授权就不会补回来，所以要么
 先勾授权再启用，要么勾完点一次 **Reload**。
+
+设置 ▸ **Community plugins** ▸ **Official library** 列出官方插件库；库内插件
+已安装时会在 **Installed** 页带 `Verified` 徽标，未通过能力契约的库内插件会被
+拒绝启用。外部兼容插件不在此保证范围内。
 
 `xinkgo-demo-full` 要跑完所有命令，需要勾选这 8 项：`vault.read`、`vault.write`、
 `editor.read`、`editor.write`、`network`、`events.app`、`ui`、`dom`。少勾一项时对应

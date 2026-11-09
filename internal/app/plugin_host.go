@@ -143,6 +143,9 @@ type pluginHost struct {
 	byPage         map[*mygo.Page]*pluginInstance
 	byHost         map[string]*pluginInstance
 	reports        map[string]plugin.Report
+	library        plugin.Library
+	libraryIDs     map[string]bool
+	contracts      map[string]plugin.ContractResult
 	saved          state.PluginState
 	snapshot       pluginStatePayload
 	revision       uint64
@@ -178,6 +181,8 @@ func newPluginHost(st *appState, dir, resources string,
 		byPage:        map[*mygo.Page]*pluginInstance{},
 		byHost:        map[string]*pluginInstance{},
 		reports:       map[string]plugin.Report{},
+		libraryIDs:    map[string]bool{},
+		contracts:     map[string]plugin.ContractResult{},
 		stats:         map[string]plugin.PluginStats{},
 		details:       map[string]plugin.PluginDetail{},
 		detailLoading: map[string]bool{},
@@ -203,6 +208,7 @@ func newPluginHost(st *appState, dir, resources string,
 		return nil, fmt.Errorf("register plugin scheme: %w", err)
 	}
 	h.refreshCompatible()
+	h.refreshLibrary()
 	h.refresh()
 	h.updateState()
 	return h, nil
@@ -211,8 +217,10 @@ func newPluginHost(st *appState, dir, resources string,
 // refresh rereads plugin packages and the compatibility list.
 func (h *pluginHost) refresh() {
 	reports, issues := h.discover()
+	contracts := h.scanContracts(reports)
 	h.mu.Lock()
 	h.reports = reports
+	h.contracts = contracts
 	installed := make([]plugin.Report, 0, len(reports)+len(issues))
 	for _, one := range reports {
 		installed = append(installed, one)
@@ -430,6 +438,12 @@ func (h *pluginHost) startEnabled() {
 // enable creates one isolated WebView for a plugin. The page is untrusted;
 // its identity comes from CallerPage, not from anything in the request.
 func (h *pluginHost) enable(id string, save bool) {
+	// A library plugin must pass the capability contract before any
+	// WebView is made for it. External (L2) plugins are not held to it.
+	if h.contractRefused(id) {
+		h.setStatus(locale.PluginStatus(locale.PluginContractRefused()))
+		return
+	}
 	if !mygo.WebViewAvailable() {
 		h.setStatus(locale.PluginStatus(locale.PluginNoWebView()))
 		return

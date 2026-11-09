@@ -1034,6 +1034,20 @@
   "settingsTabCommunityPlugins": "Community plugins",
   "settingsTabCommunityPluginsNote": "Install and manage Obsidian-compatible third-party plugins",
   "pluginTabCurated": "Curated compatible",
+  "pluginTabLibrary": "Official library",
+  "pluginLibraryNote": "Official library plugins are verified to run fully in Xinkgo. External plugins are not covered by this guarantee.",
+  "pluginLibraryVerified": "Verified",
+  "pluginLibraryFailed": "Contract failed",
+  "pluginLibraryInstalled": "Installed",
+  "pluginLibraryNotInstalled": "Not installed",
+  "pluginLibraryEmpty": "The official library is empty.",
+  "pluginContractRefused": "Official library plugin failed the capability contract and was not enabled.",
+  "pluginInstalledNeedsGrants": "installed {name}; grant capabilities then reload",
+  "@pluginInstalledNeedsGrants": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
   "pluginGroupBuiltin": "Xinkgo features",
   "pluginShowDetails": "Show details",
   "pluginHideDetails": "Hide details",

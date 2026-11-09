@@ -17,16 +17,18 @@ func testPluginHost(t *testing.T) *pluginHost {
 	dir := t.TempDir()
 	root := filepath.Join(dir, "vault")
 	return &pluginHost{
-		st:        &appState{root: root},
-		dir:       dir,
-		userDir:   filepath.Join(dir, "plugins"),
-		resources: filepath.Join(dir, "resources"),
-		root:      root,
-		assets:    map[string][]byte{},
-		instances: map[string]*pluginInstance{},
-		byPage:    map[*mygo.Page]*pluginInstance{},
-		byHost:    map[string]*pluginInstance{},
-		reports:   map[string]plugin.Report{},
+		st:         &appState{root: root},
+		dir:        dir,
+		userDir:    filepath.Join(dir, "plugins"),
+		resources:  filepath.Join(dir, "resources"),
+		root:       root,
+		assets:     map[string][]byte{},
+		instances:  map[string]*pluginInstance{},
+		byPage:     map[*mygo.Page]*pluginInstance{},
+		byHost:     map[string]*pluginInstance{},
+		reports:    map[string]plugin.Report{},
+		libraryIDs: map[string]bool{},
+		contracts:  map[string]plugin.ContractResult{},
 		ui: pluginUI{supportedOnly: true,
 			busy: map[string]bool{}},
 	}

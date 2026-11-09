@@ -78,16 +78,16 @@ cp -R examples/plugins/xinkgo-demo-full "$PLUGINS/"
 在 **Installed** 页打开插件开关，再展开卡片里的 **Grants** 勾选能力。
 `data`、`commands`、`notice` 是启用即有的生命周期能力，其余默认全关。
 
-两种安装路径的授权行为不同，注意区分：
+两种安装路径的授权行为现在一致：
 
 | 安装方式 | 授权行为 |
 | --- | --- |
 | 手动拷目录 / 改包内容 | 不写任何授权，**需要逐项勾选** |
-| Browse 一键安装 | 宿主把静态扫描出的能力**全部写入授权并自动启用** |
+| Browse 一键安装 | 同样不写授权，状态栏提示「授权后重载」 |
 
-一键安装自动全授权与设计文档
-[§5.1](design/obsidian-plugins.md) 的「默认全关」口径不一致，安装第三方插件时
-建议打开 Grants 复核一遍。
+早期版本的一键安装会自动授予扫描出的全部能力，与设计文档
+[§5.1](design/obsidian-plugins.md) 的「默认全关」不一致，2026-11-09 起已修正。
+安装后先勾 Grants 再 **Reload**，ribbon、状态栏和视图才会注册成功。
 
 两个示例建议这样勾：
 
@@ -110,6 +110,8 @@ cp -R examples/plugins/xinkgo-demo-full "$PLUGINS/"
 3. 状态栏出现 `Demo Basic: N runs` / `Demo Full: N runs`。
 4. **Installed** 页里插件状态是 enabled，等级显示 C2 / C3。
 5. 日志里出现 `msg="plugin console"` 且带 `id=<插件 id>` 的行。
+6. 设置 ▸ **Community plugins** ▸ **Official library** 里，两个 demo 都在清单中；
+   已安装的库内插件在 **Installed** 页带 `Verified` 徽标。
 
 启用瞬间还会弹一条 `Xinkgo Demo: ... loaded` 的 Notice。
 
@@ -192,6 +194,7 @@ level=INFO msg="plugin console" id=xinkgo-demo-full level=INFO text="Xinkgo Demo
 | 插件管理器显示 C0 / 不支持 | 目录名 ≠ `id`、缺必填字段、ESM 语法或没有 `module.exports` |
 | 插件状态 failed | 看日志里的 `error` 行，常见是 `onload()` 抛了未捕获异常 |
 | 状态栏计数一直是 0 | `saveData` 需要 `data`（启用即有）；检查日志里有没有 RPC 拒绝 |
+| 一键安装后 ribbon / 视图没出现 | 安装不再自动授权；勾完 Grants 后点 **Reload** |
 
 ## 边界
 

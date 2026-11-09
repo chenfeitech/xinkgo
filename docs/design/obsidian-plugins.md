@@ -135,10 +135,11 @@ MyGo 另外提供 `mygo.NewEvent[T]()`、`mygo.NewEphemeralSession()`、
 | 版本 | `apiVersion` 是“兼容档位”，不是 Xinkgo 的 `Version`；不改 `mygo.json` |
 | 失败策略 | 一个插件报错不阻断启动、不影响其它插件；错误进日志与管理器 |
 
-P0 的实际口径：手工放进插件目录的包默认没有任何额外授权；从“浏览”页
-一键安装已检查过的兼容插件时，会按安装时二次扫描的结果授予所需能力，
-用户仍可在管理器里逐项撤销。`network`、`vault.write` 等能力不会被静态
-扫描之外的代码隐式放大。
+P0 的实际口径：手工放进插件目录的包默认没有任何额外授权。从“浏览”页
+一键安装已检查过的兼容插件时，早期版本会按安装时二次扫描的结果授予所需
+能力；2026-11-09 的 P1 已改为**安装不写任何授权**，用户需在 Grants 里逐项
+勾选后 Reload，见 [xinkgo-plugin-library.md](xinkgo-plugin-library.md)。
+`network`、`vault.write` 等能力不会被静态扫描之外的代码隐式放大。
 
 ### 3.2 兼容性等级
 
