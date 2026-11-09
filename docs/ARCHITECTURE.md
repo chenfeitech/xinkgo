@@ -29,8 +29,9 @@
 | `internal/logging` | 配置 slog 的默认 logger | 业务日志之外的输出策略 |
 | `internal/sysinfo` | 版本与环境信息（纯数据） | 任何 I/O |
 | `internal/plugin` | Obsidian 插件 manifest、社区目录、能力扫描与兼容等级（纯数据） | 磁盘 I/O、窗口、依赖 `app` |
+| `internal/textfile` | 文本文件判类、内容嗅探、BOM/编码、源码围栏 | 写文件、画界面、依赖 `app`/`view` |
 | `internal/view/geom` | 几何：面板与编辑区宽度、留白、边距、换行列数、侧栏带 | 画东西、读 `ui.Context`；它是纯计算，可脱离窗口单测 |
-| 领域包 `vault` `note` `index` `search` `ai` `task` `skill` `sync` `snapshot` `markdown` `highlight` `datafile` `media` `wechat` `theme` `plugin` | 数据与算法：笔记、库、索引、模型、样式、插件报告 | 碰磁盘、弹对话框（那是 `internal/app` 的事） |
+| 领域包 `vault` `note` `index` `search` `ai` `task` `skill` `sync` `snapshot` `markdown` `highlight` `datafile` `media` `textfile` `wechat` `theme` `plugin` | 数据与算法：笔记、库、索引、模型、样式、文本判类、插件报告 | 写用户数据、弹对话框（那是 `internal/app` 的事）；`vault`/`note`/`search`/`textfile` 只读库内文件 |
 | 持久化 `config` `state` `secret` `fs` | 各管各的文件，见第 7 节 | 互相写对方的文件 |
 
 ## 2 启动时序

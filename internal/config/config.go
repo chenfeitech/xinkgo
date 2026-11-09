@@ -88,6 +88,15 @@ const (
 	MaxMarginRight     uint32 = 120
 )
 
+// How large a text file the editor will hold. A file of megabytes is not
+// a note, and reading all of it into a buffer on the main thread is no
+// way to find that out.
+const (
+	DefaultMaxTextFileBytes uint64 = 4 << 20
+	MinMaxTextFileBytes     uint64 = 1 << 20
+	MaxMaxTextFileBytes     uint64 = 64 << 20
+)
+
 // FontConfig is a font and how it is set.
 type FontConfig struct {
 	Family     string  `json:"family"`
@@ -139,10 +148,12 @@ type EditorConfig struct {
 	// over the preview, with the rail standing at that end of it. A line
 	// is broken short of it, and of what the editor's own bar and the
 	// rail's buttons stand in besides, whichever of the two is the wider.
-	MarginRight uint32            `json:"margin_right"`
-	Font        FontConfig        `json:"font"`
-	Keymap      map[string]string `json:"keymap"`
-	DataFile    DataFileConfig    `json:"data_file"`
+	MarginRight uint32 `json:"margin_right"`
+	// MaxTextFileBytes is the largest text file read into the editor.
+	MaxTextFileBytes uint64            `json:"max_text_file_bytes"`
+	Font             FontConfig        `json:"font"`
+	Keymap           map[string]string `json:"keymap"`
+	DataFile         DataFileConfig    `json:"data_file"`
 }
 
 // PreviewConfig is the Markdown preview's settings.
@@ -221,16 +232,17 @@ func Default() AppConfig {
 			ShowAllFiles: true,
 		},
 		Editor: EditorConfig{
-			AutoSave:        true,
-			AutoSaveDelayMs: 300,
-			Indent:          IndentConfig{UseTabs: false, TabSize: 4},
-			ShowLineNumbers: false,
-			SoftWrap:        true,
-			PaddingX:        DefaultPaddingX,
-			MarginRight:     DefaultMarginRight,
-			Font:            monoFont(),
-			Keymap:          map[string]string{},
-			DataFile:        DataFileConfig{Indent: 2, MaxFormatBytes: 1_000_000},
+			AutoSave:         true,
+			AutoSaveDelayMs:  300,
+			Indent:           IndentConfig{UseTabs: false, TabSize: 4},
+			ShowLineNumbers:  false,
+			SoftWrap:         true,
+			PaddingX:         DefaultPaddingX,
+			MarginRight:      DefaultMarginRight,
+			MaxTextFileBytes: DefaultMaxTextFileBytes,
+			Font:             monoFont(),
+			Keymap:           map[string]string{},
+			DataFile:         DataFileConfig{Indent: 2, MaxFormatBytes: 1_000_000},
 		},
 		Preview: PreviewConfig{
 			Font:              bodyFont(),
@@ -516,6 +528,8 @@ func (c *AppConfig) Sanitize() {
 	e.Indent.TabSize = clampU32(e.Indent.TabSize, 1, 16)
 	e.PaddingX = clampU32(e.PaddingX, MinPadding, MaxPadding)
 	e.MarginRight = minU32(e.MarginRight, MaxMarginRight)
+	e.MaxTextFileBytes = clampU64(e.MaxTextFileBytes,
+		MinMaxTextFileBytes, MaxMaxTextFileBytes)
 	e.Font.sanitize(monoFont())
 	// A key that is stored but would not be honoured is not stored.
 	keymap.Sanitize(e.Keymap)

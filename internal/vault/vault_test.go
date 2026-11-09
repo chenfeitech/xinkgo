@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/helightxu/xinkgo/internal/media"
 )
 
 // tree makes a vault with files the app opens and files it does not.
@@ -48,7 +50,7 @@ func names(e *Entry) []string {
 // every directory, and none of what is never shown.
 func TestScan_showsOnlyWhatTheAppOpens(t *testing.T) {
 	root := tree(t)
-	e, err := Scan(root, false)
+	e, err := Scan(root, false, 0)
 	if err != nil {
 		t.Fatalf("Scan: %v", err)
 	}
@@ -74,7 +76,7 @@ func TestScan_showsOnlyWhatTheAppOpens(t *testing.T) {
 // there too, but what is never shown is still not.
 func TestScan_showAllShowsEverything(t *testing.T) {
 	root := tree(t)
-	e, err := Scan(root, true)
+	e, err := Scan(root, true, 0)
 	if err != nil {
 		t.Fatalf("Scan: %v", err)
 	}
@@ -89,6 +91,49 @@ func TestScan_showAllShowsEverything(t *testing.T) {
 		"draft.md.tmp"} {
 		if got[unwanted] {
 			t.Errorf("%q should never be shown", unwanted)
+		}
+	}
+}
+
+// TestScan_aNameThatSaysNothingIsRead checks the files a name alone
+// cannot place: a Makefile and a LICENSE are text the editor can take,
+// and a file with NUL in it is not.
+func TestScan_aNameThatSaysNothingIsRead(t *testing.T) {
+	root := t.TempDir()
+	files := map[string][]byte{
+		"Makefile": []byte("all:\n\techo hi\n"),
+		"LICENSE":  []byte("MIT\n"),
+		"blob":     {'a', 0, 'b'},
+	}
+	for name, data := range files {
+		if err := os.WriteFile(filepath.Join(root, name), data,
+			0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	e, err := Scan(root, false, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := map[string]*Entry{}
+	for _, c := range e.Children {
+		got[c.Name] = c
+	}
+	if got["blob"] != nil {
+		t.Error("a binary file with no extension was shown")
+	}
+	for name, kind := range map[string]media.Kind{
+		"Makefile": media.KindCode,
+		"LICENSE":  media.KindText,
+	} {
+		one := got[name]
+		if one == nil {
+			t.Errorf("%q is not shown", name)
+			continue
+		}
+		if !one.Text || one.Kind != kind {
+			t.Errorf("%q is text=%v kind=%v, want text=true kind=%v",
+				name, one.Text, one.Kind, kind)
 		}
 	}
 }
@@ -109,7 +154,7 @@ func TestScan_directoriesFirstAndNamesInOrder(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	e, err := Scan(root, false)
+	e, err := Scan(root, false, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -136,7 +181,7 @@ func TestScan_fileInsteadOfDirectoryIsAnError(t *testing.T) {
 	if err := os.WriteFile(path, nil, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := Scan(path, false); err == nil {
+	if _, err := Scan(path, false, 0); err == nil {
 		t.Error("Scan of a file gave no error")
 	}
 }
@@ -144,7 +189,7 @@ func TestScan_fileInsteadOfDirectoryIsAnError(t *testing.T) {
 // TestFiles_listsEveryNote checks what the index and the search go
 // through.
 func TestFiles_listsEveryNote(t *testing.T) {
-	e, err := Scan(tree(t), false)
+	e, err := Scan(tree(t), false, 0)
 	if err != nil {
 		t.Fatal(err)
 	}

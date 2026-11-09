@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/helightxu/xinkgo/internal/locale"
+	"github.com/helightxu/xinkgo/internal/textfile"
 )
 
 // Kind is what a file is, which decides its icon and whether the app opens
@@ -30,6 +31,7 @@ const (
 	KindAudio
 	KindVideo
 	KindOther
+	KindText
 )
 
 // String is what the kind is called, as the file view heads a file with
@@ -56,6 +58,8 @@ func (k Kind) String() string {
 		return locale.MediaKindAudio()
 	case KindVideo:
 		return locale.MediaKindVideo()
+	case KindText:
+		return locale.MediaKindText()
 	default:
 		return locale.MediaKindOther()
 	}
@@ -76,8 +80,7 @@ var (
 		".7z": true, ".rar": true, ".tgz": true, ".zst": true,
 	}
 	spreadsheetExts = map[string]bool{
-		".csv": true, ".tsv": true, ".xls": true, ".xlsx": true,
-		".numbers": true,
+		".xls": true, ".xlsx": true, ".numbers": true,
 	}
 	audioExts = map[string]bool{
 		".mp3": true, ".wav": true, ".ogg": true, ".flac": true,
@@ -87,35 +90,23 @@ var (
 		".mp4": true, ".mov": true, ".mkv": true, ".webm": true,
 		".avi": true, ".m4v": true,
 	}
-	// codeExts are the files the editor highlights as source.
-	codeExts = map[string]string{
-		".go": "go", ".rs": "rust", ".py": "python", ".js": "javascript",
-		".ts": "typescript", ".tsx": "typescript", ".jsx": "javascript",
-		".c": "c", ".h": "c", ".cpp": "cpp", ".hpp": "cpp", ".java": "java",
-		".kt": "kotlin", ".swift": "swift", ".rb": "ruby", ".php": "php",
-		".sh": "shell", ".bash": "shell", ".zsh": "shell", ".lua": "lua",
-		".sql": "sql", ".css": "css", ".html": "html", ".xml": "xml",
-	}
 	// dataExts are the files the editor formats and checks.
 	dataExts = map[string]string{
 		".json": "json", ".yaml": "yaml", ".yml": "yaml", ".toml": "toml",
 	}
-	textExts = map[string]bool{
-		".md": true, ".markdown": true, ".txt": true, ".text": true,
-		".rtf": true, ".log": true, ".ini": true, ".cfg": true, ".conf": true,
-	}
 )
 
-// KindOf says what the file at path is, by its extension.
+// KindOf says what the file at path is, by its name. A name that says
+// nothing is left to the content of the file, which the tree records on
+// the entry when it scans.
 func KindOf(path string) Kind {
 	name := filepath.Base(path)
 	if name == AIDirName {
 		return KindDir
 	}
 	ext := strings.ToLower(filepath.Ext(name))
+	info, known := textfile.ByName(path)
 	switch {
-	case ext == "":
-		return KindOther
 	case ext == ".md" || ext == ".markdown":
 		return KindMarkdown
 	case imageExts[ext]:
@@ -124,8 +115,10 @@ func KindOf(path string) Kind {
 		return KindPDF
 	case dataExts[ext] != "":
 		return KindData
-	case codeExts[ext] != "":
+	case known && info.Text && info.Language != "":
 		return KindCode
+	case known && info.Text:
+		return KindText
 	case archiveExts[ext]:
 		return KindArchive
 	case spreadsheetExts[ext]:
@@ -151,11 +144,12 @@ func IsPDF(path string) bool {
 	return strings.ToLower(filepath.Ext(path)) == ".pdf"
 }
 
-// IsEditableText reports whether the app opens the file in the editor:
-// Markdown, plain text, and the data files it can check.
+// IsEditableText reports whether the name alone says the app opens the
+// file in the editor. A name that says nothing is classified when the
+// file is opened, or by the tree when it filters what it shows.
 func IsEditableText(path string) bool {
-	ext := strings.ToLower(filepath.Ext(path))
-	return textExts[ext] || dataExts[ext] != "" || codeExts[ext] != ""
+	info, _ := textfile.ByName(path)
+	return info.Text
 }
 
 // IsMarkdown reports whether the file is a note.
@@ -164,20 +158,11 @@ func IsMarkdown(path string) bool {
 	return ext == ".md" || ext == ".markdown"
 }
 
-// Language is the language the editor highlights the file as: "markdown",
-// "json", "go", and so on; "" when it is plain text.
+// Language is the language the editor highlights the file as, or "" when
+// it is plain text. The names are MyGo's, so a fenced code block asks for
+// the same tokenizer as the editor.
 func Language(path string) string {
-	ext := strings.ToLower(filepath.Ext(path))
-	if l, ok := dataExts[ext]; ok {
-		return l
-	}
-	if l, ok := codeExts[ext]; ok {
-		return l
-	}
-	if IsMarkdown(path) {
-		return "markdown"
-	}
-	return ""
+	return textfile.Language(path)
 }
 
 // IsAIDir reports whether name is the directory the AI keeps to itself,

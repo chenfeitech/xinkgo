@@ -2580,6 +2580,26 @@ func (msgs Messages) FileNotUsable() string {
 	return Catalog.Format(msgs.locale, "fileNotUsable", nil)
 }
 
+// FileTooLargeToEdit says "this file is too large to edit here"
+// in the language the app shows.
+func FileTooLargeToEdit() string { return In(i18n.Locale()).FileTooLargeToEdit() }
+
+// FileTooLargeToEdit says "this file is too large to edit here"
+// in the language of msgs.
+func (msgs Messages) FileTooLargeToEdit() string {
+	return Catalog.Format(msgs.locale, "fileTooLargeToEdit", nil)
+}
+
+// FileEncodingUnsupported says "this file's encoding is not supported"
+// in the language the app shows.
+func FileEncodingUnsupported() string { return In(i18n.Locale()).FileEncodingUnsupported() }
+
+// FileEncodingUnsupported says "this file's encoding is not supported"
+// in the language of msgs.
+func (msgs Messages) FileEncodingUnsupported() string {
+	return Catalog.Format(msgs.locale, "fileEncodingUnsupported", nil)
+}
+
 // ShownNotEdited says "· shown, not edited"
 // in the language the app shows.
 func ShownNotEdited() string { return In(i18n.Locale()).ShownNotEdited() }
@@ -2588,6 +2608,16 @@ func ShownNotEdited() string { return In(i18n.Locale()).ShownNotEdited() }
 // in the language of msgs.
 func (msgs Messages) ShownNotEdited() string {
 	return Catalog.Format(msgs.locale, "shownNotEdited", nil)
+}
+
+// TextFileShownAsSource says "· shown as source, not rendered"
+// in the language the app shows.
+func TextFileShownAsSource() string { return In(i18n.Locale()).TextFileShownAsSource() }
+
+// TextFileShownAsSource says "· shown as source, not rendered"
+// in the language of msgs.
+func (msgs Messages) TextFileShownAsSource() string {
+	return Catalog.Format(msgs.locale, "textFileShownAsSource", nil)
 }
 
 // SayFileNotOpened says "the file could not be opened by the machine"
@@ -5728,6 +5758,16 @@ func MediaKindOther() string { return In(i18n.Locale()).MediaKindOther() }
 // in the language of msgs.
 func (msgs Messages) MediaKindOther() string {
 	return Catalog.Format(msgs.locale, "mediaKindOther", nil)
+}
+
+// MediaKindText says "Text"
+// in the language the app shows.
+func MediaKindText() string { return In(i18n.Locale()).MediaKindText() }
+
+// MediaKindText says "Text"
+// in the language of msgs.
+func (msgs Messages) MediaKindText() string {
+	return Catalog.Format(msgs.locale, "mediaKindText", nil)
 }
 
 // FormatBold says "B"

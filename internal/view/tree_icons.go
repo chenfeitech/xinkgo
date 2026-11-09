@@ -54,7 +54,11 @@ func iconOf(e *vault.Entry, open bool) *ui.SVG {
 		}
 		return iconFolder
 	}
-	switch media.KindOf(e.Path) {
+	kind := e.Kind
+	if kind == media.KindDir {
+		kind = media.KindOf(e.Path)
+	}
+	switch kind {
 	case media.KindMarkdown:
 		return iconFileText
 	case media.KindImage:
@@ -63,6 +67,8 @@ func iconOf(e *vault.Entry, open bool) *ui.SVG {
 		return iconFileText
 	case media.KindCode:
 		return iconCode
+	case media.KindText:
+		return iconFileText
 	case media.KindData:
 		return iconDatabase
 	case media.KindArchive:

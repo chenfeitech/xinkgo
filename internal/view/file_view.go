@@ -9,6 +9,7 @@ import (
 	"github.com/egoist/mygo/ui"
 	"github.com/helightxu/xinkgo/internal/locale"
 	"github.com/helightxu/xinkgo/internal/media"
+	"github.com/helightxu/xinkgo/internal/textfile"
 	"github.com/helightxu/xinkgo/internal/vault"
 )
 
@@ -163,6 +164,10 @@ func (w *Workspace) sayOfFile(n *OpenNote) string {
 	switch {
 	case media.IsPDF(n.Path):
 		return locale.PdfPreviewed()
+	case n.Info.Reason == textfile.ReasonTooLarge:
+		return locale.FileTooLargeToEdit()
+	case n.Info.Reason == textfile.ReasonEncoding:
+		return locale.FileEncodingUnsupported()
 	default:
 		return locale.FileNotUsable()
 	}

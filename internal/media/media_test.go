@@ -12,16 +12,26 @@ func TestKindOf(t *testing.T) {
 		"a.markdown":  KindMarkdown,
 		"a.png":       KindImage,
 		"a.JPG":       KindImage, // the case of the extension says nothing
+		"a.svg":       KindImage,
 		"main.go":     KindCode,
+		"a.html":      KindCode,
+		"a.js":        KindCode,
+		"a.css":       KindCode,
+		"a.scss":      KindCode,
+		"App.vue":     KindCode,
 		"a.json":      KindData,
 		"a.yaml":      KindData,
 		"a.toml":      KindData,
 		"a.zip":       KindArchive,
-		"a.csv":       KindSpreadsheet,
+		"a.csv":       KindText,
+		"a.txt":       KindText,
+		".env":        KindText,
+		"LICENSE":     KindText,
+		"Makefile":    KindCode,
+		"a.xlsx":      KindSpreadsheet,
 		"a.mp3":       KindAudio,
 		"a.mp4":       KindVideo,
 		"a.unknown":   KindOther,
-		"Makefile":    KindOther,
 		"notes/.xink": KindDir,
 	}
 	for path, want := range cases {
@@ -34,13 +44,16 @@ func TestKindOf(t *testing.T) {
 // TestIsEditableText checks what the app opens in the editor.
 func TestIsEditableText(t *testing.T) {
 	editable := []string{"a.md", "a.txt", "a.json", "a.yml", "a.toml",
-		"main.go", "a.rs"}
+		"main.go", "a.rs", "a.html", "a.js", "a.css", "a.scss",
+		"App.vue", "a.mjs", "Makefile", "Dockerfile", "LICENSE",
+		".env", ".gitignore", "a.csv"}
 	for _, path := range editable {
 		if !IsEditableText(path) {
 			t.Errorf("%q should be editable", path)
 		}
 	}
-	notEditable := []string{"a.png", "a.zip", "a.mp4", "a.unknown"}
+	notEditable := []string{"a.png", "a.svg", "a.zip", "a.mp4",
+		"a.xlsx", "a.unknown"}
 	for _, path := range notEditable {
 		if IsEditableText(path) {
 			t.Errorf("%q should not be editable", path)
@@ -74,7 +87,16 @@ func TestLanguage(t *testing.T) {
 		"a.toml":     "toml",
 		"main.go":    "go",
 		"a.rs":       "rust",
+		"a.html":     "html",
+		"a.js":       "javascript",
+		"a.mjs":      "javascript",
+		"a.css":      "css",
+		"a.scss":     "css",
+		"App.vue":    "html",
+		"Makefile":   "makefile",
+		"Dockerfile": "dockerfile",
 		"a.txt":      "",
+		".env":       "",
 		"a.unknown":  "",
 	}
 	for path, want := range cases {
@@ -106,6 +128,9 @@ func TestKind_string(t *testing.T) {
 	if KindMarkdown.String() != "Markdown" || KindDir.String() != "Folder" {
 		t.Errorf("kinds are named %q and %q", KindMarkdown, KindDir)
 	}
+	if KindText.String() != "Text" {
+		t.Errorf("a text file is named %q, want Text", KindText)
+	}
 }
 
 // TestKindOf_aPdfIsAKindOfItsOwn checks the file the app has no renderer
@@ -128,14 +153,16 @@ func TestKindOf_aPdfIsAKindOfItsOwn(t *testing.T) {
 // files of data, and none of the pictures, the PDFs or the archives.
 func TestIsEditableText_whatTheEditorIsFor(t *testing.T) {
 	editable := []string{"a.md", "a.markdown", "a.txt", "a.log",
-		"a.json", "a.yaml", "a.toml", "a.go", "a.py"}
+		"a.json", "a.yaml", "a.toml", "a.go", "a.py", "a.html",
+		"a.js", "a.css", "a.scss", "a.vue", "a.mjs", "Makefile",
+		"Dockerfile", "LICENSE", ".env", ".gitignore", "a.csv"}
 	for _, name := range editable {
 		if !IsEditableText(name) {
 			t.Errorf("%v is not opened in the editor", name)
 		}
 	}
 	shown := []string{"a.png", "a.jpg", "a.svg", "a.pdf", "a.zip",
-		"a.mp4", "a.mp3", "a.xlsx"}
+		"a.mp4", "a.mp3", "a.xlsx", "a.wasm"}
 	for _, name := range shown {
 		if IsEditableText(name) {
 			t.Errorf("%v was opened in the editor", name)

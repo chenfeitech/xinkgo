@@ -43,7 +43,8 @@ func (s *appState) syncVaults() {
 
 // openVault makes the folder at path the vault that is open.
 func (s *appState) openVault(path string) error {
-	root, err := vault.Scan(path, s.config.Basic.ShowAllFiles)
+	root, err := vault.Scan(path, s.config.Basic.ShowAllFiles,
+		s.config.Editor.MaxTextFileBytes)
 	if err != nil {
 		return err
 	}

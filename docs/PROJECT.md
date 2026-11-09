@@ -69,7 +69,7 @@ xinkgo/
 │   ├── 领域与数据（不碰磁盘、不弹对话框）
 │   │   ├── vault/ note/ index/ search/      库、笔记、双链索引、全文搜索
 │   │   ├── ai/ task/ skill/ sync/ snapshot/  模型、任务、技能、滚动锚点、改前快照
-│   │   ├── markdown/ highlight/ datafile/ media/   正文、代码着色、数据文件、图片
+│   │   ├── markdown/ highlight/ datafile/ media/ textfile/   正文、代码着色、数据文件、图片、文本文件判定
 │   │   └── wechat/ export/ theme/            公众号排版、导出、配色方案
 │   │   └── plugin/                           Obsidian 插件 manifest / 能力扫描 / 兼容清单（纯数据）
 │   ├── 持久化（各管各的文件，见 ARCHITECTURE.md 第 7 节）

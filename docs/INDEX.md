@@ -20,6 +20,7 @@
 | [design/obsidian-plugins.md](design/obsidian-plugins.md) | **Obsidian 插件兼容（P0 spike 已实现）**：机制调研、兼容边界、非信任 WebView 宿主、API 映射与分阶段路线 | 做插件兼容前 |
 | [design/obsidian-core-plugins.md](design/obsidian-core-plugins.md) | **Obsidian 核心插件对照**：内置能力映射、下载榜前 20、Core 兼容插件与后续路线 | 规划核心插件前 |
 | [design/daily-notes-templates.md](design/daily-notes-templates.md) | **Daily notes / Templates / Web viewer 内置核心插件（v1 已实现）**：三者功能与设置页、插件机制改造、WebView 安全边界、数据模型与实现偏差 | 改这三个核心插件前 |
+| [design/text-files.md](design/text-files.md) | **全文本文件编辑与源码预览（v1 已实现）**：`internal/textfile` 判类、内容嗅探、BOM/编码、源码围栏、工具栏/预览/导出边界 | 加文本类型或改源码预览前 |
 | [../examples/plugins/README.md](../examples/plugins/README.md) | **两个插件示例**：基础能力（C2）与全力支持能力全集（C3）的安装、授权、命令清单、视图入口，以及「不写进插件的能力」准入清单 | 写插件、验证插件机制前 |
 | [plugin-demos.md](plugin-demos.md) | **插件示例使用手册**：要不要编译、两种安装路径的授权差异、逐条命令预期、日志位置与排错清单 | 安装或试用两个 demo 前 |
 | [plugin-development.md](plugin-development.md) | **插件开发指南**：能力准入与黑名单、包结构与 manifest、CommonJS 加载链路、真实能力的 API 映射、CSS 与资源、调试发布；以两个 demo 逐段作案例 | 写插件前 |
@@ -48,12 +49,16 @@
 - **多主题**：完成（2026-11-02）。`internal/theme` 五套方案（xink / ocean /
   moss / plum / sepia），明暗与方案两个设置项，设置里色卡即点即换，代码预设跟随。
   设计见 [design/themes.md](design/themes.md)，验收项 F1 ~ F4。
+- **全文本文件编辑与源码预览**：完成（2026-11-09）。HTML/JS/CSS 等沿用 MyGo
+  语言表高亮，Makefile 等无后缀文件按内容识别；非 Markdown 文本按源码围栏预览，
+  BOM/UTF-16 与大小上限有保护。设计见
+  [design/text-files.md](design/text-files.md)，验收项 C10 ~ C13。
 - **P2（R-10，AI）**：主体完成。Provider 抽象（Ollama native + OpenAI 兼容）、
   流式事件解析、对话条、会话持久化、AI 修订逐块接受、只读工具集与 agent loop、
   Skills、模型能力清单与探针、批量标签任务、改前快照与取回、模型列表克隆与排序、
   AI 旋钮（超时 / 重试 / 步数 / 上下文 / 输出语言）、AI 动作（命令面板 · 整篇与选区 ·
   一律走评审）。验收项 D1 ~ D16。
-- 门禁：`scripts/check.sh` 全绿 —— 27 个包的单测通过，darwin/arm64、
+- 门禁：`scripts/check.sh` 全绿 —— 全部包的单测通过，darwin/arm64、
   darwin/amd64、windows/amd64、windows/arm64、linux/amd64 全部编译通过。
 
 - **编辑区右边距（可配置）**：完成。`config.editor.margin_right`，默认 0、范围
