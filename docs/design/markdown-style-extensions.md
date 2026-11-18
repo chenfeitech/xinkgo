@@ -1,14 +1,19 @@
-# Markdown 行内样式扩展调研（MyGo 0.8.3 基线）
+# Markdown 行内样式扩展调研（MyGo 0.10.0 基线）
 
-日期：2026-11-10。状态：**调研结论，未实现**。基线：Xinkgo 0.1.2 + MyGo v0.8.3
-（[升级评估](mygo-0.8.3-upgrade.md)）。问题：现有 Markdown 能否支持背景色、
-字体颜色、临时字体大小等扩展语法。
+日期：2026-11-10，2026-11-18 按 0.10.0 复核。状态：**调研结论，未实现**。
+基线：Xinkgo 0.1.2 + MyGo v0.10.0（[0.8.3 升级评估](mygo-0.8.3-upgrade.md)、
+[0.10.0 升级评估](mygo-0.10.0-upgrade.md)）。问题：现有 Markdown 能否支持
+背景色、字体颜色、临时字体大小等扩展语法。
 
 ## 1 结论先行
 
-**目前不能完好支持，升级到 0.8.3 也没有改变这一点。** 渲染器的底层样式字段
+**目前不能完好支持，升级到 0.8.3、再到 0.10.0 都没有改变这一点。** 渲染器的底层样式字段
 是齐的，但「语法 → 样式节点」这一段缺失；导出链会透传 raw HTML，预览链不会，
 因此用 HTML 属性写出来的样式只会造成预览与导出不一致。
+
+2026-11-18 复核：0.10.0 的 `parser.Extensions`（含 `Default`）、
+`spanStyle` 字段与 `inlineHTML` 标签白名单逐项对比，与 0.8.3 **完全一致**；
+下文的实测结论在 0.10.0 上继续成立。
 
 | 需求 | 预览（原生 UI） | 导出 HTML / 公众号 | 一致性 |
 | --- | --- | --- | --- |
@@ -38,7 +43,7 @@ Xinkgo 的预览选项在 [internal/view/apply.go](../../internal/view/apply.go)
 [internal/markdown/format.go](../../internal/markdown/format.go)：粗体、斜体、
 删除线、行内代码、标题、列表、引用、代码块、链接、图片、表格、分隔线，共 13 种。
 
-## 3 实测证据（MyGo 0.8.3）
+## 3 实测证据（MyGo 0.8.3，0.10.0 复核一致）
 
 用 `parser.Parse` 与 `ui.NewTester(markdown.View)` 跑同一段文本：
 
@@ -67,7 +72,7 @@ HasText("styled")=true       HasText("marked")=true
 HasText("==highlight==")=true                          ← 无高亮扩展
 ```
 
-原因在上游 `spans.go`（0.8.3）：
+原因在上游 `spans.go`（0.8.3 与 0.10.0 同）：
 
 - `inlineHTML()` 只认白名单标签
   `br, b, strong, i, em, u, ins, s, del, strike, code, kbd, samp, mark, sub, sup, small`；
@@ -79,7 +84,7 @@ HasText("==highlight==")=true                          ← 无高亮扩展
   autolinks / footnotes / math / dollar math / **alerts / mentions / references**），
   **没有自定义扩展注册点，也没有高亮或属性语法**。
 - `markdown.Options` 有 `Block`、`HTML`、`InlineMath`、`CodeBlock`、
-  `Resolve`（0.8.3 新增，给 @mention / #reference 解析链接）等钩子，
+  `Resolve`（0.8.3 新增、0.10.0 保留，给 @mention / #reference 解析链接）等钩子，
   但**没有通用行内 span 钩子**；`Block` 是块级，只能整块替换。
 - `spanStyle` 字段全部未导出，Xinkgo 无法从包外设置颜色或字号。
 
@@ -97,7 +102,7 @@ HasText("==highlight==")=true                          ← 无高亮扩展
 | D | 推动上游 MyGo 增加扩展：新 Inline 节点 + 把样式落到 `spanStyle`（或让 `inlineHTML` 解析有限的 `style` 属性） | 预览 + 导出 + 公众号 | 中（依赖升级 + Xinkgo 三处适配） | 一致 | **推荐的中长期路径** |
 | E | 把 `ui/markdown` fork 进仓库改造 | 全链路 | 高：长期与上游同步 | 一致 | 维护负担重，不推荐 |
 
-0.8.3 新增的 `Options.Resolve` 行内钩子是个积极信号：上游愿意扩展 `Options`，
+0.8.3 新增、0.10.0 保留的 `Options.Resolve` 行内钩子是个积极信号：上游愿意扩展 `Options`，
 向 MyGo 提「可设置 `spanStyle` 的行内节点 + 受限属性白名单」时可以沿用这个模式。
 
 ## 5 建议的语法与落地顺序
@@ -132,16 +137,17 @@ HasText("==highlight==")=true                          ← 无高亮扩展
   透传面，扩展语法必须用受限属性白名单。
 - 不做「编辑器里实时着色」：源码视图由 `ui/editor` 的语法高亮负责，富文本
   样式只在预览出现，这是 Xinkgo 的双视图模型决定的。
-- 0.8.3 默认新增了 alerts / mentions / references，预览外观已有变化；
+- 0.8.3 起默认启用了 alerts / mentions / references（0.10.0 仍是默认），预览外观已有变化；
   行内样式扩展要避开 `#123` 式的属性写法，别和 reference 语法打架。
 
 ## 7 参考
 
-- 上游 `mygo v0.8.3`：`ui/markdown/parser/document.go`（`Extensions` / `Default`）、
+- 上游 `mygo v0.10.0`（0.8.3 同）：`ui/markdown/parser/document.go`（`Extensions` / `Default`）、
   `parser/inline.go`（`InlineKind`）、`parser/html.go`（`HTML()`）、
   `spans.go`（`spanStyle` / `inlineHTML` / `htmlStyle`）、`theme.go`（`Theme.Mark`）、
   `view.go`（`Options`，含 `Resolve`）
 - [mygo-0.8.3-upgrade.md](mygo-0.8.3-upgrade.md)：升级评估与行为变化
+- [mygo-0.10.0-upgrade.md](mygo-0.10.0-upgrade.md)：当前依赖基线的升级评估
 - [../../internal/view/preview.go](../../internal/view/preview.go)：预览调用点
 - [../../internal/export/export.go](../../internal/export/export.go)：HTML / PDF 页面
 - [../../internal/wechat/style.go](../../internal/wechat/style.go)：`styled()` / `withStyle()`
